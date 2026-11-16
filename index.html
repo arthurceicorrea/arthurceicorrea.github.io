@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-IVWBEP2nM5WLum0C3moDlkcQiEkJBalr/zN8QVPU4G4='; script-src 'sha256-/E4FjtDgLpuUUeM6jgSqHZwo1SG7WHQZ6/nigJXoG4o='; font-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<!--
+  PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
+
+  Arquivos esperados ao lado deste index.html:
+    fonts/cinzel-400.woff2
+    fonts/cinzel-500.woff2
+    fonts/eb-garamond-400.woff2
+    fonts/eb-garamond-400-italic.woff2
+    cv/arthur-cei-correa-cv-pt.pdf
+    cv/arthur-cei-correa-cv-en.pdf
+    cv/arthur-cei-correa-cv-es.pdf
+    cv/arthur-cei-correa-cv-it.pdf
+
+  Idiomas: o conteúdo existe quatro vezes dentro do elemento main, um bloco por idioma
+  (lang="pt-BR", "en", "es", "it"). O CSS mostra apenas o bloco cujo lang coincide
+  com o do elemento html; o script só escolhe o idioma e atualiza esse atributo.
+  Sem JavaScript, a página aparece em inglês.
+
+  Política de segurança (CSP): os dois valores sha256 da meta tag acima correspondem
+  ao conteúdo exato do bloco de estilos e do bloco de script (tudo o que está entre a
+  etiqueta de abertura e a de fechamento, inclusive espaços e quebras de linha).
+  Editar o texto do corpo da página não exige nada. Se alterar os estilos ou o script,
+  recalcule o hash respectivo: o console do Chrome ou do Edge mostra o valor esperado
+  na mensagem de bloqueio; basta colá-lo na meta tag.
+  Se o domínio passar pela Cloudflare, desligue Email Obfuscation, Rocket Loader e
+  Auto Minify, pois reescrevem o HTML e invalidam os hashes.
+  A diretiva frame-ancestors não funciona em meta tag; se a hospedagem permitir
+  cabeçalhos HTTP, acrescente lá: Content-Security-Policy: frame-ancestors 'none'.
+
+  Publicado em https://arthurceicorrea.github.io/ (repositório arthurceicorrea/arthurceicorrea.github.io).
+-->
+<title>Arthur Cei Corrêa — DevOps, applied AI and security</title>
+<meta name="description" content="Portfolio of Arthur Cei Corrêa, a Software Engineering student at FIAP focused on DevOps, applied AI and security. Projects, skills and CV.">
+<meta name="author" content="Arthur Cei Corrêa">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14181E">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Arthur Cei Corrêa">
+<meta property="og:title" content="Arthur Cei Corrêa — DevOps, applied AI and security">
+<meta property="og:description" content="Software Engineering student at FIAP focused on DevOps, applied AI and security. Projects, skills and CV in Portuguese, English, Spanish and Italian.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="profile:first_name" content="Arthur">
+<meta property="profile:last_name" content="Cei Corrêa">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://arthurceicorrea.github.io/">
+<meta property="og:url" content="https://arthurceicorrea.github.io/">
+<meta property="og:image" content="https://arthurceicorrea.github.io/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sapientis est ordinare — Arthur Cei Corrêa: DevOps, applied AI, security">
+<meta name="twitter:image" content="https://arthurceicorrea.github.io/og.png">
+<link rel="alternate" hreflang="pt-BR" href="https://arthurceicorrea.github.io/?lang=pt">
+<link rel="alternate" hreflang="en" href="https://arthurceicorrea.github.io/?lang=en">
+<link rel="alternate" hreflang="es" href="https://arthurceicorrea.github.io/?lang=es">
+<link rel="alternate" hreflang="it" href="https://arthurceicorrea.github.io/?lang=it">
+<link rel="alternate" hreflang="x-default" href="https://arthurceicorrea.github.io/">
+<!-- Se passar a usar domínio próprio, troque https://arthurceicorrea.github.io/ pelo novo endereço nas linhas acima. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2314181E'/%3E%3Cpath fill='%23B8935A' fill-rule='evenodd' d='M32 12 50 52h-7l-3.6-9H24.6L21 52h-7zM32 24l-5 13h10z'/%3E%3C/svg%3E">
+<style>
+/* ---- Fontes locais: arquivos .woff2 na pasta fonts/ ---- */
+@font-face{font-family:"Cinzel";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/cinzel-400.woff2") format("woff2")}
+@font-face{font-family:"Cinzel";font-style:normal;font-weight:500;font-display:swap;src:url("fonts/cinzel-500.woff2") format("woff2")}
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/eb-garamond-400.woff2") format("woff2")}
+@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url("fonts/eb-garamond-400-italic.woff2") format("woff2")}
+
+/* ---- Paleta e tipos herdados da capa do LinkedIn (Versão A) ---- */
+:root{
+  --bg:#14181E;
+  --gold:#B8935A;      /* títulos grandes e detalhes: contraste 6,24:1 sobre o fundo (AA) */
+  --gold-text:#C9A26B; /* dourado em texto pequeno ou corrido e em links: 7,52:1 (AAA) */
+  --gold-hi:#E0BE8A;   /* hover, foco e idioma ativo: 10,09:1 */
+  --text:#D3DAE2;      /* texto: 12,63:1 */
+  --muted:#9AA6B2;     /* atribuição, rótulos e datas: 7,18:1 */
+  --rule:#3A424D;      /* filetes, apenas decorativos: 1,75:1 */
+  --cinzel:"Cinzel","Trajan Pro","Times New Roman",serif;
+  --garamond:"EB Garamond",Garamond,"Adobe Garamond Pro",Georgia,"Times New Roman",serif;
+  --measure:40rem;
+  --edge:clamp(1.25rem,5vw,3rem);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:400 clamp(1.1875rem,1.1rem + .4vw,1.25rem)/1.55 var(--garamond)}
+h1,h2,h3,p,dl,dd,ul,figure,blockquote{margin:0;padding:0}
+h1,h2,h3{font-weight:400}
+ul{list-style:none}
+::selection{background:var(--gold);color:var(--bg)}
+a{color:var(--gold-text);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:1px;text-underline-offset:.2em;overflow-wrap:anywhere;transition:color .15s ease,background-color .15s ease}
+a:hover{color:var(--gold-hi)}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+main:focus,main:focus-visible{outline:none}
+
+/* ---- Idiomas: só aparece o bloco cujo lang coincide com o do elemento html ---- */
+html:not([lang="pt-BR"]) .t[lang="pt-BR"],
+html:not([lang="en"]) .t[lang="en"],
+html:not([lang="es"]) .t[lang="es"],
+html:not([lang="it"]) .t[lang="it"]{display:none!important}
+
+/* ---- Utilitários ---- */
+.vh{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.wrap{max-width:64rem;margin-inline:auto;padding-inline:var(--edge)}
+.skip{position:absolute;top:-5rem;left:var(--edge);z-index:1;padding:.7rem 1rem;background:var(--gold);color:var(--bg);font:500 .8125rem/1.2 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
+.skip:hover{color:var(--bg)}
+.skip:focus{top:.75rem}
+
+/* ---- Seletor de idioma (só aparece com JavaScript, que é quem o faz funcionar) ---- */
+.top{display:flex;justify-content:flex-end;min-height:4.25rem;padding-block:.75rem}
+.langs{display:none}
+.js .langs{display:block}
+.langs ul{display:flex;margin-right:-.7rem}
+.langs li{display:flex;align-items:center}
+.langs li+li::before{content:"\00B7";content:"\00B7" / "";color:var(--gold);font:500 .8125rem/1 var(--cinzel)}
+.langs a{display:inline-flex;align-items:center;justify-content:center;min-width:2.75rem;min-height:2.75rem;padding-left:.16em;color:var(--muted);font:500 .8125rem/1 var(--cinzel);letter-spacing:.16em;text-decoration:none}
+.langs a:hover{color:var(--gold-hi)}
+html[lang="pt-BR"] .langs [data-lang="pt"],
+html[lang="en"] .langs [data-lang="en"],
+html[lang="es"] .langs [data-lang="es"],
+html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
+
+/* ---- Hero: alinhado à direita, como na capa ---- */
+.hero{padding-block:clamp(3rem,11vh,7rem) clamp(3.25rem,10vh,6.5rem);text-align:right}
+/* margens negativas: anulam o espaço que o letter-spacing deixa depois da última letra */
+.motto blockquote p{margin-right:-.11em;color:var(--gold);font:400 clamp(1.75rem,1rem + 2.6vw,2.75rem)/1.15 var(--cinzel);letter-spacing:.11em;text-transform:uppercase}
+.motto blockquote span{white-space:nowrap}
+.motto .tr{margin-top:.55em;font-size:clamp(1.375rem,1.15rem + .9vw,1.75rem);font-style:italic;line-height:1.25;text-wrap:balance}
+.motto figcaption{margin:.75rem -.18em 0 0;color:var(--muted);font:400 clamp(.875rem,.82rem + .2vw,.9375rem)/1.5 var(--cinzel);letter-spacing:.18em;text-transform:uppercase}
+.craft{position:relative;overflow:hidden;margin-top:1.5rem;padding-top:1.35rem;color:var(--gold-text);font:500 clamp(.875rem,.8rem + .35vw,1.0625rem)/1.7 var(--cinzel);letter-spacing:.23em;text-transform:uppercase}
+.craft::before{content:"";position:absolute;top:0;right:0;width:3.5rem;height:1px;background:var(--rule)}
+/* os pontos ficam entre os itens; o do fim de cada linha cai fora da área visível */
+.craft ul{display:flex;flex-wrap:wrap;justify-content:flex-end;margin-right:-2.13em}
+.craft li{position:relative;padding-right:1.9em;white-space:nowrap}
+.craft li::after{content:"\00B7";content:"\00B7" / "";position:absolute;right:.93em;letter-spacing:0}
+
+/* ---- Corpo: coluna ancorada na mesma margem direita do hero ---- */
+.sec{max-width:var(--measure);margin-left:auto}
+.sec+.sec{margin-top:clamp(3.25rem,7vw,5rem)}
+.sec h2{position:relative;margin-bottom:1.1rem;padding-top:1.05rem;color:var(--gold-text);font:400 1rem/1.45 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-wrap:balance}
+.sec h2::before{content:"";position:absolute;top:0;left:0;width:3.5rem;height:1px;background:var(--rule)}
+.body>*+*{margin-top:1rem}
+
+h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinzel);letter-spacing:.1em;text-transform:uppercase;text-wrap:balance}
+.intro h1+p{margin-top:1.1rem}
+.aside{font-style:italic}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.75rem;margin-top:1.75rem}
+.btn{display:inline-flex;align-items:center;min-height:2.75rem;padding:.7rem 1.4rem .7rem calc(1.4rem + .16em);border:1px solid var(--gold);color:var(--gold-hi);font:500 .8125rem/1.3 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-decoration:none}
+.btn:hover{background:var(--gold);color:var(--bg)}
+
+.entry+.entry{margin-top:2.4rem}
+.entry h3{font-size:1.22em;line-height:1.25;text-wrap:balance}
+.meta{margin-top:.15rem;color:var(--muted);font-style:italic}
+.entry p:not(.meta),.entry .facts{margin-top:.8rem}
+.facts{display:grid;grid-template-columns:minmax(0,1fr)}
+.facts dt{color:var(--muted);font-style:italic}
+.facts dd+dt{margin-top:.7rem}
+/* pares curtos (idiomas): rótulo e valor lado a lado também no celular */
+.facts.pair{grid-template-columns:7.5rem minmax(0,1fr);gap:.35rem 1.25rem}
+.facts.pair dd+dt{margin-top:0}
+.note{color:var(--muted);font-style:italic}
+
+.foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 3rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
+
+@media (min-width:36rem){
+  .facts,.facts.pair{grid-template-columns:9rem minmax(0,1fr);gap:.6rem 1.5rem}
+  .facts dd+dt{margin-top:0}
+}
+
+/* telas largas: os títulos das seções pendem para a margem livre, alinhados à direita */
+@media (min-width:62rem){
+  .sec{display:grid;grid-template-columns:minmax(0,1fr) var(--measure);column-gap:3rem;align-items:baseline;max-width:none;margin-left:0}
+  .sec h2{margin:0 -.16em 0 0;text-align:right}
+  .sec h2::before{left:auto;right:.16em}
+  .sec .body{grid-column:2}
+}
+
+@media (prefers-reduced-motion:reduce){a{transition:none}}
+
+@media print{
+  :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
+  .top,.skip{display:none}
+  .hero{padding-block:1rem 2rem}
+}
+</style>
+<script>
+(function () {
+  'use strict';
+
+  // Código aceito em ?lang= e etiqueta de idioma (atributo lang) de cada edição.
+  var TAGS = { pt: 'pt-BR', en: 'en', es: 'es', it: 'it' };
+  var root = document.documentElement;
+
+  // "pt-BR" -> "pt"; devolve null se não for um dos quatro idiomas.
+  function pick(value) {
+    var code = String(value || '').toLowerCase().split(/[-_]/)[0];
+    return TAGS.hasOwnProperty(code) ? code : null;
+  }
+
+  function fromUrl() {
+    var match = /[?&]lang=([^&#]*)/.exec(location.search);
+    return match ? pick(match[1]) : null;
+  }
+
+  function fromBrowser() {
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    for (var i = 0; i < list.length; i++) {
+      var code = pick(list[i]);
+      if (code) return code;
+    }
+    return null;
+  }
+
+  // Ordem: parâmetro da URL, idioma do navegador, inglês.
+  var current = fromUrl() || fromBrowser() || 'en';
+  root.className = 'js';
+  root.lang = TAGS[current]; // definido antes de o corpo ser lido: o idioma errado nunca chega a aparecer
+
+  function sync(announce) {
+    var edition = document.querySelector('main > [lang="' + TAGS[current] + '"]');
+    var description = document.querySelector('meta[name="description"]');
+    if (edition) {
+      document.title = edition.getAttribute('data-title');
+      if (description) description.setAttribute('content', edition.getAttribute('data-desc'));
+    }
+    // nome do seletor para leitores de tela, no idioma ativo
+    var nav = document.querySelector('.langs');
+    nav.setAttribute('aria-label', nav.getAttribute('data-' + current));
+    var links = nav.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      var active = links[i].getAttribute('data-lang') === current;
+      if (active) links[i].setAttribute('aria-current', 'true');
+      else links[i].removeAttribute('aria-current');
+      // anuncia a troca a quem usa leitor de tela
+      if (active && announce) document.getElementById('status').textContent = links[i].textContent;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    sync(false);
+    document.querySelector('.langs').addEventListener('click', function (event) {
+      var link = event.target.closest('a[data-lang]');
+      // cliques com Ctrl, Shift etc. seguem o link normal (?lang=xx), por exemplo numa nova aba
+      if (!link || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      current = link.getAttribute('data-lang');
+      root.lang = TAGS[current];
+      sync(true);
+      // grava a escolha no endereço (?lang=xx), preservando outros parâmetros, para que o link possa ser compartilhado
+      try {
+        var query = new URLSearchParams(location.search);
+        query.set('lang', current);
+        history.replaceState(null, '', '?' + query + location.hash);
+      } catch (error) { /* se o navegador não deixar alterar o endereço, a troca de idioma funciona do mesmo modo */ }
+    });
+  });
+})();
+</script>
+</head>
+<body>
+
+<a class="skip" href="#conteudo">
+  <span class="t" lang="pt-BR">Ir para o conteúdo</span>
+  <span class="t" lang="en">Skip to content</span>
+  <span class="t" lang="es">Ir al contenido</span>
+  <span class="t" lang="it">Vai al contenuto</span>
+</a>
+
+<header class="wrap top">
+  <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
+    <ul>
+      <li><a href="?lang=pt" data-lang="pt" lang="pt-BR" hreflang="pt-BR">PT<span class="vh"> – Português</span></a></li>
+      <li><a href="?lang=en" data-lang="en" lang="en" hreflang="en" aria-current="true">EN<span class="vh"> – English</span></a></li>
+      <li><a href="?lang=es" data-lang="es" lang="es" hreflang="es">ES<span class="vh"> – Español</span></a></li>
+      <li><a href="?lang=it" data-lang="it" lang="it" hreflang="it">IT<span class="vh"> – Italiano</span></a></li>
+    </ul>
+  </nav>
+  <p id="status" class="vh" role="status"></p>
+</header>
+
+<main id="conteudo" class="wrap" tabindex="-1">
+
+<!-- ============================== PORTUGUÊS ============================== -->
+<div class="t" lang="pt-BR"
+     data-title="Arthur Cei Corrêa — DevOps, IA aplicada e segurança"
+     data-desc="Portfólio de Arthur Cei Corrêa, estudante de Engenharia de Software na FIAP, com foco em DevOps, IA aplicada e segurança. Projetos, competências e currículo.">
+
+  <header class="hero">
+    <figure class="motto">
+      <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
+      <p class="tr">«Ao sábio compete ordenar.»</p>
+      <figcaption>— Santo Tomás de Aquino</figcaption>
+    </figure>
+    <div class="craft">
+      <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Segurança</li></ul>
+    </div>
+  </header>
+
+  <section class="sec intro">
+    <div class="body">
+      <h1>Arthur Cei Corrêa</h1>
+      <p>Estudante de Engenharia de Software na FIAP (formatura em dezembro de 2027), com foco em DevOps, IA aplicada e segurança. Estagiei em DevOps na Vivo (ago. 2024 – dez. 2025): observei, estudei e contribuí sob supervisão. Segurança é área de estudo, com aplicação prática em projeto acadêmico.</p>
+      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p class="aside">Trabalho melhor com tarefas claras e comunicação por escrito.</p>
+      <p class="actions">
+        <a class="btn" href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo (PDF)</a>
+        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Projetos</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Vinheria Agnello: integração de infraestrutura</h3>
+        <p class="meta">FIAP, 2026, com a equipe CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Fazer dois microsserviços .NET funcionarem juntos, com serviços de rede (DNS e DHCP), autenticação e tráfego cifrado, e automatizar a entrega.</dd>
+          <dt>Stack</dt>
+          <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
+          <dt>Meu papel</dt>
+          <dd>Integrei os dois microsserviços em Docker Compose, com DNS e DHCP (dnsmasq), autenticação JWT e TLS. Configurei o pipeline Jenkins que compila, publica e implanta os serviços, com scripts de validação automatizada e evidências de execução. Contribuí também com painéis em Tableau e Node-RED (MQTT).</dd>
+          <dt>Repositório</dt>
+          <dd>Privado, sem link público.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>Projeto acadêmico em grupo, Global Solution 2026/2 (FIAP)</h3>
+        <p class="meta">Em andamento</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Em sigilo: o nome e a finalidade do projeto não são divulgados.</dd>
+          <dt>Stack</dt>
+          <dd>API em .NET, JWT, xUnit.</dd>
+          <dt>Meu papel</dt>
+          <dd>Segurança e testes de uma API .NET: autenticação JWT, perfis de acesso, isolamento de dados por instituição e proteção contra SQL injection e XSS; plano de testes de 8 casos, executado com evidências, e testes xUnit das regras de negócio.</dd>
+          <dt>Repositório</dt>
+          <dd>Privado, sem link.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>SellOut EasyTrack</h3>
+        <p class="meta">2º lugar no FIAP Challenge 2025 (Asteria), com a equipe CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Aplicação desktop de gestão de vendas, desenvolvida para o FIAP Challenge 2025.</dd>
+          <dt>Stack</dt>
+          <dd>Java 11, Maven, MySQL, JUnit, R (análise).</dd>
+          <dt>Meu papel</dt>
+          <dd>Desenvolvi principalmente a lógica central do back-end.</dd>
+          <dt>Repositório</dt>
+          <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (abre em nova aba)</span></a></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Competências</h2>
+    <div class="body">
+      <p>Tecnologias com que tive contato prático: no estágio, em projetos e nos laboratórios da graduação.</p>
+      <dl class="facts">
+        <dt>DevOps</dt>
+        <dd>Terraform, Docker, Kubernetes, Linux, Azure DevOps.</dd>
+        <dt>IA aplicada</dt>
+        <dd>Python, scikit-learn, LangGraph, RAG, ChromaDB.</dd>
+        <dt>Segurança</dt>
+        <dd>Área de foco e estudo, com aplicação prática em projeto acadêmico: autenticação JWT, TLS, perfis de acesso, proteção contra SQL injection e XSS.</dd>
+        <dt>Testes</dt>
+        <dd>JUnit e xUnit; testes manuais, com plano e evidências, e testes automatizados.</dd>
+        <dt>Linguagens e bancos de dados</dt>
+        <dd>Java, Python, C#, JavaScript, SQL, Oracle Database.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Idiomas</h2>
+    <div class="body">
+      <dl class="facts pair">
+        <dt>Português</dt><dd>nativo</dd>
+        <dt>Inglês</dt><dd>fluente</dd>
+        <dt>Espanhol</dt><dd>avançado</dd>
+        <dt>Italiano</dt><dd>básico</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Formação e experiência</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Engenharia de Software, FIAP (São Paulo)</h3>
+        <p class="meta">fevereiro de 2023 a dezembro de 2027 (previsão)</p>
+        <p>Laboratórios da graduação: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins e GitHub Actions, machine learning com Python e scikit-learn.</p>
+      </article>
+      <article class="entry">
+        <h3>Estágio em DevOps, Vivo (Telefônica Brasil)</h3>
+        <p class="meta">agosto de 2024 a dezembro de 2025</p>
+        <p>Sob supervisão, observei, estudei e contribuí: apoiei a manutenção de pipelines de CI/CD no Azure DevOps e a análise de gargalos, em ambientes com Terraform, Docker, Kubernetes e Linux.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Contato</h2>
+    <div class="body">
+      <dl class="facts">
+        <dt>E-mail</dt>
+        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (abre em nova aba)</span></a></dd>
+        <dt>GitHub</dt>
+        <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (abre em nova aba)</span></a></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Currículo</h2>
+    <div class="body">
+      <p><a class="btn" href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo em português (PDF)</a></p>
+      <p>Também em
+        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a>,
+        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> e
+        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+    </div>
+  </section>
+</div>
+
+<!-- =============================== ENGLISH =============================== -->
+<div class="t" lang="en"
+     data-title="Arthur Cei Corrêa — DevOps, applied AI and security"
+     data-desc="Portfolio of Arthur Cei Corrêa, a Software Engineering student at FIAP focused on DevOps, applied AI and security. Projects, skills and CV.">
+
+  <header class="hero">
+    <figure class="motto">
+      <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
+      <p class="tr">«It belongs to the wise to order.»</p>
+      <figcaption>— St. Thomas Aquinas</figcaption>
+    </figure>
+    <div class="craft">
+      <ul role="list"><li>DevOps</li><li>Applied AI</li><li>Security</li></ul>
+    </div>
+  </header>
+
+  <section class="sec intro">
+    <div class="body">
+      <h1>Arthur Cei Corrêa</h1>
+      <p>Software Engineering student at FIAP (graduating in December 2027), focused on DevOps, applied AI and security. I interned in DevOps at Vivo (Aug 2024 – Dec 2025): I observed, studied and contributed under supervision. Security is an area of study, with practical application in an academic project.</p>
+      <p class="aside">I work best with clear tasks and written communication.</p>
+      <p class="actions">
+        <a class="btn" href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV (PDF)</a>
+        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Projects</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Vinheria Agnello: infrastructure integration</h3>
+        <p class="meta">FIAP, 2026, with team CodeSquad</p>
+        <dl class="facts">
+          <dt>Problem</dt>
+          <dd>Getting two .NET microservices to work together, with network services (DNS and DHCP), authentication and encrypted traffic, and automating delivery.</dd>
+          <dt>Stack</dt>
+          <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
+          <dt>My role</dt>
+          <dd>I integrated the two microservices with Docker Compose, with DNS and DHCP (dnsmasq), JWT authentication and TLS. I configured the Jenkins pipeline that builds, publishes and deploys the services, with automated validation scripts and execution evidence. I also contributed Tableau and Node-RED (MQTT) dashboards.</dd>
+          <dt>Repository</dt>
+          <dd>Private, no public link.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>Group academic project, Global Solution 2026/2 (FIAP)</h3>
+        <p class="meta">In progress</p>
+        <dl class="facts">
+          <dt>Problem</dt>
+          <dd>Confidential: the project’s name and purpose are not disclosed.</dd>
+          <dt>Stack</dt>
+          <dd>.NET API, JWT, xUnit.</dd>
+          <dt>My role</dt>
+          <dd>Security and testing of a .NET API: JWT authentication, role-based access, per-institution data isolation, and protection against SQL injection and XSS; an 8-case test plan, executed with evidence, and xUnit tests of the business rules.</dd>
+          <dt>Repository</dt>
+          <dd>Private, no link.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>SellOut EasyTrack</h3>
+        <p class="meta">2nd place in the FIAP Challenge 2025 (Asteria), with team CodeSquad</p>
+        <dl class="facts">
+          <dt>Problem</dt>
+          <dd>A desktop application for sales management, built for the FIAP Challenge 2025.</dd>
+          <dt>Stack</dt>
+          <dd>Java 11, Maven, MySQL, JUnit, R (analysis).</dd>
+          <dt>My role</dt>
+          <dd>I mainly developed the core back-end logic.</dd>
+          <dt>Repository</dt>
+          <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (opens in a new tab)</span></a></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Skills</h2>
+    <div class="body">
+      <p>Technologies I have had hands-on contact with: in my internship, in projects and in coursework labs.</p>
+      <dl class="facts">
+        <dt>DevOps</dt>
+        <dd>Terraform, Docker, Kubernetes, Linux, Azure DevOps.</dd>
+        <dt>Applied AI</dt>
+        <dd>Python, scikit-learn, LangGraph, RAG, ChromaDB.</dd>
+        <dt>Security</dt>
+        <dd>An area of focus and study, with practical application in an academic project: JWT authentication, TLS, role-based access, protection against SQL injection and XSS.</dd>
+        <dt>Testing</dt>
+        <dd>JUnit and xUnit; manual testing, with a plan and evidence, and automated tests.</dd>
+        <dt>Languages and databases</dt>
+        <dd>Java, Python, C#, JavaScript, SQL, Oracle Database.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Languages</h2>
+    <div class="body">
+      <dl class="facts pair">
+        <dt>Portuguese</dt><dd>native</dd>
+        <dt>English</dt><dd>fluent</dd>
+        <dt>Spanish</dt><dd>advanced</dd>
+        <dt>Italian</dt><dd>basic</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Education and experience</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Software Engineering, FIAP (São Paulo)</h3>
+        <p class="meta">February 2023 to December 2027 (expected)</p>
+        <p>Coursework labs: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins and GitHub Actions, machine learning with Python and scikit-learn.</p>
+      </article>
+      <article class="entry">
+        <h3>DevOps internship, Vivo (Telefônica Brasil)</h3>
+        <p class="meta">August 2024 to December 2025</p>
+        <p>Under supervision, I observed, studied and contributed: I supported the maintenance of CI/CD pipelines in Azure DevOps and the analysis of bottlenecks, in environments built with Terraform, Docker, Kubernetes and Linux.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Contact</h2>
+    <div class="body">
+      <dl class="facts">
+        <dt>Email</dt>
+        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (opens in a new tab)</span></a></dd>
+        <dt>GitHub</dt>
+        <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (opens in a new tab)</span></a></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>CV</h2>
+    <div class="body">
+      <p><a class="btn" href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV in English (PDF)</a></p>
+      <p>Also in
+        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> and
+        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+    </div>
+  </section>
+</div>
+
+<!-- =============================== ESPAÑOL =============================== -->
+<div class="t" lang="es"
+     data-title="Arthur Cei Corrêa — DevOps, IA aplicada y seguridad"
+     data-desc="Portafolio de Arthur Cei Corrêa, estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Proyectos, competencias y currículum.">
+
+  <header class="hero">
+    <figure class="motto">
+      <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
+      <p class="tr">«Al sabio le corresponde ordenar.»</p>
+      <figcaption>— Santo Tomás de Aquino</figcaption>
+    </figure>
+    <div class="craft">
+      <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Seguridad</li></ul>
+    </div>
+  </header>
+
+  <section class="sec intro">
+    <div class="body">
+      <h1>Arthur Cei Corrêa</h1>
+      <p>Estudiante de Ingeniería de Software en FIAP (graduación en diciembre de 2027), enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo (ago. 2024 – dic. 2025): observé, estudié y contribuí bajo supervisión. La seguridad es un área de estudio, ya aplicada en un proyecto académico.</p>
+      <p class="aside">Trabajo mejor con tareas claras y comunicación por escrito.</p>
+      <p class="actions">
+        <a class="btn" href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum (PDF)</a>
+        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Proyectos</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Vinheria Agnello: integración de infraestructura</h3>
+        <p class="meta">FIAP, 2026, con el equipo CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega.</dd>
+          <dt>Stack</dt>
+          <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
+          <dt>Mi papel</dt>
+          <dd>Integré los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT).</dd>
+          <dt>Repositorio</dt>
+          <dd>Privado, sin enlace público.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>Proyecto académico en grupo, Global Solution 2026/2 (FIAP)</h3>
+        <p class="meta">En curso</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Confidencial: el nombre y la finalidad del proyecto no se divulgan.</dd>
+          <dt>Stack</dt>
+          <dd>API en .NET, JWT, xUnit.</dd>
+          <dt>Mi papel</dt>
+          <dd>Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas de 8 casos, ejecutado con evidencias, y pruebas xUnit de las reglas de negocio.</dd>
+          <dt>Repositorio</dt>
+          <dd>Privado, sin enlace.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>SellOut EasyTrack</h3>
+        <p class="meta">2.º puesto en el FIAP Challenge 2025 (Asteria), con el equipo CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025.</dd>
+          <dt>Stack</dt>
+          <dd>Java 11, Maven, MySQL, JUnit, R (análisis).</dd>
+          <dt>Mi papel</dt>
+          <dd>Desarrollé principalmente la lógica central del back-end.</dd>
+          <dt>Repositorio</dt>
+          <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Competencias</h2>
+    <div class="body">
+      <p>Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera.</p>
+      <dl class="facts">
+        <dt>DevOps</dt>
+        <dd>Terraform, Docker, Kubernetes, Linux, Azure DevOps.</dd>
+        <dt>IA aplicada</dt>
+        <dd>Python, scikit-learn, LangGraph, RAG, ChromaDB.</dd>
+        <dt>Seguridad</dt>
+        <dd>Área de enfoque y estudio, con aplicación práctica en un proyecto académico: autenticación JWT, TLS, perfiles de acceso, protección contra inyección SQL y XSS.</dd>
+        <dt>Pruebas</dt>
+        <dd>JUnit y xUnit; pruebas manuales, con plan y evidencias, y pruebas automatizadas.</dd>
+        <dt>Lenguajes y bases de datos</dt>
+        <dd>Java, Python, C#, JavaScript, SQL, Oracle Database.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Idiomas</h2>
+    <div class="body">
+      <dl class="facts pair">
+        <dt>Portugués</dt><dd>nativo</dd>
+        <dt>Inglés</dt><dd>fluido</dd>
+        <dt>Español</dt><dd>avanzado</dd>
+        <dt>Italiano</dt><dd>básico</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Formación y experiencia</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Ingeniería de Software, FIAP (São Paulo)</h3>
+        <p class="meta">febrero de 2023 a diciembre de 2027 (previsto)</p>
+        <p>Laboratorios de la carrera: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins y GitHub Actions, machine learning con Python y scikit-learn.</p>
+      </article>
+      <article class="entry">
+        <h3>Pasantía de DevOps, Vivo (Telefônica Brasil)</h3>
+        <p class="meta">agosto de 2024 a diciembre de 2025</p>
+        <p>Bajo supervisión, observé, estudié y contribuí: apoyé el mantenimiento de pipelines de CI/CD en Azure DevOps y el análisis de cuellos de botella, en entornos con Terraform, Docker, Kubernetes y Linux.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Contacto</h2>
+    <div class="body">
+      <dl class="facts">
+        <dt>Correo</dt>
+        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
+        <dt>GitHub</dt>
+        <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Currículum</h2>
+    <div class="body">
+      <p><a class="btn" href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum en español (PDF)</a></p>
+      <p>También en
+        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
+        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+    </div>
+  </section>
+</div>
+
+<!-- =============================== ITALIANO ============================== -->
+<!-- Frases curtas de propósito: o nível declarado é básico. Trechos a rever com um falante nativo: ver a lista entregue com este arquivo. -->
+<div class="t" lang="it"
+     data-title="Arthur Cei Corrêa — DevOps, IA applicata e sicurezza"
+     data-desc="Portfolio di Arthur Cei Corrêa, studente di Ingegneria del Software alla FIAP: DevOps, IA applicata e sicurezza. Progetti, competenze e curriculum.">
+
+  <header class="hero">
+    <figure class="motto">
+      <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
+      <p class="tr">«Al sapiente spetta ordinare.»</p>
+      <figcaption>— San Tommaso d’Aquino</figcaption>
+    </figure>
+    <div class="craft">
+      <ul role="list"><li>DevOps</li><li>IA applicata</li><li>Sicurezza</li></ul>
+    </div>
+  </header>
+
+  <section class="sec intro">
+    <div class="body">
+      <h1>Arthur Cei Corrêa</h1>
+      <p>Studio Ingegneria del Software alla FIAP (laurea a dicembre 2027). Mi concentro su DevOps, IA applicata e sicurezza. Ho fatto un tirocinio in DevOps presso Vivo (ago. 2024 – dic. 2025): ho osservato, studiato e contribuito sotto supervisione. La sicurezza è un’area di studio, già applicata in un progetto accademico.</p>
+      <p class="aside">Lavoro meglio con compiti chiari e comunicazione scritta.</p>
+      <p class="actions">
+        <a class="btn" href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV (PDF)</a>
+        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Progetti</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Vinheria Agnello: integrazione dell’infrastruttura</h3>
+        <p class="meta">FIAP, 2026, con il team CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Far funzionare insieme due microservizi .NET, con i servizi di rete (DNS e DHCP), l’autenticazione e il traffico cifrato. Automatizzare il rilascio.</dd>
+          <dt>Stack</dt>
+          <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
+          <dt>Il mio ruolo</dt>
+          <dd>Ho integrato i due microservizi con Docker Compose, con DNS e DHCP (dnsmasq), autenticazione JWT e TLS. Ho configurato la pipeline Jenkins che compila, pubblica e rilascia i servizi, con script di validazione automatica ed evidenze di esecuzione. Ho contribuito anche con dashboard in Tableau e Node-RED (MQTT).</dd>
+          <dt>Repository</dt>
+          <dd>Privato, senza link pubblico.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>Progetto accademico di gruppo, Global Solution 2026/2 (FIAP)</h3>
+        <p class="meta">In corso</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Riservato: il nome e lo scopo del progetto non sono pubblici.</dd>
+          <dt>Stack</dt>
+          <dd>API .NET, JWT, xUnit.</dd>
+          <dt>Il mio ruolo</dt>
+          <dd>Sicurezza e test di un’API .NET: autenticazione JWT, ruoli di accesso, isolamento dei dati per istituzione, protezione da SQL injection e XSS. Un piano di test con 8 casi, eseguito con evidenze. Test xUnit delle regole di business.</dd>
+          <dt>Repository</dt>
+          <dd>Privato, senza link.</dd>
+        </dl>
+      </article>
+
+      <article class="entry">
+        <h3>SellOut EasyTrack</h3>
+        <p class="meta">Secondo posto nel concorso FIAP Challenge 2025 (Asteria), con il team CodeSquad</p>
+        <dl class="facts">
+          <dt>Problema</dt>
+          <dd>Un’applicazione desktop per la gestione delle vendite, sviluppata per il concorso FIAP Challenge 2025.</dd>
+          <dt>Stack</dt>
+          <dd>Java 11, Maven, MySQL, JUnit, R (analisi).</dd>
+          <dt>Il mio ruolo</dt>
+          <dd>Ho sviluppato soprattutto la logica centrale del back-end.</dd>
+          <dt>Repository</dt>
+          <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Competenze</h2>
+    <div class="body">
+      <p>Tecnologie con cui ho avuto un contatto pratico: nel tirocinio, nei progetti e nei laboratori dell’università.</p>
+      <dl class="facts">
+        <dt>DevOps</dt>
+        <dd>Terraform, Docker, Kubernetes, Linux, Azure DevOps.</dd>
+        <dt>IA applicata</dt>
+        <dd>Python, scikit-learn, LangGraph, RAG, ChromaDB.</dd>
+        <dt>Sicurezza</dt>
+        <dd>Area di interesse e di studio, con applicazione pratica in un progetto accademico: autenticazione JWT, TLS, ruoli di accesso, protezione da SQL injection e XSS.</dd>
+        <dt>Test</dt>
+        <dd>JUnit e xUnit; test manuali, con piano ed evidenze, e test automatici.</dd>
+        <dt>Linguaggi e database</dt>
+        <dd>Java, Python, C#, JavaScript, SQL, Oracle Database.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Lingue</h2>
+    <div class="body">
+      <dl class="facts pair">
+        <dt>Portoghese</dt><dd>madrelingua</dd>
+        <dt>Inglese</dt><dd>fluente</dd>
+        <dt>Spagnolo</dt><dd>avanzato</dd>
+        <dt>Italiano</dt><dd>base</dd>
+      </dl>
+      <!-- Nota opcional de transparência sobre o nível de italiano: apague o parágrafo abaixo se preferir. -->
+      <p class="note">Il mio italiano è di livello base: per questo la pagina usa frasi semplici.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Formazione ed esperienza</h2>
+    <div class="body">
+      <article class="entry">
+        <h3>Ingegneria del Software, FIAP (San Paolo)</h3>
+        <p class="meta">da febbraio 2023 a dicembre 2027 (previsto)</p>
+        <p>Laboratori del corso: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins e GitHub Actions, machine learning con Python e scikit-learn.</p>
+      </article>
+      <article class="entry">
+        <h3>Tirocinio in DevOps, Vivo (Telefônica Brasil)</h3>
+        <p class="meta">da agosto 2024 a dicembre 2025</p>
+        <p>Sotto supervisione ho osservato, studiato e contribuito. Ho aiutato nella manutenzione delle pipeline CI/CD su Azure DevOps e nell’analisi dei colli di bottiglia, in ambienti con Terraform, Docker, Kubernetes e Linux.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Contatti</h2>
+    <div class="body">
+      <dl class="facts">
+        <dt>E-mail</dt>
+        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dt>LinkedIn</dt>
+        <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
+        <dt>GitHub</dt>
+        <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Curriculum</h2>
+    <div class="body">
+      <p><a class="btn" href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV in italiano (PDF)</a></p>
+      <p>Anche in
+        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
+        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> (PDF).</p>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <p>
+      <span class="t" lang="pt-BR">Página sem cookies, sem rastreadores e sem recursos de terceiros.</span>
+      <span class="t" lang="en">No cookies, no trackers and no third-party resources on this page.</span>
+      <span class="t" lang="es">Página sin cookies, sin rastreadores y sin recursos de terceros.</span>
+      <span class="t" lang="it">Pagina senza cookie, senza tracciamento e senza risorse di terze parti.</span>
+    </p>
+    <p>© 2026 Arthur Cei Corrêa</p>
+  </div>
+</footer>
+
+</body>
+</html>
