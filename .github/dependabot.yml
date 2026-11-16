@@ -1,0 +1,8 @@
+# Mantém as ações do pipeline atualizadas: o Dependabot abre um pull request
+# quando sai uma versão nova, e o próprio pipeline o valida antes da fusão.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
