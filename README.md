@@ -11,6 +11,8 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 
 Every push to `main` runs [`.github/workflows/site.yml`](.github/workflows/site.yml):
 
-1. **Static validation** (`ci/validate.py`): CSP hashes, HTML nesting, unique ids, safe external links, no third-party resources, local files present, parity of the four language editions, and no phone number in the page or the CVs.
+1. **Static validation** (`ci/validate.py`): CSP hashes, HTML nesting, unique ids, safe external links, no third-party resources, local files present, parity of the four language editions, and no phone number in the pages or the CVs, plus the 404 page, `robots.txt` and `sitemap.xml`.
 2. **Browser test** (`ci/smoke.py`): headless Chrome in each language, on mobile and desktop widths — right edition shown, fonts loaded, no console errors or CSP violations, language switch, CV buttons, no horizontal scroll.
 3. **Deploy**: only if both pass, the site is published to GitHub Pages. Pull requests run the checks without publishing.
+
+Dependabot (`.github/dependabot.yml`) opens a pull request when a workflow action has a new version; the pipeline checks it before merging.

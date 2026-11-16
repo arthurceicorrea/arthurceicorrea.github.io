@@ -3,7 +3,7 @@
 Serve o repositório localmente e confere, nos quatro idiomas: edição certa visível,
 título traduzido, fontes carregadas, nenhum erro no console (inclusive bloqueios da
 CSP), troca de idioma pelo seletor, botão de currículo do idioma ativo e ausência de
-rolagem horizontal no celular e em tela larga.
+rolagem horizontal no celular e em tela larga. Confere também a página 404.
 
 Uso: python ci/smoke.py   (a partir da raiz do repositório)
 Variável opcional CHROME_PATH: caminho de um Chrome já instalado.
@@ -90,6 +90,32 @@ with sync_playwright() as pw:
     check(len(titles) == 4, 'título traduzido nos quatro idiomas', titles)
     check(not errors, 'console sem erros após as trocas', errors[:3])
     ctx.close()
+
+    # página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console
+    for locale, tag in (('pt-BR', 'pt-BR'), ('en-US', 'en'), ('es-MX', 'es'), ('it-IT', 'it'), ('de-DE', 'en')):
+        ctx = browser.new_context(locale=locale, viewport={'width': 360, 'height': 740})
+        page = ctx.new_page()
+        errors = []
+        page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
+        page.on('pageerror', lambda e: errors.append(str(e)))
+        page.on('requestfailed', lambda r: errors.append('falhou: ' + r.url))
+        page.goto(BASE.replace('index.html', '404.html'))
+        page.wait_for_load_state('networkidle')
+        page.evaluate('document.fonts.ready')
+        s = page.evaluate("""() => ({
+          lang: document.documentElement.lang,
+          visible: [...document.querySelectorAll('main > .t')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.lang),
+          title: document.title,
+          home: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)
+        })""")
+        where = '404, navegador %s' % locale
+        check(s['lang'] == tag and s['visible'] == [tag], 'edição certa visível (%s)' % where, s['visible'])
+        check(s['home'] == ['/'], 'botão leva ao início (%s)' % where, s['home'])
+        check(s['fonts'] and all(f == 'loaded' for f in s['fonts']), 'fontes carregadas (%s)' % where, s['fonts'])
+        check(s['overflow'] <= 0 and not errors, 'sem rolagem horizontal nem erros no console (%s)' % where, errors[:3])
+        ctx.close()
     browser.close()
 
 server.shutdown()

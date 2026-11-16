@@ -40,7 +40,7 @@ jobs:
       - name: Montar a pasta publicada
         run: |
           mkdir _site
-          cp index.html og.png .nojekyll _site/
+          cp index.html 404.html robots.txt sitemap.xml og.png .nojekyll _site/
           cp -r fonts cv _site/
 
       - name: Enviar o pacote do site
