@@ -18,7 +18,7 @@ jobs:
   validate:
     name: Validar
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Baixar o repositório
         uses: actions/checkout@v7
@@ -28,8 +28,21 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Preparar o Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Preparar o Java (validador do W3C)
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Instalar as ferramentas de teste
-        run: pip install "pypdf>=6,<7" "playwright>=1.48,<2"
+        run: |
+          pip install "pypdf>=6,<7" "playwright>=1.48,<2"
+          npm install --no-save --no-audit --no-fund "axe-core@4" "vnu-jar@latest" "@lhci/cli@0.16"
 
       - name: Montar o site (página inicial e uma página por idioma)
         run: python ci/build.py
@@ -37,8 +50,29 @@ jobs:
       - name: Validação estática (CSP, HTML, links, idiomas, dados estruturados, privacidade)
         run: python ci/validate.py _site
 
+      - name: Validador oficial de HTML do W3C (Nu Html Checker)
+        run: java -jar node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html _site
+
       - name: Teste no navegador (idiomas, países, celular e tela larga, sem JavaScript)
         run: python ci/smoke.py _site
+
+      - name: Auditoria de acessibilidade (axe, WCAG 2.2 A e AA)
+        run: python ci/a11y.py _site node_modules/axe-core/axe.min.js
+
+      - name: Lighthouse (desempenho, acessibilidade, boas práticas e SEO)
+        run: npx lhci autorun --config=ci/lighthouserc.json
+
+      - name: Resumo das notas do Lighthouse
+        if: always() && hashFiles('lighthouse-report/manifest.json') != ''
+        run: python ci/lighthouse_summary.py lighthouse-report
+
+      - name: Guardar os relatórios do Lighthouse
+        if: always() && hashFiles('lighthouse-report/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report
+          path: lighthouse-report
+          retention-days: 30
 
       - name: Enviar o pacote do site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
