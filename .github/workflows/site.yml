@@ -31,17 +31,14 @@ jobs:
       - name: Instalar as ferramentas de teste
         run: pip install "pypdf>=6,<7" "playwright>=1.48,<2"
 
-      - name: Validação estática (CSP, HTML, links, arquivos, privacidade)
-        run: python ci/validate.py
+      - name: Montar o site (página inicial e uma página por idioma)
+        run: python ci/build.py
 
-      - name: Teste no navegador (quatro idiomas, celular e tela larga)
-        run: python ci/smoke.py
+      - name: Validação estática (CSP, HTML, links, idiomas, dados estruturados, privacidade)
+        run: python ci/validate.py _site
 
-      - name: Montar a pasta publicada
-        run: |
-          mkdir _site
-          cp index.html 404.html robots.txt sitemap.xml og.png .nojekyll _site/
-          cp -r fonts cv _site/
+      - name: Teste no navegador (idiomas, países, celular e tela larga, sem JavaScript)
+        run: python ci/smoke.py _site
 
       - name: Enviar o pacote do site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'

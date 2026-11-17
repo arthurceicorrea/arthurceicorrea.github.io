@@ -1,13 +1,17 @@
-"""Teste da página num Chrome sem interface, executado pelo pipeline antes de publicar.
+"""Teste do site montado num Chrome sem interface, executado pelo pipeline antes de publicar.
 
-Serve o repositório localmente e confere, nos quatro idiomas: edição certa visível,
-título traduzido, fontes carregadas, nenhum erro no console (inclusive bloqueios da
-CSP), troca de idioma pelo seletor, botão de currículo do idioma ativo e ausência de
-rolagem horizontal no celular e em tela larga. Confere também a página 404 e a escolha
-do idioma pelo país (fuso horário simulado de Brasil, Portugal, Itália, Espanha, Argentina,
-México, EUA e Polônia).
+Serve a pasta _site localmente e confere:
+- página inicial com ?lang= nos quatro idiomas, no celular e em tela larga: edição certa,
+  seletor, botões de currículo, fontes, nenhuma rolagem horizontal, nenhum erro no console
+  (inclusive bloqueios da CSP);
+- páginas /pt/, /en/, /es/, /it/: uma só edição, idioma fixo mesmo com fuso de outro país,
+  título traduzido, e funcionamento sem JavaScript;
+- seletor de idioma, que leva de uma página a outra;
+- escolha do idioma pelo país (fuso horário simulado de Brasil, Portugal, Itália, Espanha,
+  Argentina, México, EUA e Polônia), na página inicial e na 404;
+- página 404 no idioma do navegador.
 
-Uso: python ci/smoke.py   (a partir da raiz do repositório)
+Uso: python ci/build.py && python ci/smoke.py _site
 Variável opcional CHROME_PATH: caminho de um Chrome já instalado.
 """
 import functools
@@ -18,7 +22,10 @@ import threading
 
 from playwright.sync_api import sync_playwright
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(REPO, '_site')
+if not os.path.isfile(os.path.join(ROOT, 'index.html')):
+    sys.exit('Site montado não encontrado em %s. Rode antes: python ci/build.py' % ROOT)
 TAGS = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}
 failures = []
 
@@ -36,61 +43,86 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 
 server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=ROOT))
 threading.Thread(target=server.serve_forever, daemon=True).start()
-BASE = 'http://127.0.0.1:%d/index.html' % server.server_address[1]
+SITE = 'http://127.0.0.1:%d/' % server.server_address[1]
 
 STATE = """() => ({
   lang: document.documentElement.lang,
+  editions: [...document.querySelectorAll('main > .t')].map(e => e.lang),
   visible: [...document.querySelectorAll('main > .t')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.lang),
   title: document.title,
   current: [...document.querySelectorAll('.langs a[aria-current]')].map(a => a.dataset.lang),
+  navVisible: !!document.querySelector('.langs') && getComputedStyle(document.querySelector('.langs')).display !== 'none',
   cv: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  fonts: [...document.fonts].map(f => f.status)
+  fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)
 })"""
+
+
+def open_page(browser, path, errors=None, **options):
+    options.setdefault('timezone_id', 'UTC')  # UTC: fuso que não indica país
+    options.setdefault('locale', 'en-US')
+    ctx = browser.new_context(**options)
+    page = ctx.new_page()
+    if errors is not None:
+        page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
+        page.on('pageerror', lambda e: errors.append(str(e)))
+        page.on('requestfailed', lambda r: errors.append('falhou: ' + r.url))
+    page.goto(SITE + path)
+    page.wait_for_load_state('networkidle')
+    return ctx, page
+
 
 with sync_playwright() as pw:
     chrome = os.environ.get('CHROME_PATH')
     browser = pw.chromium.launch(executable_path=chrome) if chrome else pw.chromium.launch(channel='chrome')
 
+    # página inicial e páginas por idioma, no celular e em tela larga
     for code, tag in TAGS.items():
-        for width, height in ((360, 740), (1440, 900)):
-            ctx = browser.new_context(viewport={'width': width, 'height': height}, locale='en-US', timezone_id='UTC')
-            page = ctx.new_page()
-            errors = []
-            page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
-            page.on('pageerror', lambda e: errors.append(str(e)))
-            page.on('requestfailed', lambda r: errors.append('falhou: ' + r.url))
-            page.goto(BASE + '?lang=' + code)
-            page.wait_for_load_state('networkidle')
-            page.evaluate('document.fonts.ready')
-            s = page.evaluate(STATE)
-            where = '%s, %dpx' % (code.upper(), width)
-            check(s['lang'] == tag and s['visible'] == [tag], 'edição certa visível (%s)' % where, s['visible'])
-            check(s['current'] == [code], 'seletor marca o idioma ativo (%s)' % where, s['current'])
-            check(len(s['cv']) == 2 and all(h.endswith('-cv-%s.pdf' % code) for h in s['cv']),
-                  'botões de currículo no idioma ativo (%s)' % where, s['cv'])
-            check(s['fonts'] and all(f == 'loaded' for f in s['fonts']), 'fontes carregadas (%s)' % where, s['fonts'])
-            check(s['overflow'] <= 0, 'sem rolagem horizontal (%s)' % where, s['overflow'])
-            check(not errors, 'console sem erros nem bloqueios da CSP (%s)' % where, errors[:3])
-            ctx.close()
+        for path in ('?lang=' + code, code + '/'):
+            for width, height in ((360, 740), (1440, 900)):
+                errors = []
+                ctx, page = open_page(browser, path, errors, viewport={'width': width, 'height': height})
+                page.evaluate('document.fonts.ready')
+                s = page.evaluate(STATE)
+                where = '/%s, %dpx' % (path, width)
+                check(s['lang'] == tag and s['visible'] == [tag], 'edição certa visível (%s)' % where, s['visible'])
+                if path.endswith('/'):
+                    check(s['editions'] == [tag], 'só uma edição na página (%s)' % where, s['editions'])
+                check(s['current'] == [code] and s['navVisible'], 'seletor visível e no idioma ativo (%s)' % where, s['current'])
+                check(len(s['cv']) == 2 and all(h == '/cv/arthur-cei-correa-cv-%s.pdf' % code for h in s['cv']),
+                      'botões de currículo no idioma ativo (%s)' % where, s['cv'])
+                check(s['fonts'] and all(f == 'loaded' for f in s['fonts']), 'fontes carregadas (%s)' % where, s['fonts'])
+                check(s['overflow'] <= 0, 'sem rolagem horizontal (%s)' % where, s['overflow'])
+                check(not errors, 'console sem erros nem bloqueios da CSP (%s)' % where, errors[:3])
+                ctx.close()
 
-    # troca de idioma pelo seletor, sem recarregar
-    ctx = browser.new_context(locale='pt-BR', timezone_id='UTC')  # UTC: fuso que não indica país
-    page = ctx.new_page()
-    errors = []
-    page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
-    page.goto(BASE)
-    page.wait_for_load_state('networkidle')
-    check(page.evaluate('document.documentElement.lang') == 'pt-BR', 'idioma inicial vem do navegador')
+    # páginas por idioma: idioma fixo mesmo com fuso de outro país, e sem JavaScript
     titles = set()
-    for code, tag in (('it', 'it'), ('es', 'es'), ('en', 'en'), ('pt', 'pt-BR')):
-        page.click('.langs a[data-lang="%s"]' % code)
+    for code, tag in TAGS.items():
+        ctx, page = open_page(browser, code + '/', timezone_id='Europe/Rome' if code != 'it' else 'America/Sao_Paulo')
         s = page.evaluate(STATE)
         titles.add(s['title'])
-        check(s['lang'] == tag and s['visible'] == [tag] and page.evaluate('location.search') == '?lang=' + code,
-              'clique em %s troca o idioma' % code.upper(), (s['lang'], s['visible']))
-    check(len(titles) == 4, 'título traduzido nos quatro idiomas', titles)
-    check(not errors, 'console sem erros após as trocas', errors[:3])
+        check(s['lang'] == tag, 'idioma fixo na página /%s/ com fuso de outro país' % code, s['lang'])
+        ctx.close()
+        ctx, page = open_page(browser, code + '/', java_script_enabled=False)
+        s = page.evaluate(STATE)
+        check(s['lang'] == tag and s['visible'] == [tag] and s['current'] == [code] and s['navVisible'],
+              'página /%s/ funciona sem JavaScript' % code, (s['lang'], s['visible'], s['current']))
+        ctx.close()
+    check(len(titles) == 4, 'título traduzido nas quatro páginas', titles)
+
+    # seletor: leva de uma página a outra
+    errors = []
+    ctx, page = open_page(browser, '', errors, locale='pt-BR')
+    check(page.evaluate('document.documentElement.lang') == 'pt-BR', 'página inicial no idioma do navegador (fuso sem país)')
+    for code, tag in (('it', 'it'), ('es', 'es'), ('en', 'en'), ('pt', 'pt-BR')):
+        with page.expect_navigation():
+            page.click('.langs a[data-lang="%s"]' % code)
+        page.wait_for_load_state('networkidle')
+        s = page.evaluate(STATE)
+        check(s['lang'] == tag and s['editions'] == [tag] and page.evaluate('location.pathname') == '/%s/' % code,
+              'seletor leva à página /%s/' % code, (s['lang'], page.evaluate('location.pathname')))
+    check(not errors, 'console sem erros ao navegar pelo seletor', errors[:3])
     ctx.close()
 
     # idioma pelo país (fuso horário do aparelho), com navegador em outro idioma
@@ -108,32 +140,21 @@ with sync_playwright() as pw:
         ('America/Sao_Paulo', 'pt-BR', '?lang=it', 'it', 'Brasil com ?lang=it'),
     ]
     for zone, locale, query, tag, label in cases:
-        for target in ('index.html', '404.html'):
-            ctx = browser.new_context(locale=locale, timezone_id=zone)
-            page = ctx.new_page()
+        for target in ('', '404.html'):
             errors = []
-            page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
-            page.goto(BASE.replace('index.html', target) + query)
-            page.wait_for_load_state('networkidle')
+            ctx, page = open_page(browser, target + query, errors, locale=locale, timezone_id=zone)
             got = page.evaluate('document.documentElement.lang')
-            check(got == tag and not errors, 'país: %s -> %s (%s)' % (label, tag, target), (got, errors[:2]))
+            check(got == tag and not errors, 'país: %s -> %s (/%s)' % (label, tag, target), (got, errors[:2]))
             ctx.close()
 
     # página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console
     for locale, tag in (('pt-BR', 'pt-BR'), ('en-US', 'en'), ('es-MX', 'es'), ('it-IT', 'it'), ('de-DE', 'en')):
-        ctx = browser.new_context(locale=locale, timezone_id='UTC', viewport={'width': 360, 'height': 740})
-        page = ctx.new_page()
         errors = []
-        page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
-        page.on('pageerror', lambda e: errors.append(str(e)))
-        page.on('requestfailed', lambda r: errors.append('falhou: ' + r.url))
-        page.goto(BASE.replace('index.html', '404.html'))
-        page.wait_for_load_state('networkidle')
+        ctx, page = open_page(browser, '404.html', errors, locale=locale, viewport={'width': 360, 'height': 740})
         page.evaluate('document.fonts.ready')
         s = page.evaluate("""() => ({
           lang: document.documentElement.lang,
           visible: [...document.querySelectorAll('main > .t')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.lang),
-          title: document.title,
           home: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)

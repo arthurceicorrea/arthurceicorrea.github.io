@@ -1,13 +1,16 @@
-"""Validação estática do portfólio, executada pelo pipeline antes de publicar.
+"""Validação estática do site montado por ci/build.py, executada pelo pipeline antes de publicar.
 
-Confere, no index.html e no 404.html: hashes da CSP, aninhamento do HTML, ids
-únicos, ausência de estilos e manipuladores embutidos, links externos seguros,
-nenhum recurso de terceiros e arquivos locais referenciados. No index.html,
-também a paridade das quatro edições e os botões de currículo. Por fim, o
-robots.txt, o sitemap.xml e a ausência de telefone nas páginas e nos currículos.
+Confere em todas as páginas (inicial, 404 e uma por idioma): hashes da CSP,
+aninhamento do HTML, ids únicos, ausência de estilos e manipuladores embutidos,
+links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos
+e existentes, e dados estruturados. Na página inicial, a paridade das quatro
+edições; nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e
+prévia de compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml e a
+ausência de telefone nas páginas e nos currículos.
 
-Uso: python ci/validate.py   (a partir da raiz do repositório)
+Uso: python ci/build.py && python ci/validate.py _site
 """
+import json
 import base64
 import hashlib
 import os
@@ -16,7 +19,11 @@ import sys
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(REPO, '_site')
+if not os.path.isfile(os.path.join(ROOT, 'index.html')):
+    sys.exit('Site montado não encontrado em %s. Rode antes: python ci/build.py' % ROOT)
+CODES = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}
 LANGS = ('pt-BR', 'en', 'es', 'it')
 ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.github.io/',
@@ -43,7 +50,9 @@ def sha256(text):
 def local_file(url):
     """Caminho no repositório de um endereço local, relativo ou absoluto ("/" é o index.html)."""
     path = url.split('?')[0].split('#')[0].lstrip('/')
-    return os.path.join(ROOT, path or 'index.html')
+    if path == '' or path.endswith('/'):
+        path += 'index.html'
+    return os.path.join(ROOT, path)
 
 
 class Parser(HTMLParser):
@@ -80,8 +89,9 @@ class Parser(HTMLParser):
             self.edition = None
 
 
-def check_page(name):
-    """Verificações comuns a todas as páginas. Devolve (texto bruto, corpo sem comentários, analisador)."""
+def check_page(name, edition=None):
+    """Verificações comuns a todas as páginas. edition=None exige as quatro edições;
+    edition='pt-BR' (etc.) exige só aquela. Devolve (texto bruto, corpo sem comentários, analisador)."""
     where = ' [%s]' % name
     raw = open(os.path.join(ROOT, name), encoding='utf-8').read()
     check('\r' not in raw, 'quebras de linha LF (os hashes da CSP dependem disso)' + where)
@@ -107,9 +117,19 @@ def check_page(name):
     check(not p.errors and not p.stack, 'etiquetas HTML bem aninhadas' + where, p.errors[:3] or p.stack[:3])
     dups = sorted({i for i in p.ids if p.ids.count(i) > 1})
     check(not dups, 'ids únicos' + where, dups)
-    shapes = [p.counts[lang] for lang in LANGS]
-    check(all(shapes) and all(s == shapes[0] for s in shapes), 'as quatro edições têm a mesma estrutura' + where,
-          {lang: sum(p.counts[lang].values()) for lang in LANGS})
+    if edition is None:
+        shapes = [p.counts[lang] for lang in LANGS]
+        check(all(shapes) and all(s == shapes[0] for s in shapes), 'as quatro edições têm a mesma estrutura' + where,
+              {lang: sum(p.counts[lang].values()) for lang in LANGS})
+    else:
+        others = sorted({a.get('lang') for tag, a, line in p.tags if a.get('class') == 't' and a.get('lang') != edition})
+        check(p.counts[edition] and not others, 'só a edição %s presente' % edition + where, others)
+
+    # páginas servidas em vários níveis de pasta: tudo o que é local tem de ser absoluto
+    relative = [a.get(attr) for tag, a, line in p.tags for attr in ('href', 'src')
+                if a.get(attr) and not a.get(attr).startswith(('/', '#', 'data:', 'http://', 'https://', 'mailto:'))]
+    relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw) if not u.startswith('/')]
+    check(not relative, 'só caminhos locais absolutos' + where, relative)
 
     body = code.split('<body>', 1)[1] if '<body>' in code else ''
     check(not re.search(r'\sstyle\s*=', code), 'nenhum atributo style embutido' + where)
@@ -140,36 +160,95 @@ def check_page(name):
     return raw, body, p
 
 
-# ---------- página principal ----------
+# ---------- página inicial ----------
 raw, body, parsed = check_page('index.html')
 check('#conteudo' not in body or ' id="conteudo"' in body, 'âncora do link de pular existe')
-for lang in ('pt', 'en', 'es', 'it'):
-    check(('href="cv/arthur-cei-correa-cv-%s.pdf"' % lang) in body, 'botão do currículo %s presente' % lang)
+for code in CODES:
+    check(('href="/cv/arthur-cei-correa-cv-%s.pdf"' % code) in body, 'botão do currículo %s presente' % code)
+    check(('<a href="/%s/" data-lang="%s"' % (code, code)) in body, 'seletor leva à página %s' % code)
 canonical = re.search(r'<link rel="canonical" href="([^"]+)">', raw)
 check(bool(canonical), 'endereço canônico declarado')
 base = canonical.group(1) if canonical else ''
+alternates_root = dict(re.findall(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">', raw))
+expected = {tag: base + code + '/' for code, tag in CODES.items()}
+expected['x-default'] = base
+check(alternates_root == expected, 'versões por idioma apontam para /pt/, /en/, /es/, /it/', alternates_root)
+
+
+def structured_data(raw_page, where):
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', raw_page, flags=re.S)
+    check(len(blocks) == 1, 'um bloco de dados estruturados' + where)
+    if not blocks:
+        return None
+    try:
+        data = json.loads(blocks[0])
+    except ValueError as error:
+        check(False, 'dados estruturados em JSON válido' + where, error)
+        return None
+    check(data.get('@type') == 'Person' and data.get('name') and data.get('url') == base,
+          'dados estruturados descrevem a pessoa e o site' + where, data.get('@type'))
+    check(all(u.startswith(ALLOWED_EXTERNAL) for u in data.get('sameAs', [])), 'perfis listados são permitidos' + where)
+    return data
+
+
+person = structured_data(raw, ' [index.html]')
+
+
+def meta(raw_page, prop):
+    found = re.search(r'<meta (?:property|name)="%s" content="([^"]*)">' % re.escape(prop), raw_page)
+    return found.group(1) if found else None
+
+
+def image_exists(url):
+    return url and url.startswith(base) and os.path.isfile(os.path.join(ROOT, url[len(base):]))
+
+
+check(image_exists(meta(raw, 'og:image')), 'imagem de compartilhamento existe [index.html]', meta(raw, 'og:image'))
+
+# ---------- páginas por idioma ----------
+LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
+for code, tag in CODES.items():
+    name = '%s/index.html' % code
+    where = ' [%s]' % name
+    if not os.path.isfile(os.path.join(ROOT, name)):
+        check(False, 'página gerada existe' + where)
+        continue
+    page_raw, page_body, page_parsed = check_page(name, edition=tag)
+    edition = re.search(r'<div class="t" lang="%s"\s+data-title="([^"]+)"\s+data-desc="([^"]+)">' % re.escape(tag), page_raw)
+    title, desc = (edition.group(1), edition.group(2)) if edition else (None, None)
+    check(('<html lang="%s" data-lang="%s">' % (tag, code)) in page_raw, 'idioma fixo no elemento html' + where)
+    check(re.search(r'<title>([^<]*)</title>', page_raw).group(1) == title, 'título no idioma da página' + where)
+    check(meta(page_raw, 'description') == desc and meta(page_raw, 'og:description') == desc and meta(page_raw, 'og:title') == title,
+          'descrição e prévia no idioma da página' + where)
+    check(meta(page_raw, 'og:locale') == LOCALES[code], 'og:locale certo' + where, meta(page_raw, 'og:locale'))
+    url = base + code + '/'
+    page_canonical = re.search(r'<link rel="canonical" href="([^"]+)">', page_raw)
+    check(page_canonical and page_canonical.group(1) == url and meta(page_raw, 'og:url') == url,
+          'endereço canônico é a própria página' + where)
+    check(dict(re.findall(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">', page_raw)) == expected,
+          'mesmas versões por idioma da página inicial' + where)
+    check(image_exists(meta(page_raw, 'og:image')) and meta(page_raw, 'twitter:image') == meta(page_raw, 'og:image'),
+          'imagem de compartilhamento existe' + where, meta(page_raw, 'og:image'))
+    check(('<a href="/%s/" data-lang="%s" lang="%s" hreflang="%s" aria-current="true">' % (code, code, tag, tag)) in page_raw
+          and page_raw.count('aria-current="true"') == 1, 'seletor marca o idioma da página' + where)
+    check(('href="/cv/arthur-cei-correa-cv-%s.pdf"' % code) in page_body, 'botão do currículo da página' + where)
+    check(structured_data(page_raw, where) == person, 'mesmos dados estruturados da página inicial' + where)
 
 # ---------- página de erro ----------
 raw404, body404, parsed404 = check_page('404.html')
 check('<meta name="robots" content="noindex">' in raw404, 'a página 404 não é indexada')
-# a 404 é servida em qualquer profundidade de endereço: tudo o que é local tem de ser absoluto
-relative = [a.get(attr) for tag, a, line in parsed404.tags for attr in ('href', 'src')
-            if a.get(attr) and not a.get(attr).startswith(('/', 'data:', 'http://', 'https://', 'mailto:'))]
-relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw404) if not u.startswith('/')]
-check(not relative, 'a página 404 só usa caminhos absolutos', relative)
 
 # ---------- robots.txt e sitemap.xml ----------
 robots = open(os.path.join(ROOT, 'robots.txt'), encoding='utf-8').read()
 check('Sitemap: %ssitemap.xml' % base in robots, 'robots.txt aponta para o sitemap do endereço canônico')
 try:
     ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9', 'x': 'http://www.w3.org/1999/xhtml'}
-    tree = ET.parse(os.path.join(ROOT, 'sitemap.xml'))
-    locs = [e.text for e in tree.findall('s:url/s:loc', ns)]
-    alternates = {e.get('hreflang'): e.get('href') for e in tree.findall('s:url/x:link', ns)}
-    check(locs == [base], 'sitemap.xml lista o endereço canônico', locs)
-    in_page = dict(re.findall(r'<link rel="alternate" hreflang="([^"]+)" href="([^"]+)">', raw))
-    check(alternates == in_page and len(alternates) == 5, 'sitemap.xml e a página declaram as mesmas versões por idioma',
-          (alternates, in_page))
+    urls = ET.parse(os.path.join(ROOT, 'sitemap.xml')).findall('s:url', ns)
+    locs = [u.find('s:loc', ns).text for u in urls]
+    check(locs == [base] + [base + code + '/' for code in CODES], 'sitemap.xml lista a página inicial e as quatro páginas', locs)
+    for u in urls:
+        alternates = {e.get('hreflang'): e.get('href') for e in u.findall('x:link', ns)}
+        check(alternates == expected, 'sitemap.xml declara as versões por idioma de %s' % u.find('s:loc', ns).text, alternates)
 except ET.ParseError as error:
     check(False, 'sitemap.xml é XML bem formado', error)
 
