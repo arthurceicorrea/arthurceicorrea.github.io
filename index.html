@@ -3,12 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-IVWBEP2nM5WLum0C3moDlkcQiEkJBalr/zN8QVPU4G4='; script-src 'sha256-1I7F3gynF5u8HJUW+w0ckfkHOks9sQVXMG68ZEx0Kec='; font-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-dQJ8jZ3wHb5lFWw3UDbjwox9FWXIzwldzpvub87c3mc='; script-src 'sha256-SD0UuqOce/P4Q9Ff4ojhm8gM2rmBtT4ZN2R19jIJNkg='; font-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
 
-  Arquivos esperados ao lado deste index.html:
+  Este arquivo é a fonte. O pipeline (ci/build.py) publica-o como página inicial e gera
+  a partir dele uma página por idioma (/pt/, /en/, /es/, /it/), cada uma só com a sua
+  edição e com título, descrição e prévia de compartilhamento no seu idioma.
+  Por isso todos os caminhos locais são absolutos (/fonts/..., /cv/...).
+
+  Arquivos esperados na raiz do site:
     fonts/cinzel-400.woff2
     fonts/cinzel-500.woff2
     fonts/eb-garamond-400.woff2
@@ -21,16 +26,18 @@
   Idiomas: o conteúdo existe quatro vezes dentro do elemento main, um bloco por idioma
   (lang="pt-BR", "en", "es", "it"). O CSS mostra apenas o bloco cujo lang coincide
   com o do elemento html; o script só escolhe o idioma e atualiza esse atributo.
-  Idioma inicial, nesta ordem: ?lang= no endereço; o país, deduzido do fuso horário do
+  Nas páginas de cada idioma, o idioma vem fixo (atributo data-lang do elemento html).
+  Na página inicial, nesta ordem: ?lang= no endereço; o país, deduzido do fuso horário do
   aparelho (Brasil e Portugal: PT; Itália: IT; Espanha e América hispânica: ES); o idioma
-  do navegador; inglês. Sem JavaScript, a página aparece em inglês.
+  do navegador; inglês. Sem JavaScript, a página inicial aparece em inglês, e o seletor
+  de idioma leva às páginas de cada idioma.
 
   Política de segurança (CSP): os dois valores sha256 da meta tag acima correspondem
   ao conteúdo exato do bloco de estilos e do bloco de script (tudo o que está entre a
   etiqueta de abertura e a de fechamento, inclusive espaços e quebras de linha).
   Editar o texto do corpo da página não exige nada. Se alterar os estilos ou o script,
   recalcule o hash respectivo: o console do Chrome ou do Edge mostra o valor esperado
-  na mensagem de bloqueio; basta colá-lo na meta tag.
+  na mensagem de bloqueio; basta colá-lo na meta tag. Ou rode: python ci/csp_hash.py index.html
   Se o domínio passar pela Cloudflare, desligue Email Obfuscation, Rocket Loader e
   Auto Minify, pois reescrevem o HTML e invalidam os hashes.
   A diretiva frame-ancestors não funciona em meta tag; se a hospedagem permitir
@@ -61,19 +68,33 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Sapientis est ordinare — Arthur Cei Corrêa: DevOps, applied AI, security">
 <meta name="twitter:image" content="https://arthurceicorrea.github.io/og.png">
-<link rel="alternate" hreflang="pt-BR" href="https://arthurceicorrea.github.io/?lang=pt">
-<link rel="alternate" hreflang="en" href="https://arthurceicorrea.github.io/?lang=en">
-<link rel="alternate" hreflang="es" href="https://arthurceicorrea.github.io/?lang=es">
-<link rel="alternate" hreflang="it" href="https://arthurceicorrea.github.io/?lang=it">
+<link rel="alternate" hreflang="pt-BR" href="https://arthurceicorrea.github.io/pt/">
+<link rel="alternate" hreflang="en" href="https://arthurceicorrea.github.io/en/">
+<link rel="alternate" hreflang="es" href="https://arthurceicorrea.github.io/es/">
+<link rel="alternate" hreflang="it" href="https://arthurceicorrea.github.io/it/">
 <link rel="alternate" hreflang="x-default" href="https://arthurceicorrea.github.io/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Arthur Cei Corrêa",
+  "url": "https://arthurceicorrea.github.io/",
+  "jobTitle": "Software Engineering student",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "FIAP" },
+  "address": { "@type": "PostalAddress", "addressLocality": "São Paulo", "addressCountry": "BR" },
+  "knowsAbout": ["DevOps", "Applied AI", "Security", "CI/CD", "Docker", "Kubernetes", "Terraform", "Azure DevOps", "Java", "Python", "C#"],
+  "knowsLanguage": ["pt", "en", "es", "it"],
+  "sameAs": ["https://www.linkedin.com/in/arthurceicorrea/", "https://github.com/arthurceicorrea"]
+}
+</script>
 <!-- Se passar a usar domínio próprio, troque https://arthurceicorrea.github.io/ pelo novo endereço nas linhas acima. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2314181E'/%3E%3Cpath fill='%23B8935A' fill-rule='evenodd' d='M32 12 50 52h-7l-3.6-9H24.6L21 52h-7zM32 24l-5 13h10z'/%3E%3C/svg%3E">
 <style>
 /* ---- Fontes locais: arquivos .woff2 na pasta fonts/ ---- */
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/cinzel-400.woff2") format("woff2")}
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:500;font-display:swap;src:url("fonts/cinzel-500.woff2") format("woff2")}
-@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url("fonts/eb-garamond-400.woff2") format("woff2")}
-@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url("fonts/eb-garamond-400-italic.woff2") format("woff2")}
+@font-face{font-family:"Cinzel";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/cinzel-400.woff2") format("woff2")}
+@font-face{font-family:"Cinzel";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/cinzel-500.woff2") format("woff2")}
+@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400.woff2") format("woff2")}
+@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400-italic.woff2") format("woff2")}
 
 /* ---- Paleta e tipos herdados da capa do LinkedIn (Versão A) ---- */
 :root{
@@ -116,10 +137,8 @@ html:not([lang="it"]) .t[lang="it"]{display:none!important}
 .skip:hover{color:var(--bg)}
 .skip:focus{top:.75rem}
 
-/* ---- Seletor de idioma (só aparece com JavaScript, que é quem o faz funcionar) ---- */
+/* ---- Seletor de idioma: links para as páginas de cada idioma ---- */
 .top{display:flex;justify-content:flex-end;min-height:4.25rem;padding-block:.75rem}
-.langs{display:none}
-.js .langs{display:block}
 .langs ul{display:flex;margin-right:-.7rem}
 .langs li{display:flex;align-items:center}
 .langs li+li::before{content:"\00B7";content:"\00B7" / "";color:var(--gold);font:500 .8125rem/1 var(--cinzel)}
@@ -197,7 +216,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 (function () {
   'use strict';
 
-  // Código aceito em ?lang= e etiqueta de idioma (atributo lang) de cada edição.
+  // Código de cada idioma (pastas /pt/, /en/... e ?lang=) e etiqueta lang da edição.
   var TAGS = { pt: 'pt-BR', en: 'en', es: 'es', it: 'it' };
   var root = document.documentElement;
 
@@ -239,48 +258,26 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     return null;
   }
 
-  // Ordem: parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
-  var current = fromUrl() || fromZone() || fromBrowser() || 'en';
-  root.className = 'js';
+  // As páginas de cada idioma trazem o idioma fixo em data-lang. Na página inicial, a ordem é:
+  // parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
+  var current = pick(root.getAttribute('data-lang')) || fromUrl() || fromZone() || fromBrowser() || 'en';
   root.lang = TAGS[current]; // definido antes de o corpo ser lido: o idioma errado nunca chega a aparecer
 
-  function sync(announce) {
+  document.addEventListener('DOMContentLoaded', function () {
     var edition = document.querySelector('main > [lang="' + TAGS[current] + '"]');
     var description = document.querySelector('meta[name="description"]');
     if (edition) {
       document.title = edition.getAttribute('data-title');
       if (description) description.setAttribute('content', edition.getAttribute('data-desc'));
     }
-    // nome do seletor para leitores de tela, no idioma ativo
+    // seletor de idioma: nome para leitores de tela e idioma ativo marcado
     var nav = document.querySelector('.langs');
     nav.setAttribute('aria-label', nav.getAttribute('data-' + current));
     var links = nav.querySelectorAll('a');
     for (var i = 0; i < links.length; i++) {
-      var active = links[i].getAttribute('data-lang') === current;
-      if (active) links[i].setAttribute('aria-current', 'true');
+      if (links[i].getAttribute('data-lang') === current) links[i].setAttribute('aria-current', 'true');
       else links[i].removeAttribute('aria-current');
-      // anuncia a troca a quem usa leitor de tela
-      if (active && announce) document.getElementById('status').textContent = links[i].textContent;
     }
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    sync(false);
-    document.querySelector('.langs').addEventListener('click', function (event) {
-      var link = event.target.closest('a[data-lang]');
-      // cliques com Ctrl, Shift etc. seguem o link normal (?lang=xx), por exemplo numa nova aba
-      if (!link || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      event.preventDefault();
-      current = link.getAttribute('data-lang');
-      root.lang = TAGS[current];
-      sync(true);
-      // grava a escolha no endereço (?lang=xx), preservando outros parâmetros, para que o link possa ser compartilhado
-      try {
-        var query = new URLSearchParams(location.search);
-        query.set('lang', current);
-        history.replaceState(null, '', '?' + query + location.hash);
-      } catch (error) { /* se o navegador não deixar alterar o endereço, a troca de idioma funciona do mesmo modo */ }
-    });
   });
 })();
 </script>
@@ -297,13 +294,12 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 <header class="wrap top">
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
-      <li><a href="?lang=pt" data-lang="pt" lang="pt-BR" hreflang="pt-BR">PT<span class="vh"> – Português</span></a></li>
-      <li><a href="?lang=en" data-lang="en" lang="en" hreflang="en" aria-current="true">EN<span class="vh"> – English</span></a></li>
-      <li><a href="?lang=es" data-lang="es" lang="es" hreflang="es">ES<span class="vh"> – Español</span></a></li>
-      <li><a href="?lang=it" data-lang="it" lang="it" hreflang="it">IT<span class="vh"> – Italiano</span></a></li>
+      <li><a href="/pt/" data-lang="pt" lang="pt-BR" hreflang="pt-BR">PT<span class="vh"> – Português</span></a></li>
+      <li><a href="/en/" data-lang="en" lang="en" hreflang="en" aria-current="true">EN<span class="vh"> – English</span></a></li>
+      <li><a href="/es/" data-lang="es" lang="es" hreflang="es">ES<span class="vh"> – Español</span></a></li>
+      <li><a href="/it/" data-lang="it" lang="it" hreflang="it">IT<span class="vh"> – Italiano</span></a></li>
     </ul>
   </nav>
-  <p id="status" class="vh" role="status"></p>
 </header>
 
 <main id="conteudo" class="wrap" tabindex="-1">
@@ -329,9 +325,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       <h1>Arthur Cei Corrêa</h1>
       <p>Estudante de Engenharia de Software na FIAP (formatura em dezembro de 2027), com foco em DevOps, IA aplicada e segurança. Estagiei em DevOps na Vivo (ago. 2024 – dez. 2025): observei, estudei e contribuí sob supervisão. Segurança é área de estudo, com aplicação prática em projeto acadêmico.</p>
       <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p>Busco estágio ou vaga júnior em DevOps e IA aplicada, remota ou híbrida, no Brasil ou no exterior, com início imediato.</p>
       <p class="aside">Trabalho melhor com tarefas claras e comunicação por escrito.</p>
       <p class="actions">
-        <a class="btn" href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo (PDF)</a>
+        <a class="btn" href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo (PDF)</a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
     </div>
@@ -451,11 +448,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec">
     <h2>Currículo</h2>
     <div class="body">
-      <p><a class="btn" href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo em português (PDF)</a></p>
+      <p><a class="btn" href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo em português (PDF)</a></p>
       <p>Também em
-        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a>,
-        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> e
-        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+        <a href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a>,
+        <a href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> e
+        <a href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
     </div>
   </section>
 </div>
@@ -480,9 +477,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
       <p>Software Engineering student at FIAP (graduating in December 2027), focused on DevOps, applied AI and security. I interned in DevOps at Vivo (Aug 2024 – Dec 2025): I observed, studied and contributed under supervision. Security is an area of study, with practical application in an academic project.</p>
+      <p>I am looking for an internship or junior role in DevOps and applied AI, remote or hybrid, in Brazil or abroad, and can start immediately.</p>
       <p class="aside">I work best with clear tasks and written communication.</p>
       <p class="actions">
-        <a class="btn" href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV (PDF)</a>
+        <a class="btn" href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV (PDF)</a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
     </div>
@@ -602,11 +600,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec">
     <h2>CV</h2>
     <div class="body">
-      <p><a class="btn" href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV in English (PDF)</a></p>
+      <p><a class="btn" href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV in English (PDF)</a></p>
       <p>Also in
-        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
-        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> and
-        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+        <a href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> and
+        <a href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
     </div>
   </section>
 </div>
@@ -631,9 +629,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
       <p>Estudiante de Ingeniería de Software en FIAP (graduación en diciembre de 2027), enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo (ago. 2024 – dic. 2025): observé, estudié y contribuí bajo supervisión. La seguridad es un área de estudio, ya aplicada en un proyecto académico.</p>
+      <p>Busco una pasantía o un puesto junior en DevOps e IA aplicada, remoto o híbrido, en Brasil o en el exterior, con disponibilidad inmediata.</p>
       <p class="aside">Trabajo mejor con tareas claras y comunicación por escrito.</p>
       <p class="actions">
-        <a class="btn" href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum (PDF)</a>
+        <a class="btn" href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum (PDF)</a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
     </div>
@@ -753,11 +752,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec">
     <h2>Currículum</h2>
     <div class="body">
-      <p><a class="btn" href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum en español (PDF)</a></p>
+      <p><a class="btn" href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum en español (PDF)</a></p>
       <p>También en
-        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
-        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
-        <a href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
+        <a href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
+        <a href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" hreflang="it" lang="it" download>Italiano</a> (PDF).</p>
     </div>
   </section>
 </div>
@@ -783,9 +782,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
       <p>Studio Ingegneria del Software alla FIAP (laurea a dicembre 2027). Mi concentro su DevOps, IA applicata e sicurezza. Ho fatto un tirocinio in DevOps presso Vivo (ago. 2024 – dic. 2025): ho osservato, studiato e contribuito sotto supervisione. La sicurezza è un’area di studio, già applicata in un progetto accademico.</p>
+      <p>Cerco un tirocinio o una posizione junior in DevOps e IA applicata, da remoto o in modalità ibrida, in Brasile o all’estero. Posso iniziare subito.</p>
       <p class="aside">Lavoro meglio con compiti chiari e comunicazione scritta.</p>
       <p class="actions">
-        <a class="btn" href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV (PDF)</a>
+        <a class="btn" href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV (PDF)</a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
     </div>
@@ -907,11 +907,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec">
     <h2>Curriculum</h2>
     <div class="body">
-      <p><a class="btn" href="cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV in italiano (PDF)</a></p>
+      <p><a class="btn" href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV in italiano (PDF)</a></p>
       <p>Anche in
-        <a href="cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
-        <a href="cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
-        <a href="cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> (PDF).</p>
+        <a href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" hreflang="pt-BR" lang="pt-BR" download>Português</a>,
+        <a href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" hreflang="en" lang="en" download>English</a> e
+        <a href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" hreflang="es" lang="es" download>Español</a> (PDF).</p>
     </div>
   </section>
 </div>
