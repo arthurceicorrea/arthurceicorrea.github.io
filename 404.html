@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-LgJ9wUll8gAofIXAezoq2fQmLva9trGxN0NBLAZI684='; script-src 'sha256-ptcK0h7XywqL2lPY5JNWzGcesdef7JNRtD0QWpQJbCQ='; font-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-LgJ9wUll8gAofIXAezoq2fQmLva9trGxN0NBLAZI684='; script-src 'sha256-jAgsAHE+pm+ksWxzHYzED5X78umhAE9SSkw0cO8tYi0='; font-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex">
 <!--
   Página de erro 404 do portfólio. O GitHub Pages a serve para qualquer endereço
   inexistente, em qualquer profundidade; por isso os caminhos são absolutos (/fonts/..., /).
-  Idioma: o do navegador, se for um dos quatro; caso contrário, inglês.
+  Idioma: a mesma regra do index.html (?lang=, país pelo fuso horário, navegador, inglês).
   Os hashes da CSP seguem a mesma regra do index.html (ver o comentário de lá).
 -->
 <title>Page not found — Arthur Cei Corrêa</title>
@@ -81,7 +81,25 @@ h1{margin:.6rem -.11em 0 0;color:var(--gold);font:400 clamp(1.75rem,1rem + 2.6vw
     return null;
   }
 
-  var current = fromUrl() || fromBrowser() || 'en';
+  // País deduzido do fuso horário do aparelho, sem nenhuma consulta externa.
+  // Só entram fusos de países com língua clara; nos demais vale o idioma do navegador.
+  var ZONES = {
+    pt: /^(America\/(Sao_Paulo|Araguaina|Bahia|Belem|Boa_Vista|Campo_Grande|Cuiaba|Eirunepe|Fortaleza|Maceio|Manaus|Noronha|Porto_Velho|Recife|Rio_Branco|Santarem)|Brazil\/.+|Europe\/Lisbon|Portugal|Atlantic\/(Azores|Madeira|Cape_Verde)|Africa\/(Luanda|Maputo|Bissau|Sao_Tome))$/,
+    it: /^(Europe\/(Rome|Vatican|San_Marino)|Italy)$/,
+    es: /^(Europe\/Madrid|Africa\/(Ceuta|Malabo)|Atlantic\/Canary|America\/(Argentina\/.+|Buenos_Aires|Catamarca|Cordoba|Jujuy|Mendoza|Mexico_City|Cancun|Merida|Monterrey|Matamoros|Chihuahua|Ciudad_Juarez|Ojinaga|Mazatlan|Bahia_Banderas|Hermosillo|Tijuana|Bogota|Lima|Santiago|Punta_Arenas|Caracas|Montevideo|Asuncion|La_Paz|Guayaquil|Guatemala|El_Salvador|Tegucigalpa|Managua|Costa_Rica|Panama|Havana|Santo_Domingo)|Pacific\/(Easter|Galapagos)|Chile\/.+|Mexico\/.+|Cuba)$/
+  };
+
+  function fromZone() {
+    try {
+      var zone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      for (var code in ZONES) {
+        if (ZONES.hasOwnProperty(code) && ZONES[code].test(zone)) return code;
+      }
+    } catch (error) { /* navegador sem Intl: segue para o idioma do navegador */ }
+    return null;
+  }
+
+  var current = fromUrl() || fromZone() || fromBrowser() || 'en';
   root.lang = TAGS[current];
 
   document.addEventListener('DOMContentLoaded', function () {
