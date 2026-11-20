@@ -2,6 +2,8 @@
 
 - Copia a página inicial (index.html, com as quatro edições e a escolha automática
   do idioma), a 404, as fontes, os currículos, as imagens e os arquivos de indexação.
+- Preenche no rodapé a data da última atualização (a do último commit) e o ano,
+  e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 - Gera uma página por idioma (/pt/, /en/, /es/, /it/): só a edição daquele idioma,
   idioma fixo, e título, descrição, endereço canônico e prévia de compartilhamento
   (Open Graph) no idioma da página. Os blocos de estilo e de script não mudam, de
@@ -9,9 +11,11 @@
 
 Uso: python ci/build.py   (a partir da raiz do repositório; cria ou recria _site/)
 """
+import datetime
 import os
 import re
 import shutil
+import subprocess
 import sys
 from html.parser import HTMLParser
 
@@ -27,9 +31,43 @@ IMAGE_ALT = {
     'es': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, seguridad',
     'it': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA applicata, sicurezza',
 }
-FILES = ['index.html', '404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png'] + sorted(IMAGES.values())
+FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png'] + sorted(IMAGES.values())
 FOLDERS = ['fonts', 'cv']
 VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
+
+
+MONTHS = {
+    'pt': ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
+    'en': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    'es': ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+    'it': ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'],
+}
+
+
+def git(*args):
+    try:
+        return subprocess.run(['git'] + list(args), cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ''
+
+
+def long_date(day, code):
+    month = MONTHS[code][day.month - 1]
+    if code == 'en':
+        return '%s %d, %d' % (month, day.day, day.year)
+    if code == 'it':
+        return '%d %s %d' % (day.day, month, day.year)
+    return '%d de %s de %d' % (day.day, month, day.year)
+
+
+def stamp(source, day):
+    """Data da última atualização e ano do rodapé, nos quatro idiomas."""
+    for code, tag in TAGS.items():
+        source = replace_once(
+            source,
+            r'(<span class="t" lang="%s">[^<]*)<time datetime="[^"]*">[^<]*</time>' % re.escape(tag),
+            None, lambda m: '%s<time datetime="%s">%s</time>' % (m.group(1), day.isoformat(), long_date(day, code)))
+    return replace_once(source, r'<span class="year">\d{4}</span>', '<span class="year">%d</span>' % day.year)
 
 
 class OtherEditions(HTMLParser):
@@ -81,8 +119,8 @@ def without_other_editions(source, keep):
     return ''.join(result)
 
 
-def replace_once(text, pattern, replacement):
-    new, count = re.subn(pattern, lambda m: replacement, text, count=1)
+def replace_once(text, pattern, replacement, function=None):
+    new, count = re.subn(pattern, function or (lambda m: replacement), text, count=1)
     assert count == 1, 'não encontrado: %s' % pattern
     return new
 
@@ -126,13 +164,21 @@ def main():
         shutil.copy2(os.path.join(ROOT, name), os.path.join(OUT, name))
     for folder in FOLDERS:
         shutil.copytree(os.path.join(ROOT, folder), os.path.join(OUT, folder))
-    source = open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read()
+    commit_date = git('log', '-1', '--format=%cs')
+    day = datetime.date.fromisoformat(commit_date) if commit_date else datetime.date.today()
+    version = os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD') or 'local'
+    with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write(version + '\n')
+    source = stamp(open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read(), day)
+    with open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write(source)
     for code in TAGS:
         os.makedirs(os.path.join(OUT, code))
         with open(os.path.join(OUT, code, 'index.html'), 'w', encoding='utf-8', newline='\n') as f:
             f.write(language_page(source, code))
     count = sum(len(files) for _, _, files in os.walk(OUT))
-    print('Site montado em _site/: %d arquivos, com as páginas %s.' % (count, ', '.join('/%s/' % c for c in TAGS)))
+    print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
+        count, ', '.join('/%s/' % c for c in TAGS), version[:7], day.isoformat()))
 
 
 if __name__ == '__main__':

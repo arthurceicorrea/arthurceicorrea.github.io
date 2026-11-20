@@ -234,6 +234,22 @@ for code, tag in CODES.items():
     check(('href="/cv/arthur-cei-correa-cv-%s.pdf"' % code) in page_body, 'botão do currículo da página' + where)
     check(structured_data(page_raw, where) == person, 'mesmos dados estruturados da página inicial' + where)
 
+# ---------- rodapé e versão ----------
+import datetime
+stamps = {}
+for name in ['index.html'] + ['%s/index.html' % c for c in CODES]:
+    text = open(os.path.join(ROOT, name), encoding='utf-8').read()
+    stamps[name] = (re.findall(r'<time datetime="([^"]+)">', text), re.findall(r'<span class="year">(\d{4})</span>', text))
+dates = {d for found, _ in stamps.values() for d in found}
+years = {y for _, found in stamps.values() for y in found}
+check(len(dates) == 1 and len(stamps['index.html'][0]) == 4, 'mesma data de atualização em todas as páginas', dates)
+if len(dates) == 1:
+    day = datetime.date.fromisoformat(dates.pop())
+    check(day <= datetime.date.today() + datetime.timedelta(days=1), 'data de atualização não está no futuro', day)
+    check(years == {str(day.year)}, 'ano do rodapé é o da atualização', years)
+version = open(os.path.join(ROOT, 'version.txt'), encoding='utf-8').read().strip() if os.path.isfile(os.path.join(ROOT, 'version.txt')) else ''
+check(re.fullmatch(r'[0-9a-f]{40}|local', version) is not None, 'version.txt com o commit publicado', version)
+
 # ---------- página de erro ----------
 raw404, body404, parsed404 = check_page('404.html')
 check('<meta name="robots" content="noindex">' in raw404, 'a página 404 não é indexada')
