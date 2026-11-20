@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-dQJ8jZ3wHb5lFWw3UDbjwox9FWXIzwldzpvub87c3mc='; script-src 'sha256-SD0UuqOce/P4Q9Ff4ojhm8gM2rmBtT4ZN2R19jIJNkg='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-6IDcnTAfSc5auCWiWk2s+uPfLcgSLhOn9pawT1+/Ohc='; script-src 'sha256-SD0UuqOce/P4Q9Ff4ojhm8gM2rmBtT4ZN2R19jIJNkg='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -154,19 +154,26 @@ html[lang="en"] .langs [data-lang="en"],
 html[lang="es"] .langs [data-lang="es"],
 html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
 
-/* ---- Hero: alinhado à direita, como na capa ---- */
-.hero{padding-block:clamp(3rem,11vh,7rem) clamp(3.25rem,10vh,6.5rem);text-align:right}
+/* ---- Sumário fixo: acompanha a rolagem; no celular a faixa de links rola de lado ---- */
+.jump{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:1.25rem;margin-inline:calc(-1 * var(--edge));padding:.3rem var(--edge);background:var(--bg);border-bottom:1px solid var(--rule)}
+.jump ul{display:flex;flex:1;gap:1.5rem;min-width:0;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}
+.jump ul::-webkit-scrollbar{display:none}
+.jump a{display:inline-flex;align-items:center;min-height:2.5rem;color:var(--muted);font:500 .75rem/1 var(--cinzel);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+.jump a:hover{color:var(--gold-hi)}
+.jump .cv{flex:none;min-height:2.25rem;padding:0 .9rem 0 calc(.9rem + .12em);border:1px solid var(--gold);color:var(--gold-hi)}
+.jump .cv:hover{background:var(--gold);color:var(--bg)}
+.sec{scroll-margin-top:4.5rem}
+/* celular: a borda direita da faixa esmaece, sinal de que há mais links ao rolar */
+@media (max-width:47.99rem){.jump ul{gap:1.15rem;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent)}}
+
+/* ---- Hero: o lema como epígrafe, alinhado à direita, como na capa ---- */
+.hero{padding-block:clamp(1.75rem,6vh,3.5rem) clamp(1.75rem,5vh,3rem);text-align:right}
 /* margens negativas: anulam o espaço que o letter-spacing deixa depois da última letra */
-.motto blockquote p{margin-right:-.11em;color:var(--gold);font:400 clamp(1.75rem,1rem + 2.6vw,2.75rem)/1.15 var(--cinzel);letter-spacing:.11em;text-transform:uppercase}
+.motto blockquote p{margin-right:-.11em;color:var(--gold);font:400 clamp(1.25rem,.95rem + 1.2vw,1.75rem)/1.2 var(--cinzel);letter-spacing:.11em;text-transform:uppercase}
 .motto blockquote span{white-space:nowrap}
-.motto .tr{margin-top:.55em;font-size:clamp(1.375rem,1.15rem + .9vw,1.75rem);font-style:italic;line-height:1.25;text-wrap:balance}
-.motto figcaption{margin:.75rem -.18em 0 0;color:var(--muted);font:400 clamp(.875rem,.82rem + .2vw,.9375rem)/1.5 var(--cinzel);letter-spacing:.18em;text-transform:uppercase}
-.craft{position:relative;overflow:hidden;margin-top:1.5rem;padding-top:1.35rem;color:var(--gold-text);font:500 clamp(.875rem,.8rem + .35vw,1.0625rem)/1.7 var(--cinzel);letter-spacing:.23em;text-transform:uppercase}
-.craft::before{content:"";position:absolute;top:0;right:0;width:3.5rem;height:1px;background:var(--rule)}
-/* os pontos ficam entre os itens; o do fim de cada linha cai fora da área visível */
-.craft ul{display:flex;flex-wrap:wrap;justify-content:flex-end;margin-right:-2.13em}
-.craft li{position:relative;padding-right:1.9em;white-space:nowrap}
-.craft li::after{content:"\00B7";content:"\00B7" / "";position:absolute;right:.93em;letter-spacing:0}
+.motto .tr{margin-top:.45em;font-size:clamp(1.0625rem,1rem + .3vw,1.25rem);font-style:italic;line-height:1.25;text-wrap:balance}
+.motto figcaption{margin:.5rem -.18em 0 0;color:var(--muted);font:400 .8125rem/1.5 var(--cinzel);letter-spacing:.18em;text-transform:uppercase}
+.motto::after{content:"";display:block;width:3.5rem;height:1px;margin:1.25rem 0 0 auto;background:var(--gold)}
 
 /* ---- Corpo: coluna ancorada na mesma margem direita do hero ---- */
 .sec{max-width:var(--measure);margin-left:auto}
@@ -176,7 +183,12 @@ html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:und
 .body>*+*{margin-top:1rem}
 
 h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinzel);letter-spacing:.1em;text-transform:uppercase;text-wrap:balance}
-.intro h1+p{margin-top:1.1rem}
+/* ofícios sob o nome; o ponto que abriria cada linha cai fora da área visível */
+.intro .craft{overflow:hidden;margin-top:.55rem;color:var(--gold-text);font:500 clamp(.8125rem,.78rem + .2vw,.9375rem)/1.7 var(--cinzel);letter-spacing:.2em;text-transform:uppercase}
+.craft ul{display:flex;flex-wrap:wrap;margin-left:-1.9em}
+.craft li{position:relative;padding-left:1.9em;white-space:nowrap}
+.craft li::before{content:"\00B7";content:"\00B7" / "";position:absolute;left:.8em;letter-spacing:0}
+.intro .glance{margin-top:1.5rem}
 .aside{font-style:italic}
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.75rem;margin-top:1.75rem}
 .btn{display:inline-flex;align-items:center;min-height:2.75rem;padding:.7rem 1.4rem .7rem calc(1.4rem + .16em);border:1px solid var(--gold);color:var(--gold-hi);font:500 .8125rem/1.3 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-decoration:none}
@@ -193,6 +205,14 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 .facts.pair{grid-template-columns:7.5rem minmax(0,1fr);gap:.35rem 1.25rem}
 .facts.pair dd+dt{margin-top:0}
 .note{color:var(--muted);font-style:italic}
+/* detalhes dos projetos: abrem no próprio lugar */
+.entry details{margin-top:.6rem}
+.entry summary{display:inline-flex;align-items:center;gap:.6em;min-height:2.75rem;cursor:pointer;list-style:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase}
+.entry summary::-webkit-details-marker{display:none}
+.entry summary::before{content:"+";content:"+" / "";width:.7em;font-size:1.15rem;letter-spacing:0}
+.entry details[open]>summary::before{content:"\2212";content:"\2212" / ""}
+.entry summary:hover{color:var(--gold-hi)}
+.entry details .facts{margin-top:.3rem}
 
 .foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 3rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
 
@@ -211,9 +231,22 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 
 @media (prefers-reduced-motion:reduce){a{transition:none}}
 
+/* entrada, uma vez: o filete sob o lema se desenha e a apresentação surge do quase transparente */
+@media (prefers-reduced-motion:no-preference){
+  .motto::after{animation:draw .45s cubic-bezier(.2,.7,.2,1) both}
+  .intro .body>*{animation:rise .45s ease-out both}
+}
+/* telas largas: o espaçamento das letras do nome se fecha (no celular mudaria a quebra de linha) */
+@media (prefers-reduced-motion:no-preference) and (min-width:36rem){
+  .intro h1{animation-name:settle}
+}
+@keyframes draw{from{transform:scaleX(0)}}
+@keyframes rise{from{opacity:.2}}
+@keyframes settle{from{opacity:.2;letter-spacing:.16em}}
+
 @media print{
   :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-  .top,.skip{display:none}
+  .top,.skip,.jump{display:none}
   .hero{padding-block:1rem 2rem}
 }
 </style>
@@ -314,92 +347,133 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
      data-title="Arthur Cei Corrêa — DevOps, IA aplicada e segurança"
      data-desc="Portfólio de Arthur Cei Corrêa, estudante de Engenharia de Software na FIAP, com foco em DevOps, IA aplicada e segurança. Projetos, competências e currículo.">
 
+  <nav class="jump" aria-label="Seções da página">
+    <ul role="list">
+      <li><a href="#projetos">Projetos</a></li>
+      <li><a href="#competencias">Competências</a></li>
+      <li><a href="#formacao">Formação</a></li>
+      <li><a href="#contato">Contato</a></li>
+    </ul>
+    <a class="cv" href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Currículo<span class="vh"> (PDF)</span></a>
+  </nav>
+
   <header class="hero">
     <figure class="motto">
       <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
       <p class="tr">«Ao sábio compete ordenar.»</p>
       <figcaption>— Santo Tomás de Aquino</figcaption>
     </figure>
-    <div class="craft">
-      <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Segurança</li></ul>
-    </div>
   </header>
 
   <section class="sec intro">
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
-      <p>Estudante de Engenharia de Software na FIAP (formatura em dezembro de 2027), com foco em DevOps, IA aplicada e segurança. Estagiei em DevOps na Vivo (ago. 2024 – dez. 2025): observei, estudei e contribuí sob supervisão. Segurança é área de estudo, com aplicação prática em projeto acadêmico.</p>
-      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
-      <p>Busco estágio ou vaga júnior em DevOps e IA aplicada, remota ou híbrida, no Brasil ou no exterior, com início imediato.</p>
-      <p class="aside">Trabalho melhor com tarefas claras e comunicação por escrito.</p>
+      <div class="craft">
+        <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Segurança</li></ul>
+      </div>
+      <dl class="facts pair glance">
+        <dt>Busco</dt><dd>Estágio ou vaga júnior em DevOps e IA aplicada</dd>
+        <dt>Início</dt><dd>Imediato</dd>
+        <dt>Modalidade</dt><dd>Remota ou híbrida, no Brasil ou no exterior</dd>
+        <dt>Idiomas</dt><dd>Português nativo, inglês fluente, espanhol avançado</dd>
+        <dt>Formatura</dt><dd>Dezembro de 2027, FIAP</dd>
+      </dl>
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo (PDF)</a>
+        <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (abre em nova aba)</span></a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
+      <p>Estudante de Engenharia de Software na FIAP, com foco em DevOps, IA aplicada e segurança. Estagiei em DevOps na Vivo de agosto de 2024 a dezembro de 2025: observei, estudei e contribuí sob supervisão.</p>
+      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p class="aside">Trabalho melhor com tarefas claras e comunicação por escrito.</p>
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="projetos">
     <h2>Projetos</h2>
     <div class="body">
       <article class="entry">
         <h3>Vinheria Agnello: integração de infraestrutura</h3>
         <p class="meta">FIAP, 2026, com a equipe CodeSquad</p>
+        <p>Integrei dois microsserviços .NET em Docker Compose, com rede, autenticação e TLS, e configurei o pipeline Jenkins que os entrega.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Fazer dois microsserviços .NET funcionarem juntos, com serviços de rede (DNS e DHCP), autenticação e tráfego cifrado, e automatizar a entrega.</dd>
           <dt>Stack</dt>
           <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
-          <dt>Meu papel</dt>
-          <dd>Integrei os dois microsserviços em Docker Compose, com DNS e DHCP (dnsmasq), autenticação JWT e TLS. Configurei o pipeline Jenkins que compila, publica e implanta os serviços, com scripts de validação automatizada e evidências de execução. Contribuí também com painéis em Tableau e Node-RED (MQTT).</dd>
           <dt>Repositório</dt>
           <dd>Privado, sem link público.</dd>
         </dl>
+        <details>
+          <summary>Ver detalhes</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Fazer dois microsserviços .NET funcionarem juntos, com serviços de rede (DNS e DHCP), autenticação e tráfego cifrado, e automatizar a entrega.</dd>
+            <dt>Meu papel</dt>
+            <dd>Integrei os dois microsserviços em Docker Compose, com DNS e DHCP (dnsmasq), autenticação JWT e TLS. Configurei o pipeline Jenkins que compila, publica e implanta os serviços, com scripts de validação automatizada e evidências de execução. Contribuí também com painéis em Tableau e Node-RED (MQTT).</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Projeto acadêmico em grupo, Global Solution 2026/2 (FIAP)</h3>
         <p class="meta">Em andamento</p>
+        <p>Cuidei da segurança e dos testes de uma API .NET.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Em sigilo: o nome e a finalidade do projeto não são divulgados.</dd>
           <dt>Stack</dt>
           <dd>API em .NET, JWT, xUnit.</dd>
-          <dt>Meu papel</dt>
-          <dd>Segurança e testes de uma API .NET: autenticação JWT, perfis de acesso, isolamento de dados por instituição e proteção contra SQL injection e XSS; plano de testes de 8 casos, executado com evidências, e testes xUnit das regras de negócio.</dd>
           <dt>Repositório</dt>
           <dd>Privado, sem link.</dd>
         </dl>
+        <details>
+          <summary>Ver detalhes</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Em sigilo: o nome e a finalidade do projeto não são divulgados.</dd>
+            <dt>Meu papel</dt>
+            <dd>Segurança e testes de uma API .NET: autenticação JWT, perfis de acesso, isolamento de dados por instituição e proteção contra SQL injection e XSS; plano de testes de 8 casos, executado com evidências, e testes xUnit das regras de negócio.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>SellOut EasyTrack</h3>
         <p class="meta">2º lugar no FIAP Challenge 2025 (Asteria), com a equipe CodeSquad</p>
+        <p>Aplicação desktop de gestão de vendas, em que desenvolvi principalmente a lógica central do back-end.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Aplicação desktop de gestão de vendas, desenvolvida para o FIAP Challenge 2025.</dd>
           <dt>Stack</dt>
           <dd>Java 11, Maven, MySQL, JUnit, R (análise).</dd>
-          <dt>Meu papel</dt>
-          <dd>Desenvolvi principalmente a lógica central do back-end.</dd>
           <dt>Repositório</dt>
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (abre em nova aba)</span></a></dd>
         </dl>
+        <details>
+          <summary>Ver detalhes</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Aplicação desktop de gestão de vendas, desenvolvida para o FIAP Challenge 2025.</dd>
+            <dt>Meu papel</dt>
+            <dd>Desenvolvi principalmente a lógica central do back-end.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Este site</h3>
         <p class="meta">2026, projeto pessoal</p>
+        <p>Portfólio em quatro idiomas, publicado só depois de passar por testes automáticos. Concebi e conduzi o projeto.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Um portfólio em quatro idiomas, acessível e sem recursos de terceiros, que só é publicado depois de passar por testes automáticos.</dd>
           <dt>Stack</dt>
           <dd>HTML e CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core, Lighthouse.</dd>
-          <dt>Meu papel</dt>
-          <dd>Concebi e conduzi o projeto: defini os requisitos, as verificações do pipeline e as prioridades de cada melhoria. Usei IA como ferramenta para escrever o código.</dd>
           <dt>Repositório</dt>
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (abre em nova aba)</span></a></dd>
         </dl>
+        <details>
+          <summary>Ver detalhes</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Um portfólio em quatro idiomas, acessível e sem recursos de terceiros, que só é publicado depois de passar por testes automáticos.</dd>
+            <dt>Meu papel</dt>
+            <dd>Concebi e conduzi o projeto: defini os requisitos, as verificações do pipeline e as prioridades de cada melhoria. Usei IA como ferramenta para escrever o código.</dd>
+          </dl>
+        </details>
       </article>
     </div>
   </section>
@@ -416,7 +490,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="competencias">
     <h2>Competências</h2>
     <div class="body">
       <p>Tecnologias com que tive contato prático: no estágio, em projetos e nos laboratórios da graduação.</p>
@@ -447,7 +521,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="formacao">
     <h2>Formação e experiência</h2>
     <div class="body">
       <article class="entry">
@@ -463,7 +537,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="contato">
     <h2>Contato</h2>
     <div class="body">
       <dl class="facts">
@@ -494,91 +568,133 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
      data-title="Arthur Cei Corrêa — DevOps, applied AI and security"
      data-desc="Portfolio of Arthur Cei Corrêa, a Software Engineering student at FIAP focused on DevOps, applied AI and security. Projects, skills and CV.">
 
+  <nav class="jump" aria-label="Page sections">
+    <ul role="list">
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a class="cv" href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>CV<span class="vh"> (PDF)</span></a>
+  </nav>
+
   <header class="hero">
     <figure class="motto">
       <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
       <p class="tr">«It belongs to the wise to order.»</p>
       <figcaption>— St. Thomas Aquinas</figcaption>
     </figure>
-    <div class="craft">
-      <ul role="list"><li>DevOps</li><li>Applied AI</li><li>Security</li></ul>
-    </div>
   </header>
 
   <section class="sec intro">
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
-      <p>Software Engineering student at FIAP (graduating in December 2027), focused on DevOps, applied AI and security. I interned in DevOps at Vivo (Aug 2024 – Dec 2025): I observed, studied and contributed under supervision. Security is an area of study, with practical application in an academic project.</p>
-      <p>I am looking for an internship or junior role in DevOps and applied AI, remote or hybrid, in Brazil or abroad, and can start immediately.</p>
-      <p class="aside">I work best with clear tasks and written communication.</p>
+      <div class="craft">
+        <ul role="list"><li>DevOps</li><li>Applied AI</li><li>Security</li></ul>
+      </div>
+      <dl class="facts pair glance">
+        <dt>Looking for</dt><dd>Internship or junior role in DevOps and applied AI</dd>
+        <dt>Start</dt><dd>Immediately</dd>
+        <dt>Work mode</dt><dd>Remote or hybrid, in Brazil or abroad</dd>
+        <dt>Languages</dt><dd>Portuguese (native), English (fluent), Spanish (advanced)</dd>
+        <dt>Graduation</dt><dd>December 2027, FIAP</dd>
+      </dl>
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV (PDF)</a>
+        <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (opens in a new tab)</span></a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
+      <p>Software Engineering student at FIAP, focused on DevOps, applied AI and security. I interned in DevOps at Vivo from August 2024 to December 2025, where I observed, studied and contributed under supervision.</p>
+      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p class="aside">I work best with clear tasks and written communication.</p>
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="projects">
     <h2>Projects</h2>
     <div class="body">
       <article class="entry">
         <h3>Vinheria Agnello: infrastructure integration</h3>
         <p class="meta">FIAP, 2026, with team CodeSquad</p>
+        <p>I integrated two .NET microservices in Docker Compose, with networking, authentication and TLS, and set up the Jenkins pipeline that delivers them.</p>
         <dl class="facts">
-          <dt>Problem</dt>
-          <dd>Getting two .NET microservices to work together, with network services (DNS and DHCP), authentication and encrypted traffic, and automating delivery.</dd>
           <dt>Stack</dt>
           <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
-          <dt>My role</dt>
-          <dd>I integrated the two microservices with Docker Compose, with DNS and DHCP (dnsmasq), JWT authentication and TLS. I configured the Jenkins pipeline that builds, publishes and deploys the services, with automated validation scripts and execution evidence. I also contributed Tableau and Node-RED (MQTT) dashboards.</dd>
           <dt>Repository</dt>
           <dd>Private, no public link.</dd>
         </dl>
+        <details>
+          <summary>See details</summary>
+          <dl class="facts">
+            <dt>Problem</dt>
+            <dd>Getting two .NET microservices to work together, with network services (DNS and DHCP), authentication and encrypted traffic, and automating delivery.</dd>
+            <dt>My role</dt>
+            <dd>I integrated the two microservices with Docker Compose, with DNS and DHCP (dnsmasq), JWT authentication and TLS. I configured the Jenkins pipeline that builds, publishes and deploys the services, with automated validation scripts and execution evidence. I also contributed Tableau and Node-RED (MQTT) dashboards.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Group academic project, Global Solution 2026/2 (FIAP)</h3>
         <p class="meta">In progress</p>
+        <p>I handled security and testing for a .NET API.</p>
         <dl class="facts">
-          <dt>Problem</dt>
-          <dd>Confidential: the project’s name and purpose are not disclosed.</dd>
           <dt>Stack</dt>
           <dd>.NET API, JWT, xUnit.</dd>
-          <dt>My role</dt>
-          <dd>Security and testing of a .NET API: JWT authentication, role-based access, per-institution data isolation, and protection against SQL injection and XSS; an 8-case test plan, executed with evidence, and xUnit tests of the business rules.</dd>
           <dt>Repository</dt>
           <dd>Private, no link.</dd>
         </dl>
+        <details>
+          <summary>See details</summary>
+          <dl class="facts">
+            <dt>Problem</dt>
+            <dd>Confidential: the project’s name and purpose are not disclosed.</dd>
+            <dt>My role</dt>
+            <dd>Security and testing of a .NET API: JWT authentication, role-based access, per-institution data isolation, and protection against SQL injection and XSS; an 8-case test plan, executed with evidence, and xUnit tests of the business rules.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>SellOut EasyTrack</h3>
         <p class="meta">2nd place in the FIAP Challenge 2025 (Asteria), with team CodeSquad</p>
+        <p>A desktop sales management application; I mainly developed the core back-end logic.</p>
         <dl class="facts">
-          <dt>Problem</dt>
-          <dd>A desktop application for sales management, built for the FIAP Challenge 2025.</dd>
           <dt>Stack</dt>
           <dd>Java 11, Maven, MySQL, JUnit, R (analysis).</dd>
-          <dt>My role</dt>
-          <dd>I mainly developed the core back-end logic.</dd>
           <dt>Repository</dt>
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (opens in a new tab)</span></a></dd>
         </dl>
+        <details>
+          <summary>See details</summary>
+          <dl class="facts">
+            <dt>Problem</dt>
+            <dd>A desktop application for sales management, built for the FIAP Challenge 2025.</dd>
+            <dt>My role</dt>
+            <dd>I mainly developed the core back-end logic.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>This site</h3>
         <p class="meta">2026, personal project</p>
+        <p>A portfolio in four languages, published only after it passes automated tests. I conceived and led the project.</p>
         <dl class="facts">
-          <dt>Problem</dt>
-          <dd>A portfolio in four languages, accessible and free of third-party resources, published only after it passes automated tests.</dd>
           <dt>Stack</dt>
           <dd>HTML and CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core, Lighthouse.</dd>
-          <dt>My role</dt>
-          <dd>I conceived and led the project: I set the requirements, the pipeline checks and the priorities for each improvement. I used AI as a tool to write the code.</dd>
           <dt>Repository</dt>
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (opens in a new tab)</span></a></dd>
         </dl>
+        <details>
+          <summary>See details</summary>
+          <dl class="facts">
+            <dt>Problem</dt>
+            <dd>A portfolio in four languages, accessible and free of third-party resources, published only after it passes automated tests.</dd>
+            <dt>My role</dt>
+            <dd>I conceived and led the project: I set the requirements, the pipeline checks and the priorities for each improvement. I used AI as a tool to write the code.</dd>
+          </dl>
+        </details>
       </article>
     </div>
   </section>
@@ -595,7 +711,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="skills">
     <h2>Skills</h2>
     <div class="body">
       <p>Technologies I have had hands-on contact with: in my internship, in projects and in coursework labs.</p>
@@ -626,7 +742,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="education">
     <h2>Education and experience</h2>
     <div class="body">
       <article class="entry">
@@ -642,7 +758,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="contact">
     <h2>Contact</h2>
     <div class="body">
       <dl class="facts">
@@ -673,91 +789,133 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
      data-title="Arthur Cei Corrêa — DevOps, IA aplicada y seguridad"
      data-desc="Portafolio de Arthur Cei Corrêa, estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Proyectos, competencias y currículum.">
 
+  <nav class="jump" aria-label="Secciones de la página">
+    <ul role="list">
+      <li><a href="#proyectos">Proyectos</a></li>
+      <li><a href="#habilidades">Competencias</a></li>
+      <li><a href="#formacion">Formación</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <a class="cv" href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Currículum<span class="vh"> (PDF)</span></a>
+  </nav>
+
   <header class="hero">
     <figure class="motto">
       <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
       <p class="tr">«Al sabio le corresponde ordenar.»</p>
       <figcaption>— Santo Tomás de Aquino</figcaption>
     </figure>
-    <div class="craft">
-      <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Seguridad</li></ul>
-    </div>
   </header>
 
   <section class="sec intro">
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
-      <p>Estudiante de Ingeniería de Software en FIAP (graduación en diciembre de 2027), enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo (ago. 2024 – dic. 2025): observé, estudié y contribuí bajo supervisión. La seguridad es un área de estudio, ya aplicada en un proyecto académico.</p>
-      <p>Busco una pasantía o un puesto junior en DevOps e IA aplicada, remoto o híbrido, en Brasil o en el exterior, con disponibilidad inmediata.</p>
-      <p class="aside">Trabajo mejor con tareas claras y comunicación por escrito.</p>
+      <div class="craft">
+        <ul role="list"><li>DevOps</li><li>IA aplicada</li><li>Seguridad</li></ul>
+      </div>
+      <dl class="facts pair glance">
+        <dt>Busco</dt><dd>Pasantía o puesto junior en DevOps e IA aplicada</dd>
+        <dt>Inicio</dt><dd>Inmediato</dd>
+        <dt>Modalidad</dt><dd>Remota o híbrida, en Brasil o en el exterior</dd>
+        <dt>Idiomas</dt><dd>Portugués nativo, inglés fluido, español avanzado</dd>
+        <dt>Graduación</dt><dd>Diciembre de 2027, FIAP</dd>
+      </dl>
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum (PDF)</a>
+        <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (se abre en una pestaña nueva)</span></a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
+      <p>Estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo de agosto de 2024 a diciembre de 2025: observé, estudié y contribuí bajo supervisión.</p>
+      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p class="aside">Trabajo mejor con tareas claras y comunicación por escrito.</p>
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="proyectos">
     <h2>Proyectos</h2>
     <div class="body">
       <article class="entry">
         <h3>Vinheria Agnello: integración de infraestructura</h3>
         <p class="meta">FIAP, 2026, con el equipo CodeSquad</p>
+        <p>Integré dos microservicios .NET en Docker Compose, con red, autenticación y TLS, y configuré el pipeline de Jenkins que los entrega.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega.</dd>
           <dt>Stack</dt>
           <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
-          <dt>Mi papel</dt>
-          <dd>Integré los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT).</dd>
           <dt>Repositorio</dt>
           <dd>Privado, sin enlace público.</dd>
         </dl>
+        <details>
+          <summary>Ver detalles</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega.</dd>
+            <dt>Mi papel</dt>
+            <dd>Integré los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT).</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Proyecto académico en grupo, Global Solution 2026/2 (FIAP)</h3>
         <p class="meta">En curso</p>
+        <p>Me encargué de la seguridad y las pruebas de una API .NET.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Confidencial: el nombre y la finalidad del proyecto no se divulgan.</dd>
           <dt>Stack</dt>
           <dd>API en .NET, JWT, xUnit.</dd>
-          <dt>Mi papel</dt>
-          <dd>Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas de 8 casos, ejecutado con evidencias, y pruebas xUnit de las reglas de negocio.</dd>
           <dt>Repositorio</dt>
           <dd>Privado, sin enlace.</dd>
         </dl>
+        <details>
+          <summary>Ver detalles</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Confidencial: el nombre y la finalidad del proyecto no se divulgan.</dd>
+            <dt>Mi papel</dt>
+            <dd>Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas de 8 casos, ejecutado con evidencias, y pruebas xUnit de las reglas de negocio.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>SellOut EasyTrack</h3>
         <p class="meta">2.º puesto en el FIAP Challenge 2025 (Asteria), con el equipo CodeSquad</p>
+        <p>Aplicación de escritorio para la gestión de ventas; desarrollé principalmente la lógica central del back-end.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025.</dd>
           <dt>Stack</dt>
           <dd>Java 11, Maven, MySQL, JUnit, R (análisis).</dd>
-          <dt>Mi papel</dt>
-          <dd>Desarrollé principalmente la lógica central del back-end.</dd>
           <dt>Repositorio</dt>
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
         </dl>
+        <details>
+          <summary>Ver detalles</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025.</dd>
+            <dt>Mi papel</dt>
+            <dd>Desarrollé principalmente la lógica central del back-end.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Este sitio</h3>
         <p class="meta">2026, proyecto personal</p>
+        <p>Portafolio en cuatro idiomas, que solo se publica tras superar pruebas automáticas. Concebí y dirigí el proyecto.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Un portafolio en cuatro idiomas, accesible y sin recursos de terceros, que solo se publica después de superar pruebas automáticas.</dd>
           <dt>Stack</dt>
           <dd>HTML y CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core, Lighthouse.</dd>
-          <dt>Mi papel</dt>
-          <dd>Concebí y dirigí el proyecto: definí los requisitos, las verificaciones del pipeline y las prioridades de cada mejora. Usé IA como herramienta para escribir el código.</dd>
           <dt>Repositorio</dt>
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
         </dl>
+        <details>
+          <summary>Ver detalles</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Un portafolio en cuatro idiomas, accesible y sin recursos de terceros, que solo se publica después de superar pruebas automáticas.</dd>
+            <dt>Mi papel</dt>
+            <dd>Concebí y dirigí el proyecto: definí los requisitos, las verificaciones del pipeline y las prioridades de cada mejora. Usé IA como herramienta para escribir el código.</dd>
+          </dl>
+        </details>
       </article>
     </div>
   </section>
@@ -774,7 +932,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="habilidades">
     <h2>Competencias</h2>
     <div class="body">
       <p>Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera.</p>
@@ -805,7 +963,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="formacion">
     <h2>Formación y experiencia</h2>
     <div class="body">
       <article class="entry">
@@ -821,7 +979,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="contacto">
     <h2>Contacto</h2>
     <div class="body">
       <dl class="facts">
@@ -853,91 +1011,133 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
      data-title="Arthur Cei Corrêa — DevOps, IA applicata e sicurezza"
      data-desc="Portfolio di Arthur Cei Corrêa, studente di Ingegneria del Software alla FIAP: DevOps, IA applicata e sicurezza. Progetti, competenze e curriculum.">
 
+  <nav class="jump" aria-label="Sezioni della pagina">
+    <ul role="list">
+      <li><a href="#progetti">Progetti</a></li>
+      <li><a href="#competenze">Competenze</a></li>
+      <li><a href="#formazione">Formazione</a></li>
+      <li><a href="#contatti">Contatti</a></li>
+    </ul>
+    <a class="cv" href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>CV<span class="vh"> (PDF)</span></a>
+  </nav>
+
   <header class="hero">
     <figure class="motto">
       <blockquote lang="la"><p><span>Sapientis est</span> <span>ordinare</span></p></blockquote>
       <p class="tr">«Al sapiente spetta ordinare.»</p>
       <figcaption>— San Tommaso d’Aquino</figcaption>
     </figure>
-    <div class="craft">
-      <ul role="list"><li>DevOps</li><li>IA applicata</li><li>Sicurezza</li></ul>
-    </div>
   </header>
 
   <section class="sec intro">
     <div class="body">
       <h1>Arthur Cei Corrêa</h1>
-      <p>Studio Ingegneria del Software alla FIAP (laurea a dicembre 2027). Mi concentro su DevOps, IA applicata e sicurezza. Ho fatto un tirocinio in DevOps presso Vivo (ago. 2024 – dic. 2025): ho osservato, studiato e contribuito sotto supervisione. La sicurezza è un’area di studio, già applicata in un progetto accademico.</p>
-      <p>Cerco un tirocinio o una posizione junior in DevOps e IA applicata, da remoto o in modalità ibrida, in Brasile o all’estero. Posso iniziare subito.</p>
-      <p class="aside">Lavoro meglio con compiti chiari e comunicazione scritta.</p>
+      <div class="craft">
+        <ul role="list"><li>DevOps</li><li>IA applicata</li><li>Sicurezza</li></ul>
+      </div>
+      <dl class="facts pair glance">
+        <dt>Cerco</dt><dd>Tirocinio o posizione junior in DevOps e IA applicata</dd>
+        <dt>Inizio</dt><dd>Immediato</dd>
+        <dt>Modalità</dt><dd>Da remoto o ibrida, in Brasile o all’estero</dd>
+        <dt>Lingue</dt><dd>Portoghese madrelingua, inglese fluente, spagnolo avanzato</dd>
+        <dt>Laurea</dt><dd>Dicembre 2027, FIAP</dd>
+      </dl>
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV (PDF)</a>
+        <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (si apre in una nuova scheda)</span></a>
         <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
       </p>
+      <p>Studio Ingegneria del Software alla FIAP e mi concentro su DevOps, IA applicata e sicurezza. Ho fatto un tirocinio in DevOps presso Vivo da agosto 2024 a dicembre 2025: ho osservato, studiato e contribuito sotto supervisione.</p>
+      <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
+      <p class="aside">Lavoro meglio con compiti chiari e comunicazione scritta.</p>
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="progetti">
     <h2>Progetti</h2>
     <div class="body">
       <article class="entry">
         <h3>Vinheria Agnello: integrazione dell’infrastruttura</h3>
         <p class="meta">FIAP, 2026, con il team CodeSquad</p>
+        <p>Ho integrato due microservizi .NET in Docker Compose, con rete, autenticazione e TLS, e ho configurato la pipeline Jenkins che li rilascia.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Far funzionare insieme due microservizi .NET, con i servizi di rete (DNS e DHCP), l’autenticazione e il traffico cifrato. Automatizzare il rilascio.</dd>
           <dt>Stack</dt>
           <dd>Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT).</dd>
-          <dt>Il mio ruolo</dt>
-          <dd>Ho integrato i due microservizi con Docker Compose, con DNS e DHCP (dnsmasq), autenticazione JWT e TLS. Ho configurato la pipeline Jenkins che compila, pubblica e rilascia i servizi, con script di validazione automatica ed evidenze di esecuzione. Ho contribuito anche con dashboard in Tableau e Node-RED (MQTT).</dd>
           <dt>Repository</dt>
           <dd>Privato, senza link pubblico.</dd>
         </dl>
+        <details>
+          <summary>Vedi i dettagli</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Far funzionare insieme due microservizi .NET, con i servizi di rete (DNS e DHCP), l’autenticazione e il traffico cifrato. Automatizzare il rilascio.</dd>
+            <dt>Il mio ruolo</dt>
+            <dd>Ho integrato i due microservizi con Docker Compose, con DNS e DHCP (dnsmasq), autenticazione JWT e TLS. Ho configurato la pipeline Jenkins che compila, pubblica e rilascia i servizi, con script di validazione automatica ed evidenze di esecuzione. Ho contribuito anche con dashboard in Tableau e Node-RED (MQTT).</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Progetto accademico di gruppo, Global Solution 2026/2 (FIAP)</h3>
         <p class="meta">In corso</p>
+        <p>Mi sono occupato della sicurezza e dei test di un’API .NET.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Riservato: il nome e lo scopo del progetto non sono pubblici.</dd>
           <dt>Stack</dt>
           <dd>API .NET, JWT, xUnit.</dd>
-          <dt>Il mio ruolo</dt>
-          <dd>Sicurezza e test di un’API .NET: autenticazione JWT, ruoli di accesso, isolamento dei dati per istituzione, protezione da SQL injection e XSS. Un piano di test con 8 casi, eseguito con evidenze. Test xUnit delle regole di business.</dd>
           <dt>Repository</dt>
           <dd>Privato, senza link.</dd>
         </dl>
+        <details>
+          <summary>Vedi i dettagli</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Riservato: il nome e lo scopo del progetto non sono pubblici.</dd>
+            <dt>Il mio ruolo</dt>
+            <dd>Sicurezza e test di un’API .NET: autenticazione JWT, ruoli di accesso, isolamento dei dati per istituzione, protezione da SQL injection e XSS. Un piano di test con 8 casi, eseguito con evidenze. Test xUnit delle regole di business.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>SellOut EasyTrack</h3>
         <p class="meta">Secondo posto nel concorso FIAP Challenge 2025 (Asteria), con il team CodeSquad</p>
+        <p>Un’applicazione desktop per la gestione delle vendite; ho sviluppato soprattutto la logica centrale del back-end.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Un’applicazione desktop per la gestione delle vendite, sviluppata per il concorso FIAP Challenge 2025.</dd>
           <dt>Stack</dt>
           <dd>Java 11, Maven, MySQL, JUnit, R (analisi).</dd>
-          <dt>Il mio ruolo</dt>
-          <dd>Ho sviluppato soprattutto la logica centrale del back-end.</dd>
           <dt>Repository</dt>
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
         </dl>
+        <details>
+          <summary>Vedi i dettagli</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Un’applicazione desktop per la gestione delle vendite, sviluppata per il concorso FIAP Challenge 2025.</dd>
+            <dt>Il mio ruolo</dt>
+            <dd>Ho sviluppato soprattutto la logica centrale del back-end.</dd>
+          </dl>
+        </details>
       </article>
 
       <article class="entry">
         <h3>Questo sito</h3>
         <p class="meta">2026, progetto personale</p>
+        <p>Un portfolio in quattro lingue, pubblicato solo dopo aver superato test automatici. Ho ideato e guidato il progetto.</p>
         <dl class="facts">
-          <dt>Problema</dt>
-          <dd>Un portfolio in quattro lingue, accessibile e senza risorse di terze parti, che viene pubblicato solo dopo aver superato test automatici.</dd>
           <dt>Stack</dt>
           <dd>HTML e CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core, Lighthouse.</dd>
-          <dt>Il mio ruolo</dt>
-          <dd>Ho ideato e guidato il progetto: ho definito i requisiti, i controlli della pipeline e le priorità di ogni miglioramento. Ho usato l’IA come strumento per scrivere il codice.</dd>
           <dt>Repository</dt>
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
         </dl>
+        <details>
+          <summary>Vedi i dettagli</summary>
+          <dl class="facts">
+            <dt>Problema</dt>
+            <dd>Un portfolio in quattro lingue, accessibile e senza risorse di terze parti, che viene pubblicato solo dopo aver superato test automatici.</dd>
+            <dt>Il mio ruolo</dt>
+            <dd>Ho ideato e guidato il progetto: ho definito i requisiti, i controlli della pipeline e le priorità di ogni miglioramento. Ho usato l’IA come strumento per scrivere il codice.</dd>
+          </dl>
+        </details>
       </article>
     </div>
   </section>
@@ -954,7 +1154,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="competenze">
     <h2>Competenze</h2>
     <div class="body">
       <p>Tecnologie con cui ho avuto un contatto pratico: nel tirocinio, nei progetti e nei laboratori dell’università.</p>
@@ -987,7 +1187,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="formazione">
     <h2>Formazione ed esperienza</h2>
     <div class="body">
       <article class="entry">
@@ -1003,7 +1203,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="contatti">
     <h2>Contatti</h2>
     <div class="body">
       <dl class="facts">

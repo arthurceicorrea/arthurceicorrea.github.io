@@ -53,6 +53,7 @@ STATE = """() => ({
   current: [...document.querySelectorAll('.langs a[aria-current]')].map(a => a.dataset.lang),
   navVisible: !!document.querySelector('.langs') && getComputedStyle(document.querySelector('.langs')).display !== 'none',
   cv: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
+  jumps: [...document.querySelectorAll('.jump a[href^="#"]')].filter(a => a.offsetParent !== null).map(a => { const t = document.getElementById(a.hash.slice(1)); return !!t && t.offsetParent !== null; }),
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
   fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)
 })"""
@@ -89,6 +90,7 @@ with sync_playwright() as pw:
                 if path.endswith('/'):
                     check(s['editions'] == [tag], 'só uma edição na página (%s)' % where, s['editions'])
                 check(s['current'] == [code] and s['navVisible'], 'seletor visível e no idioma ativo (%s)' % where, s['current'])
+                check(len(s['jumps']) == 4 and all(s['jumps']), 'sumário leva às quatro seções visíveis (%s)' % where, s['jumps'])
                 check(len(s['cv']) == 2 and all(h == '/cv/arthur-cei-correa-cv-%s.pdf' % code for h in s['cv']),
                       'botões de currículo no idioma ativo (%s)' % where, s['cv'])
                 check(s['fonts'] and all(f == 'loaded' for f in s['fonts']), 'fontes carregadas (%s)' % where, s['fonts'])
