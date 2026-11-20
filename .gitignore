@@ -4,3 +4,4 @@ ci/node_modules/
 ci/package-lock.json
 lighthouse-report/
 .lighthouseci/
+__pycache__/
