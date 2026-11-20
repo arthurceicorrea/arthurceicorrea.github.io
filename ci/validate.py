@@ -29,6 +29,7 @@ ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.github.io/',
     'https://github.com/arthurceicorrea',
     'https://www.linkedin.com/in/arthurceicorrea/',
+    'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
 )
 # telefone brasileiro: +55, (11) 9xxxx-xxxx ou 9xxxx-xxxx
 PHONE = re.compile(r'\+\s?55\b|\(\d{2}\)\s?9\d{4}-?\d{4}|\b9\d{4}-\d{4}\b')
@@ -239,6 +240,7 @@ import datetime
 stamps = {}
 for name in ['index.html'] + ['%s/index.html' % c for c in CODES]:
     text = open(os.path.join(ROOT, name), encoding='utf-8').read()
+    text = text[text.find('<footer'):]  # só a data do rodapé; outras datas (o artigo) ficam de fora
     stamps[name] = (re.findall(r'<time datetime="([^"]+)">', text), re.findall(r'<span class="year">(\d{4})</span>', text))
 dates = {d for found, _ in stamps.values() for d in found}
 years = {y for _, found in stamps.values() for y in found}
