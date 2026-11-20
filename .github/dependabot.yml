@@ -1,4 +1,4 @@
-# Mantém as ações do pipeline atualizadas: o Dependabot abre um pull request
+# Mantém as dependências do pipeline atualizadas: o Dependabot abre um pull request
 # quando sai uma versão nova, e o próprio pipeline o valida antes da fusão.
 version: 2
 updates:
@@ -6,3 +6,22 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directory: /ci
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /ci
+    schedule:
+      interval: weekly
+    groups:
+      auditoria:
+        patterns: ["*"]

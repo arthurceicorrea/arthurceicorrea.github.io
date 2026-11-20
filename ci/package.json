@@ -1,0 +1,10 @@
+{
+  "name": "portfolio-ci",
+  "private": true,
+  "description": "Ferramentas de auditoria do pipeline (versões exatas; o Dependabot propõe as atualizações)",
+  "devDependencies": {
+    "@lhci/cli": "0.16.1",
+    "axe-core": "4.14.1",
+    "vnu-jar": "26.10.12"
+  }
+}

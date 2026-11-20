@@ -1,0 +1,3 @@
+# Ferramentas de teste do pipeline (versões exatas; o Dependabot propõe as atualizações)
+pypdf==6.21.4
+playwright==1.65.2
