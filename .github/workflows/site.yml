@@ -51,7 +51,9 @@ jobs:
         run: python ci/validate.py _site
 
       - name: Validador oficial de HTML do W3C (Nu Html Checker)
-        run: java -jar ci/node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html _site
+        # O validador ainda não conhece interpolate-size e transition-behavior (allow-discrete), propriedades
+        # recentes do CSS usadas só na abertura animada dos detalhes; o filtro ignora apenas essas duas mensagens.
+        run: java -jar ci/node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html --filterpattern '.*(“interpolate-size”|“allow-discrete”).*' _site
 
       - name: Teste no navegador (idiomas, países, celular e tela larga, sem JavaScript)
         run: python ci/smoke.py _site
