@@ -20,7 +20,10 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 5. **Accessibility audit** (`ci/a11y.py`): axe-core on every page, mobile and desktop; any WCAG 2.2 A or AA violation fails the run.
 6. **Lighthouse** (`ci/lighthouserc.json`): performance, accessibility, best practices and SEO for each page. Accessibility below 95 or best practices below 90 fail the run; the scores, and the audits that lose points, appear in the run summary, with the full reports kept as an artifact.
 7. **Deploy**: only if all checks pass, `_site/` is published to GitHub Pages. Pull requests run the checks without publishing.
+8. **Post-deploy check** (`ci/monitor.py`): once published, the live site must serve the commit just deployed (`version.txt`), with every page and file, the custom 404, the HTTP→HTTPS redirect and a valid certificate.
 
-To check locally: `python ci/build.py && python ci/validate.py _site && python ci/smoke.py _site` (the W3C, axe and Lighthouse steps need `npm install axe-core vnu-jar @lhci/cli` and Java). After editing the inline style or script, run `python ci/csp_hash.py index.html`.
+**Monitoring.** [`.github/workflows/monitor.yml`](.github/workflows/monitor.yml) runs the same live check every Monday. If it fails, it opens an issue labelled `monitoramento`; when the site passes again, it closes the issue. (GitHub disables scheduled workflows after 60 days without commits.)
 
-Dependabot (`.github/dependabot.yml`) opens a pull request when a workflow action has a new version; the pipeline checks it before merging.
+To check locally: `python ci/build.py && python ci/validate.py _site && python ci/smoke.py _site` (the W3C, axe and Lighthouse steps need `npm install --prefix ci` and Java). After editing the inline style or script, run `python ci/csp_hash.py index.html`.
+
+**Dependencies.** Workflow actions are pinned to exact commits, and the test tools to exact versions (`ci/requirements.txt`, `ci/package.json`). Dependabot (`.github/dependabot.yml`) opens a weekly pull request when any of them has a new version; the pipeline checks it before merging. The footer date and year come from the last commit, filled in by the build.

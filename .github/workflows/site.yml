@@ -21,28 +21,28 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Baixar o repositório
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Preparar o Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
 
       - name: Preparar o Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
 
       - name: Preparar o Java (validador do W3C)
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Instalar as ferramentas de teste
         run: |
-          pip install "pypdf>=6,<7" "playwright>=1.48,<2"
-          npm install --no-save --no-audit --no-fund "axe-core@4" "vnu-jar@latest" "@lhci/cli@0.16"
+          pip install -r ci/requirements.txt
+          npm install --prefix ci --no-audit --no-fund
 
       - name: Montar o site (página inicial e uma página por idioma)
         run: python ci/build.py
@@ -51,16 +51,16 @@ jobs:
         run: python ci/validate.py _site
 
       - name: Validador oficial de HTML do W3C (Nu Html Checker)
-        run: java -jar node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html _site
+        run: java -jar ci/node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html _site
 
       - name: Teste no navegador (idiomas, países, celular e tela larga, sem JavaScript)
         run: python ci/smoke.py _site
 
       - name: Auditoria de acessibilidade (axe, WCAG 2.2 A e AA)
-        run: python ci/a11y.py _site node_modules/axe-core/axe.min.js
+        run: python ci/a11y.py _site ci/node_modules/axe-core/axe.min.js
 
       - name: Lighthouse (desempenho, acessibilidade, boas práticas e SEO)
-        run: npx lhci autorun --config=ci/lighthouserc.json
+        run: ci/node_modules/.bin/lhci autorun --config=ci/lighthouserc.json
 
       - name: Resumo das notas do Lighthouse
         if: always() && hashFiles('lighthouse-report/manifest.json') != ''
@@ -68,7 +68,7 @@ jobs:
 
       - name: Guardar os relatórios do Lighthouse
         if: always() && hashFiles('lighthouse-report/manifest.json') != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: lighthouse-report
           path: lighthouse-report
@@ -76,7 +76,7 @@ jobs:
 
       - name: Enviar o pacote do site
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: _site
 
@@ -95,4 +95,21 @@ jobs:
     steps:
       - name: Publicar no GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+
+  verify:
+    name: Conferir no ar
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Preparar o Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+
+      - name: Conferir que o site no ar serve esta versão, com todas as páginas e arquivos
+        run: python ci/monitor.py https://arthurceicorrea.github.io/ --expect-version "${{ github.sha }}"

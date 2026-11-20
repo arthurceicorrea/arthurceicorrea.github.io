@@ -1,0 +1,53 @@
+name: Monitoramento
+
+# Verifica o site no ar uma vez por semana. Se algo falhar, abre um issue (o GitHub avisa por
+# e-mail); quando volta a passar, fecha o issue sozinho.
+# Atenção: o GitHub desativa agendamentos de repositórios sem nenhum commit há 60 dias.
+on:
+  schedule:
+    - cron: '37 12 * * 1' # segundas-feiras, 09h37 em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Verificar o site no ar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Preparar o Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+
+      - name: Verificar páginas, arquivos, HTTPS e certificado
+        run: python ci/monitor.py https://arthurceicorrea.github.io/
+
+      - name: Abrir ou atualizar o aviso
+        if: failure() && github.ref == 'refs/heads/main'
+        run: |
+          gh label create monitoramento --color B60205 --description "Problema encontrado pelo monitoramento do site" 2>/dev/null || true
+          body="A verificação de $(date -u +%F) falhou. Detalhes: $RUN_URL"
+          number=$(gh issue list --label monitoramento --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "Site no ar com problema" --label monitoramento --body "$body"
+          fi
+
+      - name: Fechar o aviso, se o site voltou ao normal
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          for number in $(gh issue list --label monitoramento --state open --json number --jq '.[].number'); do
+            gh issue close "$number" --comment "A verificação de $(date -u +%F) passou: $RUN_URL"
+          done
