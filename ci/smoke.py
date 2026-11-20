@@ -90,7 +90,7 @@ with sync_playwright() as pw:
                 if path.endswith('/'):
                     check(s['editions'] == [tag], 'só uma edição na página (%s)' % where, s['editions'])
                 check(s['current'] == [code] and s['navVisible'], 'seletor visível e no idioma ativo (%s)' % where, s['current'])
-                check(len(s['jumps']) == 4 and all(s['jumps']), 'sumário leva às quatro seções visíveis (%s)' % where, s['jumps'])
+                check(len(s['jumps']) == 5 and all(s['jumps']), 'sumário leva às cinco seções visíveis (%s)' % where, s['jumps'])
                 check(len(s['cv']) == 2 and all(h == '/cv/arthur-cei-correa-cv-%s.pdf' % code for h in s['cv']),
                       'botões de currículo no idioma ativo (%s)' % where, s['cv'])
                 check(s['fonts'] and all(f == 'loaded' for f in s['fonts']), 'fontes carregadas (%s)' % where, s['fonts'])
@@ -148,6 +148,23 @@ with sync_playwright() as pw:
             got = page.evaluate('document.documentElement.lang')
             check(got == tag and not errors, 'país: %s -> %s (/%s)' % (label, tag, target), (got, errors[:2]))
             ctx.close()
+
+    # botão de voltar ao topo: escondido no alto, aparece ao rolar e leva de volta ao início
+    for width in (360, 1440):
+        ctx, page = open_page(browser, 'pt/', viewport={'width': width, 'height': 800})
+        shown = lambda: page.evaluate("getComputedStyle(document.querySelector('.totop')).visibility")
+        check(shown() == 'hidden', 'botão de voltar ao topo escondido no alto (%dpx)' % width, shown())
+        page.evaluate('window.scrollTo({top: document.body.scrollHeight, behavior: "instant"})')
+        page.wait_for_timeout(600)
+        check(shown() == 'visible', 'botão de voltar ao topo aparece ao rolar (%dpx)' % width, shown())
+        page.click('.totop')
+        for _ in range(50):  # a CSP do site barra wait_for_function; consulta a posição até chegar ao topo
+            if page.evaluate('window.scrollY') == 0:
+                break
+            page.wait_for_timeout(100)
+        page.wait_for_timeout(600)
+        check(shown() == 'hidden', 'botão leva ao topo e some de novo (%dpx)' % width, shown())
+        ctx.close()
 
     # página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console
     for locale, tag in (('pt-BR', 'pt-BR'), ('en-US', 'en'), ('es-MX', 'es'), ('it-IT', 'it'), ('de-DE', 'en')):

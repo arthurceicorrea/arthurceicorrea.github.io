@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-6IDcnTAfSc5auCWiWk2s+uPfLcgSLhOn9pawT1+/Ohc='; script-src 'sha256-SD0UuqOce/P4Q9Ff4ojhm8gM2rmBtT4ZN2R19jIJNkg='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-uQIbdgVvZZFD4J9gZprB7X33et4lARYCru43bh8qcLc='; script-src 'sha256-chdlLyQUNeJCjG02iKRx2nlyTI4LUD3L5GzdrzkwQD8='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -214,6 +214,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 .entry summary:hover{color:var(--gold-hi)}
 .entry details .facts{margin-top:.3rem}
 
+/* botão de voltar ao topo: aparece quando a apresentação sai da tela (o script põe a classe "on") */
+.totop{position:fixed;right:var(--edge);bottom:1.25rem;z-index:2;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:1px solid var(--gold);border-radius:50%;background:var(--bg);color:var(--gold-hi);font:400 1.125rem/1 var(--garamond);text-decoration:none;opacity:0;visibility:hidden;transform:translateY(.5rem);transition:opacity .25s ease,transform .25s ease,visibility 0s linear .25s,background-color .15s ease,color .15s ease}
+.totop.on{opacity:1;visibility:visible;transform:none;transition:opacity .25s ease,transform .25s ease,visibility 0s,background-color .15s ease,color .15s ease}
+.totop:hover{background:var(--gold);color:var(--bg)}
+
 .foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 3rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
 
 @media (min-width:36rem){
@@ -240,13 +245,28 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 @media (prefers-reduced-motion:no-preference) and (min-width:36rem){
   .intro h1{animation-name:settle}
 }
+/* rolagem suave pelo sumário e pelo botão de voltar ao topo; detalhes dos projetos abrem com movimento */
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth}
+  .entry details[open]>.facts{animation:unfold .3s ease-out}
+}
+/* onde o navegador permite, a altura também se abre e se fecha suavemente */
+@media (prefers-reduced-motion:no-preference){
+  @supports (interpolate-size:allow-keywords){
+    :root{interpolate-size:allow-keywords}
+    .entry details::details-content{block-size:0;overflow:hidden;transition:block-size .3s ease,content-visibility .3s allow-discrete}
+    .entry details[open]::details-content{block-size:auto}
+  }
+}
+@media (prefers-reduced-motion:reduce){.totop{transition:none}}
+@keyframes unfold{from{opacity:0;transform:translateY(-.4rem)}}
 @keyframes draw{from{transform:scaleX(0)}}
 @keyframes rise{from{opacity:.2}}
 @keyframes settle{from{opacity:.2;letter-spacing:.16em}}
 
 @media print{
   :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-  .top,.skip,.jump{display:none}
+  .top,.skip,.jump,.totop{display:none}
   .hero{padding-block:1rem 2rem}
 }
 </style>
@@ -316,6 +336,14 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       if (links[i].getAttribute('data-lang') === current) links[i].setAttribute('aria-current', 'true');
       else links[i].removeAttribute('aria-current');
     }
+    // botão de voltar ao topo: aparece quando a apresentação sai da tela
+    var button = document.querySelector('.totop');
+    var intro = edition && edition.querySelector('.intro');
+    if (button && intro && 'IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        button.classList.toggle('on', !entries[0].isIntersecting);
+      }).observe(intro);
+    }
   });
 })();
 </script>
@@ -329,7 +357,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <span class="t" lang="it">Vai al contenuto</span>
 </a>
 
-<header class="wrap top">
+<header class="wrap top" id="topo">
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
       <li><a href="/pt/" data-lang="pt" lang="pt-BR" hreflang="pt-BR">PT<span class="vh"> – Português</span></a></li>
@@ -350,6 +378,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <nav class="jump" aria-label="Seções da página">
     <ul role="list">
       <li><a href="#projetos">Projetos</a></li>
+      <li><a href="#artigo">Artigo</a></li>
       <li><a href="#competencias">Competências</a></li>
       <li><a href="#formacao">Formação</a></li>
       <li><a href="#contato">Contato</a></li>
@@ -478,7 +507,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="artigo">
     <h2>Artigo</h2>
     <div class="body">
       <article class="entry">
@@ -571,6 +600,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <nav class="jump" aria-label="Page sections">
     <ul role="list">
       <li><a href="#projects">Projects</a></li>
+      <li><a href="#article">Article</a></li>
       <li><a href="#skills">Skills</a></li>
       <li><a href="#education">Education</a></li>
       <li><a href="#contact">Contact</a></li>
@@ -699,7 +729,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="article">
     <h2>Article</h2>
     <div class="body">
       <article class="entry">
@@ -792,6 +822,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <nav class="jump" aria-label="Secciones de la página">
     <ul role="list">
       <li><a href="#proyectos">Proyectos</a></li>
+      <li><a href="#articulo">Artículo</a></li>
       <li><a href="#habilidades">Competencias</a></li>
       <li><a href="#formacion">Formación</a></li>
       <li><a href="#contacto">Contacto</a></li>
@@ -920,7 +951,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="articulo">
     <h2>Artículo</h2>
     <div class="body">
       <article class="entry">
@@ -1014,6 +1045,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <nav class="jump" aria-label="Sezioni della pagina">
     <ul role="list">
       <li><a href="#progetti">Progetti</a></li>
+      <li><a href="#articolo">Articolo</a></li>
       <li><a href="#competenze">Competenze</a></li>
       <li><a href="#formazione">Formazione</a></li>
       <li><a href="#contatti">Contatti</a></li>
@@ -1142,7 +1174,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
     </div>
   </section>
 
-  <section class="sec">
+  <section class="sec" id="articolo">
     <h2>Articolo</h2>
     <div class="body">
       <article class="entry">
@@ -1230,6 +1262,11 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 </div>
 
 </main>
+
+<a class="totop" href="#topo">
+  <span aria-hidden="true">&#8593;</span>
+  <span class="vh"><span class="t" lang="pt-BR">Voltar ao topo</span><span class="t" lang="en">Back to top</span><span class="t" lang="es">Volver arriba</span><span class="t" lang="it">Torna su</span></span>
+</a>
 
 <footer class="wrap">
   <div class="foot">
