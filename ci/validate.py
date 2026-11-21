@@ -29,6 +29,7 @@ ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.github.io/',
     'https://github.com/arthurceicorrea',
     'https://www.linkedin.com/in/arthurceicorrea/',
+    'https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution',
     'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
 )
 # telefone brasileiro: +55, (11) 9xxxx-xxxx ou 9xxxx-xxxx
