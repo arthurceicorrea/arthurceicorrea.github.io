@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-rJOlfXkRpN6PtJZwoAGvAYTfLTufiJt8wamJNCPtWKI='; script-src 'sha256-OYPu73ehHxkgIQyyYzTw2G31Vs+7rYm/tE7R8JD2P6w='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-ZOrfZkxct9mHfd4cgqpzmepUX3D8/pQKxFlB/mqud8o='; script-src 'sha256-OYPu73ehHxkgIQyyYzTw2G31Vs+7rYm/tE7R8JD2P6w='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -101,7 +101,7 @@
   ]
 }
 </script>
-<!-- Se passar a usar domínio próprio, troque https://arthurceicorrea.github.io/ pelo novo endereço nas linhas acima. -->
+<!-- Se passar a usar domínio próprio, troque https://arthurceicorrea.github.io/ pelo novo endereço nas linhas acima e em arthur-cei-correa.vcf. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20fill='%2314181E'/%3E%3Cpath%20fill='%23B8935A'%20fill-rule='evenodd'%20d='M32%2012%2050%2052h-7l-3.6-9H24.6L21%2052h-7zM32%2024l-5%2013h10z'/%3E%3C/svg%3E">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -219,6 +219,8 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 .facts.pair{grid-template-columns:7.5rem minmax(0,1fr);gap:.35rem 1.25rem}
 .facts.pair dd+dt{margin-top:0}
 .note{color:var(--muted);font-style:italic}
+/* evita uma palavra sozinha na última linha; navegadores que não conhecem a regra a ignoram */
+p,dd{text-wrap:pretty}
 /* detalhes dos projetos: abrem no próprio lugar */
 .entry details{margin-top:.6rem}
 .entry summary{display:inline-flex;align-items:center;gap:.6em;min-height:2.75rem;cursor:pointer;list-style:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase}
@@ -666,6 +668,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>GitHub</dt>
         <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (abre em nova aba)</span></a></dd>
       </dl>
+      <p><a href="/arthur-cei-correa.vcf" type="text/vcard">Salvar nos contatos<span class="vh"> (vCard)</span></a></p>
     </div>
   </section>
 
@@ -890,6 +893,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>GitHub</dt>
         <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (opens in a new tab)</span></a></dd>
       </dl>
+      <p><a href="/arthur-cei-correa.vcf" type="text/vcard">Save to contacts<span class="vh"> (vCard)</span></a></p>
     </div>
   </section>
 
@@ -1114,6 +1118,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>GitHub</dt>
         <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
       </dl>
+      <p><a href="/arthur-cei-correa.vcf" type="text/vcard">Guardar en contactos<span class="vh"> (vCard)</span></a></p>
     </div>
   </section>
 
@@ -1341,6 +1346,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>GitHub</dt>
         <dd><a href="https://github.com/arthurceicorrea" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
       </dl>
+      <p><a href="/arthur-cei-correa.vcf" type="text/vcard">Salva nei contatti<span class="vh"> (vCard)</span></a></p>
     </div>
   </section>
 

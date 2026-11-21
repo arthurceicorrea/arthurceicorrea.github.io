@@ -292,5 +292,10 @@ if PdfReader:
             if not name.endswith('-en.pdf'):
                 check('Page 1 of' not in content, 'rodapé no idioma do currículo: %s' % name)
 
+card = open(os.path.join(ROOT, 'arthur-cei-correa.vcf'), encoding='utf-8').read()
+check(card.startswith('BEGIN:VCARD') and 'FN:Arthur Cei Corrêa' in card and 'URL:' + base in card,
+      'cartão de contato (vCard) com nome e endereço do site')
+check(not PHONE.search(card), 'nenhum telefone no cartão de contato')
+
 print('\n%s' % ('Validação estática: tudo certo.' if not failures else 'Validação estática: %d falha(s).' % len(failures)))
 sys.exit(1 if failures else 0)

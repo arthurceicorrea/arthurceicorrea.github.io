@@ -31,7 +31,7 @@ IMAGE_ALT = {
     'es': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, seguridad',
     'it': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA applicata, sicurezza',
 }
-FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png'] + sorted(IMAGES.values())
+FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png', 'arthur-cei-correa.vcf'] + sorted(IMAGES.values())
 FOLDERS = ['fonts', 'cv']
 VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
 

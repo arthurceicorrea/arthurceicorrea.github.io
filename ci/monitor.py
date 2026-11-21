@@ -95,6 +95,7 @@ FILES = {
     'og.png': ('image/png', b'\x89PNG'),
     'og-pt.png': ('image/png', b'\x89PNG'),
     'apple-touch-icon.png': ('image/png', b'\x89PNG'),
+    'arthur-cei-correa.vcf': ('vcard', b'BEGIN:VCARD'),
 }
 for path, (kind_expected, magic) in FILES.items():
     status, kind, body = fetch(path)
