@@ -155,7 +155,7 @@ with sync_playwright() as pw:
         shown = lambda: page.evaluate("getComputedStyle(document.querySelector('.totop')).visibility")
         check(shown() == 'hidden', 'botão de voltar ao topo escondido no alto (%dpx)' % width, shown())
         page.evaluate('window.scrollTo({top: document.body.scrollHeight, behavior: "instant"})')
-        page.wait_for_timeout(600)
+        page.wait_for_timeout(1200)  # recolhido enquanto rola para baixo; volta 0,7 s depois de parar
         check(shown() == 'visible', 'botão de voltar ao topo aparece ao rolar (%dpx)' % width, shown())
         page.click('.jump a[href="#projetos"]')
         for _ in range(30):
@@ -164,6 +164,11 @@ with sync_playwright() as pw:
             page.wait_for_timeout(100)
         marked = page.evaluate("[...document.querySelectorAll('.jump a[aria-current]')].map(a => a.hash)")
         check(marked == ['#projetos'], 'sumário marca a seção que está sendo lida (%dpx)' % width, marked)
+        page.evaluate('window.scrollBy({top: -300, behavior: "instant"})'); page.wait_for_timeout(50)
+        page.evaluate('window.scrollBy({top: 200, behavior: "instant"})'); page.wait_for_timeout(400)  # o recolhimento leva 0,25 s
+        check(shown() == 'hidden', 'botão se recolhe enquanto se rola para baixo (%dpx)' % width, shown())
+        page.wait_for_timeout(1200)
+        check(shown() == 'visible', 'botão volta quando a rolagem para (%dpx)' % width, shown())
         page.click('.totop')
         for _ in range(50):  # a CSP do site barra wait_for_function; consulta a posição até chegar ao topo
             if page.evaluate('window.scrollY') == 0:
@@ -172,6 +177,19 @@ with sync_playwright() as pw:
         page.wait_for_timeout(600)
         check(shown() == 'hidden', 'botão leva ao topo e some de novo (%dpx)' % width, shown())
         ctx.close()
+
+    # copiar o e-mail: o botão aparece, copia o endereço e avisa
+    ctx, page = open_page(browser, 'pt/', permissions=['clipboard-read', 'clipboard-write'])
+    copy = page.locator('.intro .copy')
+    check(copy.is_visible(), 'botão de copiar o e-mail aparece', copy.count())
+    copy.click(); page.wait_for_timeout(200)
+    check(page.evaluate('navigator.clipboard.readText()') == 'arthurceicorrea@gmail.com', 'e-mail copiado para a área de transferência')
+    check(page.locator('.intro .copy + [role=status]').inner_text() == 'E-mail copiado.', 'leitor de tela é avisado da cópia')
+    summary = page.locator('#projetos summary').first
+    check(summary.inner_text().strip().lower() == 'ver detalhes', 'detalhes fechados dizem "Ver detalhes"', summary.inner_text())
+    summary.click(); page.wait_for_timeout(100)
+    check(summary.inner_text().strip().lower() == 'ocultar detalhes', 'detalhes abertos dizem "Ocultar detalhes"', summary.inner_text())
+    ctx.close()
 
     # página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console
     for locale, tag in (('pt-BR', 'pt-BR'), ('en-US', 'en'), ('es-MX', 'es'), ('it-IT', 'it'), ('de-DE', 'en')):

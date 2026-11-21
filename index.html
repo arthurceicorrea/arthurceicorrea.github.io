@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-waSfN8JPDZ9EG6MWLZ/GQRtI3uF7X7l8AfFYk1EV8Uk='; script-src 'sha256-3Zi9hGs6DYIyT0R/RX9RqXjhFqLJ9RuimqkPm2dePgc='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-rJOlfXkRpN6PtJZwoAGvAYTfLTufiJt8wamJNCPtWKI='; script-src 'sha256-OYPu73ehHxkgIQyyYzTw2G31Vs+7rYm/tE7R8JD2P6w='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -226,14 +226,22 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 .entry summary::before{content:"+";content:"+" / "";width:.7em;font-size:1.15rem;letter-spacing:0}
 .entry details[open]>summary::before{content:"\2212";content:"\2212" / ""}
 .entry summary:hover{color:var(--gold-hi)}
+.entry details[open] .see,.entry details:not([open]) .hide{display:none}
+
+/* copiar o e-mail: útil para quem usa webmail e não tem programa de e-mail configurado */
+.mail{display:inline-flex;flex-wrap:wrap;align-items:baseline;column-gap:.9rem}
+.copy{min-height:2.25rem;padding:0;border:0;background:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.copy:hover{color:var(--gold-hi)}
+.copy .ok,.copy.done .idle{display:none}
+.copy.done .ok{display:inline}
 .entry details .facts{margin-top:.3rem}
 
 /* botão de voltar ao topo: aparece quando a apresentação sai da tela (o script põe a classe "on") */
 .totop{position:fixed;right:var(--edge);bottom:1.25rem;z-index:2;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:1px solid var(--gold);border-radius:50%;background:var(--bg);color:var(--gold-hi);font:400 1.125rem/1 var(--garamond);text-decoration:none;opacity:0;visibility:hidden;transform:translateY(.5rem);transition:opacity .25s ease,transform .25s ease,visibility 0s linear .25s,background-color .15s ease,color .15s ease}
-.totop.on{opacity:1;visibility:visible;transform:none;transition:opacity .25s ease,transform .25s ease,visibility 0s,background-color .15s ease,color .15s ease}
+.totop.on:not(.down){opacity:1;visibility:visible;transform:none;transition:opacity .25s ease,transform .25s ease,visibility 0s,background-color .15s ease,color .15s ease}
 .totop:hover{background:var(--gold);color:var(--bg)}
 
-.foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 3rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
+.foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 5rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
 
 @media (min-width:36rem){
   .facts,.facts.pair{grid-template-columns:9rem minmax(0,1fr);gap:.6rem 1.5rem}
@@ -280,7 +288,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 
 @media print{
   :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-  .top,.skip,.jump,.totop,.entry summary{display:none}
+  .top,.skip,.jump,.totop,.entry summary,.copy{display:none}
   .entry details::details-content{block-size:auto;content-visibility:visible}
   .hero{padding-block:1rem 2rem}
 }
@@ -358,6 +366,35 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       new IntersectionObserver(function (entries) {
         button.classList.toggle('on', !entries[0].isIntersecting);
       }).observe(intro);
+      // recolhe-se enquanto o visitante rola para baixo lendo; volta quando ele para ou sobe
+      var lastY = window.scrollY, rest;
+      window.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (y > lastY + 4) {
+          button.classList.add('down');
+          clearTimeout(rest);
+          rest = setTimeout(function () { button.classList.remove('down'); }, 700);
+        } else if (y < lastY - 4) {
+          clearTimeout(rest);
+          button.classList.remove('down');
+        }
+        lastY = y;
+      }, { passive: true });
+    }
+    // botões de copiar o e-mail: aparecem só onde o navegador permite copiar
+    if (navigator.clipboard && window.isSecureContext) {
+      var copies = document.querySelectorAll('.copy');
+      for (var c = 0; c < copies.length; c++) {
+        copies[c].hidden = false;
+        copies[c].addEventListener('click', function () {
+          var copy = this, status = this.nextElementSibling;
+          navigator.clipboard.writeText(copy.getAttribute('data-copy')).then(function () {
+            copy.classList.add('done');
+            status.textContent = copy.getAttribute('data-said');
+            setTimeout(function () { copy.classList.remove('done'); status.textContent = ''; }, 2000);
+          });
+        });
+      }
     }
     // sumário: marca a seção que está sendo lida (faixa no terço superior da tela)
     var jumps = edition ? edition.querySelectorAll('.jump a[href^="#"]') : [];
@@ -461,7 +498,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-pt.pdf" type="application/pdf" download>Baixar currículo (PDF)</a>
         <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (abre em nova aba)</span></a>
-        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+        <span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiado" data-said="E-mail copiado." hidden><span class="idle">Copiar<span class="vh"> o e-mail</span></span><span class="ok" aria-hidden="true">Copiado</span></button><span class="vh" role="status"></span></span>
       </p>
       <p>Estudante de Engenharia de Software na FIAP, com foco em DevOps, IA aplicada e segurança. Estagiei em DevOps na Vivo de agosto de 2024 a dezembro de 2025: observei, estudei e contribuí sob supervisão.</p>
       <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
@@ -483,7 +520,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privado, sem link público.</dd>
         </dl>
         <details>
-          <summary>Ver detalhes</summary>
+          <summary><span class="see">Ver detalhes</span><span class="hide">Ocultar detalhes</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Fazer dois microsserviços .NET funcionarem juntos, com serviços de rede (DNS e DHCP), autenticação e tráfego cifrado, e automatizar a entrega.</dd>
@@ -504,7 +541,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privado, sem link.</dd>
         </dl>
         <details>
-          <summary>Ver detalhes</summary>
+          <summary><span class="see">Ver detalhes</span><span class="hide">Ocultar detalhes</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Em sigilo: o nome e a finalidade do projeto não são divulgados.</dd>
@@ -525,7 +562,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (abre em nova aba)</span></a></dd>
         </dl>
         <details>
-          <summary>Ver detalhes</summary>
+          <summary><span class="see">Ver detalhes</span><span class="hide">Ocultar detalhes</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Aplicação desktop de gestão de vendas, desenvolvida para o FIAP Challenge 2025.</dd>
@@ -546,7 +583,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (abre em nova aba)</span></a></dd>
         </dl>
         <details>
-          <summary>Ver detalhes</summary>
+          <summary><span class="see">Ver detalhes</span><span class="hide">Ocultar detalhes</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Um portfólio em quatro idiomas, acessível e sem recursos de terceiros, que só é publicado depois de passar por testes automáticos.</dd>
@@ -620,9 +657,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec" id="contato">
     <h2>Contato</h2>
     <div class="body">
+      <p>Respondo em até dois dias.</p>
       <dl class="facts">
         <dt>E-mail</dt>
-        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dd><span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiado" data-said="E-mail copiado." hidden><span class="idle">Copiar<span class="vh"> o e-mail</span></span><span class="ok" aria-hidden="true">Copiado</span></button><span class="vh" role="status"></span></span></dd>
         <dt>LinkedIn</dt>
         <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (abre em nova aba)</span></a></dd>
         <dt>GitHub</dt>
@@ -684,7 +722,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-en.pdf" type="application/pdf" download>Download CV (PDF)</a>
         <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (opens in a new tab)</span></a>
-        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+        <span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copied" data-said="Email address copied." hidden><span class="idle">Copy<span class="vh"> the email address</span></span><span class="ok" aria-hidden="true">Copied</span></button><span class="vh" role="status"></span></span>
       </p>
       <p>Software Engineering student at FIAP, focused on DevOps, applied AI and security. I interned in DevOps at Vivo from August 2024 to December 2025, where I observed, studied and contributed under supervision.</p>
       <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
@@ -706,7 +744,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Private, no public link.</dd>
         </dl>
         <details>
-          <summary>See details</summary>
+          <summary><span class="see">See details</span><span class="hide">Hide details</span></summary>
           <dl class="facts">
             <dt>Problem</dt>
             <dd>Getting two .NET microservices to work together, with network services (DNS and DHCP), authentication and encrypted traffic, and automating delivery.</dd>
@@ -727,7 +765,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Private, no link.</dd>
         </dl>
         <details>
-          <summary>See details</summary>
+          <summary><span class="see">See details</span><span class="hide">Hide details</span></summary>
           <dl class="facts">
             <dt>Problem</dt>
             <dd>Confidential: the project’s name and purpose are not disclosed.</dd>
@@ -748,7 +786,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (opens in a new tab)</span></a></dd>
         </dl>
         <details>
-          <summary>See details</summary>
+          <summary><span class="see">See details</span><span class="hide">Hide details</span></summary>
           <dl class="facts">
             <dt>Problem</dt>
             <dd>A desktop application for sales management, built for the FIAP Challenge 2025.</dd>
@@ -769,7 +807,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (opens in a new tab)</span></a></dd>
         </dl>
         <details>
-          <summary>See details</summary>
+          <summary><span class="see">See details</span><span class="hide">Hide details</span></summary>
           <dl class="facts">
             <dt>Problem</dt>
             <dd>A portfolio in four languages, accessible and free of third-party resources, published only after it passes automated tests.</dd>
@@ -843,9 +881,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec" id="contact">
     <h2>Contact</h2>
     <div class="body">
+      <p>I reply within two days.</p>
       <dl class="facts">
         <dt>Email</dt>
-        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dd><span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copied" data-said="Email address copied." hidden><span class="idle">Copy<span class="vh"> the email address</span></span><span class="ok" aria-hidden="true">Copied</span></button><span class="vh" role="status"></span></span></dd>
         <dt>LinkedIn</dt>
         <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (opens in a new tab)</span></a></dd>
         <dt>GitHub</dt>
@@ -907,7 +946,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-es.pdf" type="application/pdf" download>Descargar currículum (PDF)</a>
         <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (se abre en una pestaña nueva)</span></a>
-        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+        <span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiado" data-said="Correo copiado." hidden><span class="idle">Copiar<span class="vh"> el correo</span></span><span class="ok" aria-hidden="true">Copiado</span></button><span class="vh" role="status"></span></span>
       </p>
       <p>Estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo de agosto de 2024 a diciembre de 2025: observé, estudié y contribuí bajo supervisión.</p>
       <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
@@ -929,7 +968,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privado, sin enlace público.</dd>
         </dl>
         <details>
-          <summary>Ver detalles</summary>
+          <summary><span class="see">Ver detalles</span><span class="hide">Ocultar detalles</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega.</dd>
@@ -950,7 +989,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privado, sin enlace.</dd>
         </dl>
         <details>
-          <summary>Ver detalles</summary>
+          <summary><span class="see">Ver detalles</span><span class="hide">Ocultar detalles</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Confidencial: el nombre y la finalidad del proyecto no se divulgan.</dd>
@@ -971,7 +1010,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
         </dl>
         <details>
-          <summary>Ver detalles</summary>
+          <summary><span class="see">Ver detalles</span><span class="hide">Ocultar detalles</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025.</dd>
@@ -992,7 +1031,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
         </dl>
         <details>
-          <summary>Ver detalles</summary>
+          <summary><span class="see">Ver detalles</span><span class="hide">Ocultar detalles</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Un portafolio en cuatro idiomas, accesible y sin recursos de terceros, que solo se publica después de superar pruebas automáticas.</dd>
@@ -1066,9 +1105,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec" id="contacto">
     <h2>Contacto</h2>
     <div class="body">
+      <p>Respondo en un plazo de dos días.</p>
       <dl class="facts">
         <dt>Correo</dt>
-        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dd><span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiado" data-said="Correo copiado." hidden><span class="idle">Copiar<span class="vh"> el correo</span></span><span class="ok" aria-hidden="true">Copiado</span></button><span class="vh" role="status"></span></span></dd>
         <dt>LinkedIn</dt>
         <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (se abre en una pestaña nueva)</span></a></dd>
         <dt>GitHub</dt>
@@ -1131,7 +1171,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
       <p class="actions">
         <a class="btn" href="/cv/arthur-cei-correa-cv-it.pdf" type="application/pdf" download>Scarica il CV (PDF)</a>
         <a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> (si apre in una nuova scheda)</span></a>
-        <a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a>
+        <span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiato" data-said="Indirizzo e-mail copiato." hidden><span class="idle">Copia<span class="vh"> l’indirizzo e-mail</span></span><span class="ok" aria-hidden="true">Copiato</span></button><span class="vh" role="status"></span></span>
       </p>
       <p>Studio Ingegneria del Software alla FIAP e mi concentro su DevOps, IA applicata e sicurezza. Ho fatto un tirocinio in DevOps presso Vivo da agosto 2024 a dicembre 2025: ho osservato, studiato e contribuito sotto supervisione.</p>
       <!-- Linha opcional sobre o jeito de trabalhar: apague o parágrafo abaixo (nos quatro idiomas) se preferir. -->
@@ -1153,7 +1193,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privato, senza link pubblico.</dd>
         </dl>
         <details>
-          <summary>Vedi i dettagli</summary>
+          <summary><span class="see">Vedi i dettagli</span><span class="hide">Nascondi i dettagli</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Far funzionare insieme due microservizi .NET, con i servizi di rete (DNS e DHCP), l’autenticazione e il traffico cifrato. Automatizzare il rilascio.</dd>
@@ -1174,7 +1214,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd>Privato, senza link.</dd>
         </dl>
         <details>
-          <summary>Vedi i dettagli</summary>
+          <summary><span class="see">Vedi i dettagli</span><span class="hide">Nascondi i dettagli</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Riservato: il nome e lo scopo del progetto non sono pubblici.</dd>
@@ -1195,7 +1235,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/SellOutEasyTrack" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>SellOutEasyTrack<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
         </dl>
         <details>
-          <summary>Vedi i dettagli</summary>
+          <summary><span class="see">Vedi i dettagli</span><span class="hide">Nascondi i dettagli</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Un’applicazione desktop per la gestione delle vendite, sviluppata per il concorso FIAP Challenge 2025.</dd>
@@ -1216,7 +1256,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
           <dd><a href="https://github.com/arthurceicorrea/arthurceicorrea.github.io" target="_blank" rel="noopener noreferrer">github.com/<wbr>arthurceicorrea/<wbr>arthurceicorrea.github.io<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
         </dl>
         <details>
-          <summary>Vedi i dettagli</summary>
+          <summary><span class="see">Vedi i dettagli</span><span class="hide">Nascondi i dettagli</span></summary>
           <dl class="facts">
             <dt>Problema</dt>
             <dd>Un portfolio in quattro lingue, accessibile e senza risorse di terze parti, che viene pubblicato solo dopo aver superato test automatici.</dd>
@@ -1292,9 +1332,10 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
   <section class="sec" id="contatti">
     <h2>Contatti</h2>
     <div class="body">
+      <p>Rispondo entro due giorni.</p>
       <dl class="facts">
         <dt>E-mail</dt>
-        <dd><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a></dd>
+        <dd><span class="mail"><a href="mailto:arthurceicorrea@gmail.com">arthurceicorrea@gmail.com</a><button class="copy" type="button" data-copy="arthurceicorrea@gmail.com" data-done="Copiato" data-said="Indirizzo e-mail copiato." hidden><span class="idle">Copia<span class="vh"> l’indirizzo e-mail</span></span><span class="ok" aria-hidden="true">Copiato</span></button><span class="vh" role="status"></span></span></dd>
         <dt>LinkedIn</dt>
         <dd><a href="https://www.linkedin.com/in/arthurceicorrea/" target="_blank" rel="noopener noreferrer">linkedin.com/<wbr>in/<wbr>arthurceicorrea<span class="vh"> (si apre in una nuova scheda)</span></a></dd>
         <dt>GitHub</dt>
