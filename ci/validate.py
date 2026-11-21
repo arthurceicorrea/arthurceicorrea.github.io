@@ -186,9 +186,15 @@ def structured_data(raw_page, where):
     except ValueError as error:
         check(False, 'dados estruturados em JSON válido' + where, error)
         return None
-    check(data.get('@type') == 'Person' and data.get('name') and data.get('url') == base,
-          'dados estruturados descrevem a pessoa e o site' + where, data.get('@type'))
+    nodes = data.get('@graph', [data])
+    people = [n for n in nodes if n.get('@type') == 'Person']
+    data = people[0] if people else {}
+    check(len(people) == 1 and data.get('name') and data.get('url') == base,
+          'dados estruturados descrevem a pessoa e o site' + where, [n.get('@type') for n in nodes])
     check(all(u.startswith(ALLOWED_EXTERNAL) for u in data.get('sameAs', [])), 'perfis listados são permitidos' + where)
+    works = [n for n in nodes if n.get('@type') == 'Article']
+    check(all(w.get('url', '').startswith(ALLOWED_EXTERNAL) and w.get('author', {}).get('@id') == data.get('@id') for w in works),
+          'artigos listados são do autor e têm endereço permitido' + where, [w.get('url') for w in works])
     return data
 
 

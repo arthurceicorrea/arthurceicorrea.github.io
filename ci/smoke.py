@@ -157,6 +157,13 @@ with sync_playwright() as pw:
         page.evaluate('window.scrollTo({top: document.body.scrollHeight, behavior: "instant"})')
         page.wait_for_timeout(600)
         check(shown() == 'visible', 'botão de voltar ao topo aparece ao rolar (%dpx)' % width, shown())
+        page.click('.jump a[href="#projetos"]')
+        for _ in range(30):
+            if page.evaluate("document.querySelector('.jump a[href=\"#projetos\"]').getAttribute('aria-current')") == 'location':
+                break
+            page.wait_for_timeout(100)
+        marked = page.evaluate("[...document.querySelectorAll('.jump a[aria-current]')].map(a => a.hash)")
+        check(marked == ['#projetos'], 'sumário marca a seção que está sendo lida (%dpx)' % width, marked)
         page.click('.totop')
         for _ in range(50):  # a CSP do site barra wait_for_function; consulta a posição até chegar ao topo
             if page.evaluate('window.scrollY') == 0:

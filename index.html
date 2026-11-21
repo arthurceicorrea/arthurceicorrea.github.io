@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-uQIbdgVvZZFD4J9gZprB7X33et4lARYCru43bh8qcLc='; script-src 'sha256-chdlLyQUNeJCjG02iKRx2nlyTI4LUD3L5GzdrzkwQD8='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-waSfN8JPDZ9EG6MWLZ/GQRtI3uF7X7l8AfFYk1EV8Uk='; script-src 'sha256-3Zi9hGs6DYIyT0R/RX9RqXjhFqLJ9RuimqkPm2dePgc='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -77,7 +77,10 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@graph": [
+  {
   "@type": "Person",
+  "@id": "https://arthurceicorrea.github.io/#arthur",
   "name": "Arthur Cei Corrêa",
   "url": "https://arthurceicorrea.github.io/",
   "jobTitle": "Software Engineering student",
@@ -86,6 +89,16 @@
   "knowsAbout": ["DevOps", "Applied AI", "Security", "CI/CD", "Docker", "Kubernetes", "Terraform", "Azure DevOps", "Java", "Python", "C#"],
   "knowsLanguage": ["pt", "en", "es", "it"],
   "sameAs": ["https://www.linkedin.com/in/arthurceicorrea/", "https://github.com/arthurceicorrea"]
+  },
+  {
+  "@type": "Article",
+  "headline": "From Purism to Prudence: Artificial Intelligence and the Right Order of Means",
+  "url": "https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/",
+  "datePublished": "2026-08-24",
+  "inLanguage": "en",
+  "author": { "@id": "https://arthurceicorrea.github.io/#arthur" }
+  }
+  ]
 }
 </script>
 <!-- Se passar a usar domínio próprio, troque https://arthurceicorrea.github.io/ pelo novo endereço nas linhas acima. -->
@@ -155,11 +168,12 @@ html[lang="es"] .langs [data-lang="es"],
 html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
 
 /* ---- Sumário fixo: acompanha a rolagem; no celular a faixa de links rola de lado ---- */
-.jump{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:1.25rem;margin-inline:calc(-1 * var(--edge));padding:.3rem var(--edge);background:var(--bg);border-bottom:1px solid var(--rule)}
+.jump{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:1.25rem;margin-inline:calc(-1 * var(--edge));padding:.3rem var(--edge) .3rem calc(var(--edge) + max(0px, 100% - var(--measure)));background:var(--bg);border-bottom:1px solid var(--rule)}
 .jump ul{display:flex;flex:1;gap:1.5rem;min-width:0;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}
 .jump ul::-webkit-scrollbar{display:none}
 .jump a{display:inline-flex;align-items:center;min-height:2.5rem;color:var(--muted);font:500 .75rem/1 var(--cinzel);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
-.jump a:hover{color:var(--gold-hi)}
+.jump a:hover,.jump a[aria-current]{color:var(--gold-hi)}
+.jump a[aria-current]{text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
 .jump .cv{flex:none;min-height:2.25rem;padding:0 .9rem 0 calc(.9rem + .12em);border:1px solid var(--gold);color:var(--gold-hi)}
 .jump .cv:hover{background:var(--gold);color:var(--bg)}
 .sec{scroll-margin-top:4.5rem}
@@ -266,7 +280,8 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
 
 @media print{
   :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-  .top,.skip,.jump,.totop{display:none}
+  .top,.skip,.jump,.totop,.entry summary{display:none}
+  .entry details::details-content{block-size:auto;content-visibility:visible}
   .hero{padding-block:1rem 2rem}
 }
 </style>
@@ -344,6 +359,41 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         button.classList.toggle('on', !entries[0].isIntersecting);
       }).observe(intro);
     }
+    // sumário: marca a seção que está sendo lida (faixa no terço superior da tela)
+    var jumps = edition ? edition.querySelectorAll('.jump a[href^="#"]') : [];
+    if (jumps.length && 'IntersectionObserver' in window) {
+      var strip = edition.querySelector('.jump ul');
+      var mark = function (id) {
+        for (var j = 0; j < jumps.length; j++) {
+          var on = jumps[j].getAttribute('href') === '#' + id;
+          if (on) {
+            jumps[j].setAttribute('aria-current', 'location');
+            // no celular, traz o link marcado para dentro da faixa
+            var left = jumps[j].offsetLeft - strip.offsetLeft;
+            if (left < strip.scrollLeft || left + jumps[j].offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left - 16;
+          } else jumps[j].removeAttribute('aria-current');
+        }
+      };
+      var spy = new IntersectionObserver(function (entries) {
+        for (var k = 0; k < entries.length; k++) if (entries[k].isIntersecting) mark(entries[k].target.id);
+      }, { rootMargin: '-30% 0px -65% 0px' });
+      for (var n = 0; n < jumps.length; n++) {
+        var target = document.getElementById(jumps[n].getAttribute('href').slice(1));
+        if (target) spy.observe(target);
+      }
+      if (intro) new IntersectionObserver(function (entries) { if (entries[0].isIntersecting) mark(''); }, { rootMargin: '-30% 0px -65% 0px' }).observe(intro);
+    }
+  });
+
+  // impressão ou PDF: abre os detalhes dos projetos e os fecha de novo depois
+  var opened = [];
+  window.addEventListener('beforeprint', function () {
+    opened = [].slice.call(document.querySelectorAll('details:not([open])'));
+    for (var i = 0; i < opened.length; i++) opened[i].open = true;
+  });
+  window.addEventListener('afterprint', function () {
+    for (var i = 0; i < opened.length; i++) opened[i].open = false;
+    opened = [];
   });
 })();
 </script>
@@ -404,6 +454,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>Busco</dt><dd>Estágio ou vaga júnior em DevOps e IA aplicada</dd>
         <dt>Início</dt><dd>Imediato</dd>
         <dt>Modalidade</dt><dd>Remota ou híbrida, no Brasil ou no exterior</dd>
+        <dt>Base</dt><dd>São Paulo, Brasil (UTC−3)</dd>
         <dt>Idiomas</dt><dd>Português nativo, inglês fluente, espanhol avançado</dd>
         <dt>Formatura</dt><dd>Dezembro de 2027, FIAP</dd>
       </dl>
@@ -626,6 +677,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>Looking for</dt><dd>Internship or junior role in DevOps and applied AI</dd>
         <dt>Start</dt><dd>Immediately</dd>
         <dt>Work mode</dt><dd>Remote or hybrid, in Brazil or abroad</dd>
+        <dt>Based in</dt><dd>São Paulo, Brazil (UTC−3)</dd>
         <dt>Languages</dt><dd>Portuguese (native), English (fluent), Spanish (advanced)</dd>
         <dt>Graduation</dt><dd>December 2027, FIAP</dd>
       </dl>
@@ -848,6 +900,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>Busco</dt><dd>Pasantía o puesto junior en DevOps e IA aplicada</dd>
         <dt>Inicio</dt><dd>Inmediato</dd>
         <dt>Modalidad</dt><dd>Remota o híbrida, en Brasil o en el exterior</dd>
+        <dt>Ubicación</dt><dd>São Paulo, Brasil (UTC−3)</dd>
         <dt>Idiomas</dt><dd>Portugués nativo, inglés fluido, español avanzado</dd>
         <dt>Graduación</dt><dd>Diciembre de 2027, FIAP</dd>
       </dl>
@@ -1071,6 +1124,7 @@ h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinze
         <dt>Cerco</dt><dd>Tirocinio o posizione junior in DevOps e IA applicata</dd>
         <dt>Inizio</dt><dd>Immediato</dd>
         <dt>Modalità</dt><dd>Da remoto o ibrida, in Brasile o all’estero</dd>
+        <dt>Base</dt><dd>San Paolo, Brasile (UTC−3)</dd>
         <dt>Lingue</dt><dd>Portoghese madrelingua, inglese fluente, spagnolo avanzato</dd>
         <dt>Laurea</dt><dd>Dicembre 2027, FIAP</dd>
       </dl>
