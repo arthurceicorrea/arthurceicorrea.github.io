@@ -27,3 +27,9 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 To check locally: `python ci/build.py && python ci/validate.py _site && python ci/smoke.py _site` (the W3C, axe and Lighthouse steps need `npm install --prefix ci` and Java). After editing the inline style or script, run `python ci/csp_hash.py index.html`.
 
 **Dependencies.** Workflow actions are pinned to exact commits, and the test tools to exact versions (`ci/requirements.txt`, `ci/package.json`). Dependabot (`.github/dependabot.yml`) opens a weekly pull request when any of them has a new version; the pipeline checks it before merging. The footer date and year come from the last commit, filled in by the build.
+
+## License
+
+The code (HTML structure, CSS, JavaScript and the scripts in `ci/`) is released under the [MIT License](LICENSE).
+The texts, the CVs and the images are by Arthur Cei Corrêa, all rights reserved; they are not covered by the MIT License.
+The fonts in `fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
