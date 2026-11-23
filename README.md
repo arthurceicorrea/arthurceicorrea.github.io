@@ -24,6 +24,27 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 
 **Monitoring.** [`.github/workflows/monitor.yml`](.github/workflows/monitor.yml) runs the same live check every Monday. If it fails, it opens an issue labelled `monitoramento`; when the site passes again, it closes the issue. (GitHub disables scheduled workflows after 60 days without commits.)
 
-To check locally: `python ci/build.py && python ci/validate.py _site && python ci/smoke.py _site` (the W3C, axe and Lighthouse steps need `npm install --prefix ci` and Java). After editing the inline style or script, run `python ci/csp_hash.py index.html`.
-
 **Dependencies.** Workflow actions are pinned to exact commits, and the test tools to exact versions (`ci/requirements.txt`, `ci/package.json`). Dependabot (`.github/dependabot.yml`) opens a weekly pull request when any of them has a new version; the pipeline checks it before merging. The footer date and year come from the last commit, filled in by the build.
+
+## Running locally
+
+Requirements: Python 3.12, Node 22, Java 21 (for the W3C validator), Google Chrome and `make`.
+The browser tests use the system Chrome, or the path in `CHROME_PATH`.
+
+```sh
+make setup   # install the test tools, at the exact versions in ci/requirements.txt and ci/package.json
+make build   # build the site into _site/ (python ci/build.py)
+make test    # same checks as the pipeline, in the same order: static validation, W3C HTML validation, browser test, accessibility audit
+make serve   # serve _site/ at http://localhost:8000/
+```
+
+Run `make build` before `make test`: the tests check the site already built in `_site/`.
+Lighthouse runs only in the pipeline.
+If your system has `python3` but no `python`, add `PYTHON=python3` to any command, for example `make build PYTHON=python3`.
+After editing the inline style or script, run `python ci/csp_hash.py index.html`.
+
+## License
+
+The code (HTML structure, CSS, JavaScript and the scripts in `ci/`) is released under the [MIT License](LICENSE).
+The texts, the CVs and the images are by Arthur Cei Corrêa, all rights reserved; they are not covered by the MIT License.
+The fonts in `fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
