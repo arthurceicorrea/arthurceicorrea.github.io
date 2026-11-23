@@ -4,11 +4,12 @@ Site estático em quatro idiomas (pt-BR, en, es, it), publicado no GitHub Pages 
 
 ## Comandos
 
-- Instalar: `pip install -r ci/requirements.txt` e `npm install --prefix ci`
-- Montar: `python ci/build.py` (gera `_site/`)
-- Testar: `python ci/validate.py _site`, `python ci/smoke.py _site` e `python ci/a11y.py _site ci/node_modules/axe-core/axe.min.js`
+- Instalar: `make setup` (as dependências de `ci/requirements.txt` e `ci/package.json`)
+- Montar: `make build` (roda `python ci/build.py` e gera `_site/`)
+- Testar: `make test`, depois de `make build`. Roda, na ordem do workflow, `ci/validate.py`, o validador do W3C (precisa de Java), `ci/smoke.py` e `ci/a11y.py`. O Lighthouse só roda no pipeline.
+- Ver o site: `make serve` (em http://localhost:8000/)
+- Onde só existir `python3`, acrescente `PYTHON=python3` ao comando.
 - Os testes com navegador usam o Chrome do sistema, ou o caminho em `CHROME_PATH`.
-- Quando existir o `Makefile`, use `make setup`, `make build`, `make test` e `make serve`, e atualize esta seção.
 
 ## Regras
 
