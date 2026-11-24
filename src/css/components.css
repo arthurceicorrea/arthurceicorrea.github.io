@@ -1,91 +1,386 @@
 /* Componentes: link de pular, apresentação, botões, fichas, projetos, copiar e-mail, voltar ao topo,
    animações e impressão. A impressão fica por último: é a camada mais forte. */
 @layer components {
-  .skip{position:absolute;top:-5rem;left:var(--edge);z-index:1;padding:.7rem 1rem;background:var(--gold);color:var(--bg);font:500 .8125rem/1.2 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
-  .skip:hover{color:var(--bg)}
-  .skip:focus{top:.75rem}
+  .skip {
+    position: absolute;
+    top: -5rem;
+    left: var(--edge);
+    z-index: 1;
+    padding: 0.7rem 1rem;
+    background: var(--gold);
+    color: var(--bg);
+    font: 500 0.8125rem/1.2 var(--cinzel);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .skip:hover {
+    color: var(--bg);
+  }
+
+  .skip:focus {
+    top: 0.75rem;
+  }
 
   /* ofícios sob o nome; o ponto que abriria cada linha cai fora da área visível */
-  .intro .craft{overflow:hidden;margin-top:.55rem;color:var(--gold-text);font:500 clamp(.8125rem,.78rem + .2vw,.9375rem)/1.7 var(--cinzel);letter-spacing:.2em;text-transform:uppercase}
-  .craft ul{display:flex;flex-wrap:wrap;margin-left:-1.9em}
-  .craft li{position:relative;padding-left:1.9em;white-space:nowrap}
-  .craft li::before{content:"\00B7";content:"\00B7" / "";position:absolute;left:.8em;letter-spacing:0}
-  .intro .glance{margin-top:1.5rem}
-  .aside{font-style:italic}
-  .actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.75rem;margin-top:1.75rem}
-  .btn{display:inline-flex;align-items:center;min-height:2.75rem;padding:.7rem 1.4rem .7rem calc(1.4rem + .16em);border:1px solid var(--gold);color:var(--gold-hi);font:500 .8125rem/1.3 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-decoration:none}
-  .btn:hover{background:var(--gold);color:var(--bg)}
+  .intro .craft {
+    overflow: hidden;
+    margin-top: 0.55rem;
+    color: var(--gold-text);
+    font: 500 clamp(0.8125rem, 0.78rem + 0.2vw, 0.9375rem)/1.7 var(--cinzel);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
 
-  .entry+.entry{margin-top:2.4rem}
-  .entry h3{font-size:1.22em;line-height:1.25;text-wrap:balance}
-  .meta{margin-top:.15rem;color:var(--muted);font-style:italic}
-  .entry p:not(.meta),.entry .facts{margin-top:.8rem}
-  .facts{display:grid;grid-template-columns:minmax(0,1fr)}
-  .facts dt{color:var(--muted);font-style:italic}
-  .facts dd+dt{margin-top:.7rem}
+  .craft ul {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -1.9em;
+  }
+
+  .craft li {
+    position: relative;
+    padding-left: 1.9em;
+    white-space: nowrap;
+  }
+
+  .craft li::before {
+    content: "\00B7";
+    content: "\00B7" / "";
+    position: absolute;
+    left: 0.8em;
+    letter-spacing: 0;
+  }
+
+  .intro .glance {
+    margin-top: 1.5rem;
+  }
+
+  .aside {
+    font-style: italic;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.7rem 1.4rem 0.7rem calc(1.4rem + 0.16em);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+    font: 500 0.8125rem/1.3 var(--cinzel);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  .entry + .entry {
+    margin-top: 2.4rem;
+  }
+
+  .entry h3 {
+    font-size: 1.22em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .meta {
+    margin-top: 0.15rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .entry p:not(.meta),
+  .entry .facts {
+    margin-top: 0.8rem;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facts dt {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .facts dd + dt {
+    margin-top: 0.7rem;
+  }
+
   /* pares curtos (idiomas): rótulo e valor lado a lado também no celular */
-  .facts.pair{grid-template-columns:7.5rem minmax(0,1fr);gap:.35rem 1.25rem}
-  .facts.pair dd+dt{margin-top:0}
-  .note{color:var(--muted);font-style:italic}
+  .facts.pair {
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 0.35rem 1.25rem;
+  }
+
+  .facts.pair dd + dt {
+    margin-top: 0;
+  }
+
+  .note {
+    color: var(--muted);
+    font-style: italic;
+  }
 
   /* detalhes dos projetos: abrem no próprio lugar */
-  .entry details{margin-top:.6rem}
-  .entry summary{display:inline-flex;align-items:center;gap:.6em;min-height:2.75rem;cursor:pointer;list-style:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase}
-  .entry summary::-webkit-details-marker{display:none}
-  .entry summary::before{content:"+";content:"+" / "";width:.7em;font-size:1.15rem;letter-spacing:0}
-  .entry details[open]>summary::before{content:"\2212";content:"\2212" / ""}
-  .entry summary:hover{color:var(--gold-hi)}
-  .entry details[open] .see,.entry details:not([open]) .hide{display:none}
+  .entry details {
+    margin-top: 0.6rem;
+  }
+
+  .entry summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 2.75rem;
+    cursor: pointer;
+    list-style: none;
+    color: var(--gold-text);
+    font: 500 0.75rem/1 var(--cinzel);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .entry summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .entry summary::before {
+    content: "+";
+    content: "+" / "";
+    width: 0.7em;
+    font-size: 1.15rem;
+    letter-spacing: 0;
+  }
+
+  .entry details[open] > summary::before {
+    content: "\2212";
+    content: "\2212" / "";
+  }
+
+  .entry summary:hover {
+    color: var(--gold-hi);
+  }
+
+  .entry details[open] .see,
+  .entry details:not([open]) .hide {
+    display: none;
+  }
 
   /* copiar o e-mail: útil para quem usa webmail e não tem programa de e-mail configurado */
-  .mail{display:inline-flex;flex-wrap:wrap;align-items:baseline;column-gap:.9rem}
-  .copy{min-height:2.25rem;padding:0;border:0;background:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-  .copy:hover{color:var(--gold-hi)}
-  .copy .ok,.copy.done .idle{display:none}
-  .copy.done .ok{display:inline}
-  .entry details .facts{margin-top:.3rem}
+  .mail {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.9rem;
+  }
+
+  .copy {
+    min-height: 2.25rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--gold-text);
+    font: 500 0.75rem/1 var(--cinzel);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .copy:hover {
+    color: var(--gold-hi);
+  }
+
+  .copy .ok,
+  .copy.done .idle {
+    display: none;
+  }
+
+  .copy.done .ok {
+    display: inline;
+  }
+
+  .entry details .facts {
+    margin-top: 0.3rem;
+  }
 
   /* botão de voltar ao topo: aparece quando a apresentação sai da tela (o script põe a classe "on") */
-  .totop{position:fixed;right:var(--edge);bottom:1.25rem;z-index:2;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:1px solid var(--gold);border-radius:50%;background:var(--bg);color:var(--gold-hi);font:400 1.125rem/1 var(--garamond);text-decoration:none;opacity:0;visibility:hidden;transform:translateY(.5rem);transition:opacity .25s ease,transform .25s ease,visibility 0s linear .25s,background-color .15s ease,color .15s ease}
-  .totop.on:not(.down){opacity:1;visibility:visible;transform:none;transition:opacity .25s ease,transform .25s ease,visibility 0s,background-color .15s ease,color .15s ease}
-  .totop:hover{background:var(--gold);color:var(--bg)}
+  .totop {
+    position: fixed;
+    right: var(--edge);
+    bottom: 1.25rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--gold-hi);
+    font: 400 1.125rem/1 var(--garamond);
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(0.5rem);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease,
+      visibility 0s linear 0.25s,
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
 
-  @media (min-width:36rem){
-    .facts,.facts.pair{grid-template-columns:9rem minmax(0,1fr);gap:.6rem 1.5rem}
-    .facts dd+dt{margin-top:0}
+  .totop.on:not(.down) {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease,
+      visibility 0s,
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .totop:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  @media (min-width: 36rem) {
+    .facts,
+    .facts.pair {
+      grid-template-columns: 9rem minmax(0, 1fr);
+      gap: 0.6rem 1.5rem;
+    }
+
+    .facts dd + dt {
+      margin-top: 0;
+    }
   }
 
   /* entrada, uma vez: o filete sob o lema se desenha e a apresentação surge do quase transparente */
-  @media (prefers-reduced-motion:no-preference){
-    .motto::after{animation:draw .45s cubic-bezier(.2,.7,.2,1) both}
-    .intro .body>*{animation:rise .45s ease-out both}
-  }
-  /* telas largas: o espaçamento das letras do nome se fecha (no celular mudaria a quebra de linha) */
-  @media (prefers-reduced-motion:no-preference) and (min-width:36rem){
-    .intro h1{animation-name:settle}
-  }
-  /* detalhes dos projetos abrem com movimento */
-  @media (prefers-reduced-motion:no-preference){
-    .entry details[open]>.facts{animation:unfold .3s ease-out}
-  }
-  /* onde o navegador permite, a altura também se abre e se fecha suavemente */
-  @media (prefers-reduced-motion:no-preference){
-    @supports (interpolate-size:allow-keywords){
-      :root{interpolate-size:allow-keywords}
-      .entry details::details-content{block-size:0;overflow:hidden;transition:block-size .3s ease,content-visibility .3s allow-discrete}
-      .entry details[open]::details-content{block-size:auto}
+  @media (prefers-reduced-motion: no-preference) {
+    .motto::after {
+      animation: draw 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    .intro .body > * {
+      animation: rise 0.45s ease-out both;
     }
   }
-  @media (prefers-reduced-motion:reduce){.totop{transition:none}}
-  @keyframes unfold{from{opacity:0;transform:translateY(-.4rem)}}
-  @keyframes draw{from{transform:scaleX(0)}}
-  @keyframes rise{from{opacity:.2}}
-  @keyframes settle{from{opacity:.2;letter-spacing:.16em}}
 
-  @media print{
-    :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-    .top,.skip,.jump,.totop,.entry summary,.copy{display:none}
-    .entry details::details-content{block-size:auto;content-visibility:visible}
-    .hero{padding-block:1rem 2rem}
+  /* telas largas: o espaçamento das letras do nome se fecha (no celular mudaria a quebra de linha) */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 36rem) {
+    .intro h1 {
+      animation-name: settle;
+    }
+  }
+
+  /* detalhes dos projetos abrem com movimento */
+  @media (prefers-reduced-motion: no-preference) {
+    .entry details[open] > .facts {
+      animation: unfold 0.3s ease-out;
+    }
+  }
+
+  /* onde o navegador permite, a altura também se abre e se fecha suavemente */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) {
+      :root {
+        interpolate-size: allow-keywords;
+      }
+
+      .entry details::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition:
+          block-size 0.3s ease,
+          content-visibility 0.3s allow-discrete;
+      }
+
+      .entry details[open]::details-content {
+        block-size: auto;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .totop {
+      transition: none;
+    }
+  }
+
+  @keyframes unfold {
+    from {
+      opacity: 0;
+      transform: translateY(-0.4rem);
+    }
+  }
+
+  @keyframes draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes settle {
+    from {
+      opacity: 0.2;
+      letter-spacing: 0.16em;
+    }
+  }
+
+  @media print {
+    :root {
+      --bg: #fff;
+      --text: #111;
+      --muted: #444;
+      --gold: #6b5326;
+      --gold-text: #6b5326;
+      --gold-hi: #6b5326;
+      --rule: #bbb;
+
+      color-scheme: light;
+    }
+
+    .top,
+    .skip,
+    .jump,
+    .totop,
+    .entry summary,
+    .copy {
+      display: none;
+    }
+
+    .entry details::details-content {
+      block-size: auto;
+      content-visibility: visible;
+    }
+
+    .hero {
+      padding-block: 1rem 2rem;
+    }
   }
 }
