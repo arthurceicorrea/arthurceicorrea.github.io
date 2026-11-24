@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'sha256-ZOrfZkxct9mHfd4cgqpzmepUX3D8/pQKxFlB/mqud8o='; script-src 'sha256-OYPu73ehHxkgIQyyYzTw2G31Vs+7rYm/tE7R8JD2P6w='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -14,6 +14,9 @@
   Por isso todos os caminhos locais são absolutos (/fonts/..., /cv/...).
 
   Arquivos esperados na raiz do site:
+    assets/site.css         (montado por ci/build.py a partir de src/css/)
+    assets/language.js      (cópia de src/js/language.js)
+    assets/page.js          (cópia de src/js/page.js)
     fonts/cinzel-400.woff2  (pré-carregada, como a eb-garamond-400)
     fonts/cinzel-500.woff2
     fonts/eb-garamond-400.woff2
@@ -25,21 +28,19 @@
 
   Idiomas: o conteúdo existe quatro vezes dentro do elemento main, um bloco por idioma
   (lang="pt-BR", "en", "es", "it"). O CSS mostra apenas o bloco cujo lang coincide
-  com o do elemento html; o script só escolhe o idioma e atualiza esse atributo.
+  com o do elemento html; o script de idioma só o escolhe e atualiza esse atributo.
   Nas páginas de cada idioma, o idioma vem fixo (atributo data-lang do elemento html).
   Na página inicial, nesta ordem: ?lang= no endereço; o país, deduzido do fuso horário do
   aparelho (Brasil e Portugal: PT; Itália: IT; Espanha e América hispânica: ES); o idioma
   do navegador; inglês. Sem JavaScript, a página inicial aparece em inglês, e o seletor
   de idioma leva às páginas de cada idioma.
 
-  Política de segurança (CSP): os dois valores sha256 da meta tag acima correspondem
-  ao conteúdo exato do bloco de estilos e do bloco de script (tudo o que está entre a
-  etiqueta de abertura e a de fechamento, inclusive espaços e quebras de linha).
-  Editar o texto do corpo da página não exige nada. Se alterar os estilos ou o script,
-  recalcule o hash respectivo: o console do Chrome ou do Edge mostra o valor esperado
-  na mensagem de bloqueio; basta colá-lo na meta tag. Ou rode: python ci/csp_hash.py index.html
-  Se o domínio passar pela Cloudflare, desligue Email Obfuscation, Rocket Loader e
-  Auto Minify, pois reescrevem o HTML e invalidam os hashes.
+  Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
+  (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
+  além do bloco de dados estruturados (application/ld+json), que é dado e não é executado.
+  Estilos e scripts se editam em src/css/ e src/js/; a página e a política não mudam.
+  Se o domínio passar pela Cloudflare, desligue Email Obfuscation e Rocket Loader,
+  pois injetam scripts embutidos, que a política bloqueia.
   A diretiva frame-ancestors não funciona em meta tag; se a hospedagem permitir
   cabeçalhos HTTP, acrescente lá: Content-Security-Policy: frame-ancestors 'none'.
 
@@ -107,335 +108,9 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preload" href="/fonts/cinzel-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin>
-<style>
-/* ---- Fontes locais: arquivos .woff2 na pasta fonts/ ---- */
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/cinzel-400.woff2") format("woff2")}
-@font-face{font-family:"Cinzel";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/cinzel-500.woff2") format("woff2")}
-@font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400.woff2") format("woff2")}
-@font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400-italic.woff2") format("woff2")}
-
-/* ---- Paleta e tipos herdados da capa do LinkedIn (Versão A) ---- */
-:root{
-  --bg:#14181E;
-  --gold:#B8935A;      /* títulos grandes e detalhes: contraste 6,24:1 sobre o fundo (AA) */
-  --gold-text:#C9A26B; /* dourado em texto pequeno ou corrido e em links: 7,52:1 (AAA) */
-  --gold-hi:#E0BE8A;   /* hover, foco e idioma ativo: 10,09:1 */
-  --text:#D3DAE2;      /* texto: 12,63:1 */
-  --muted:#9AA6B2;     /* atribuição, rótulos e datas: 7,18:1 */
-  --rule:#3A424D;      /* filetes, apenas decorativos: 1,75:1 */
-  --cinzel:"Cinzel","Trajan Pro","Times New Roman",serif;
-  --garamond:"EB Garamond",Garamond,"Adobe Garamond Pro",Georgia,"Times New Roman",serif;
-  --measure:40rem;
-  --edge:clamp(1.25rem,5vw,3rem);
-  color-scheme:dark;
-}
-
-*,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:400 clamp(1.1875rem,1.1rem + .4vw,1.25rem)/1.55 var(--garamond)}
-h1,h2,h3,p,dl,dd,ul,figure,blockquote{margin:0;padding:0}
-h1,h2,h3{font-weight:400}
-ul{list-style:none}
-::selection{background:var(--gold);color:var(--bg)}
-a{color:var(--gold-text);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:1px;text-underline-offset:.2em;overflow-wrap:anywhere;transition:color .15s ease,background-color .15s ease}
-a:hover{color:var(--gold-hi)}
-:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
-main:focus,main:focus-visible{outline:none}
-
-/* ---- Idiomas: só aparece o bloco cujo lang coincide com o do elemento html ---- */
-html:not([lang="pt-BR"]) .t[lang="pt-BR"],
-html:not([lang="en"]) .t[lang="en"],
-html:not([lang="es"]) .t[lang="es"],
-html:not([lang="it"]) .t[lang="it"]{display:none!important}
-
-/* ---- Utilitários ---- */
-.vh{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.wrap{max-width:64rem;margin-inline:auto;padding-inline:var(--edge)}
-.skip{position:absolute;top:-5rem;left:var(--edge);z-index:1;padding:.7rem 1rem;background:var(--gold);color:var(--bg);font:500 .8125rem/1.2 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
-.skip:hover{color:var(--bg)}
-.skip:focus{top:.75rem}
-
-/* ---- Seletor de idioma: links para as páginas de cada idioma ---- */
-.top{display:flex;justify-content:flex-end;min-height:4.25rem;padding-block:.75rem}
-.langs ul{display:flex;margin-right:-.7rem}
-.langs li{display:flex;align-items:center}
-.langs li+li::before{content:"\00B7";content:"\00B7" / "";color:var(--gold);font:500 .8125rem/1 var(--cinzel)}
-.langs a{display:inline-flex;align-items:center;justify-content:center;min-width:2.75rem;min-height:2.75rem;padding-left:.16em;color:var(--muted);font:500 .8125rem/1 var(--cinzel);letter-spacing:.16em;text-decoration:none}
-.langs a:hover{color:var(--gold-hi)}
-html[lang="pt-BR"] .langs [data-lang="pt"],
-html[lang="en"] .langs [data-lang="en"],
-html[lang="es"] .langs [data-lang="es"],
-html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
-
-/* ---- Sumário fixo: acompanha a rolagem; no celular a faixa de links rola de lado ---- */
-.jump{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:1.25rem;margin-inline:calc(-1 * var(--edge));padding:.3rem var(--edge) .3rem calc(var(--edge) + max(0px, 100% - var(--measure)));background:var(--bg);border-bottom:1px solid var(--rule)}
-.jump ul{display:flex;flex:1;gap:1.5rem;min-width:0;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}
-.jump ul::-webkit-scrollbar{display:none}
-.jump a{display:inline-flex;align-items:center;min-height:2.5rem;color:var(--muted);font:500 .75rem/1 var(--cinzel);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
-.jump a:hover,.jump a[aria-current]{color:var(--gold-hi)}
-.jump a[aria-current]{text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
-.jump .cv{flex:none;min-height:2.25rem;padding:0 .9rem 0 calc(.9rem + .12em);border:1px solid var(--gold);color:var(--gold-hi)}
-.jump .cv:hover{background:var(--gold);color:var(--bg)}
-.sec{scroll-margin-top:4.5rem}
-/* celular: a borda direita da faixa esmaece, sinal de que há mais links ao rolar */
-@media (max-width:47.99rem){.jump ul{gap:1.15rem;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent)}}
-
-/* ---- Hero: o lema como epígrafe, alinhado à direita, como na capa ---- */
-.hero{padding-block:clamp(1.75rem,6vh,3.5rem) clamp(1.75rem,5vh,3rem);text-align:right}
-/* margens negativas: anulam o espaço que o letter-spacing deixa depois da última letra */
-.motto blockquote p{margin-right:-.11em;color:var(--gold);font:400 clamp(1.25rem,.95rem + 1.2vw,1.75rem)/1.2 var(--cinzel);letter-spacing:.11em;text-transform:uppercase}
-.motto blockquote span{white-space:nowrap}
-.motto .tr{margin-top:.45em;font-size:clamp(1.0625rem,1rem + .3vw,1.25rem);font-style:italic;line-height:1.25;text-wrap:balance}
-.motto figcaption{margin:.5rem -.18em 0 0;color:var(--muted);font:400 .8125rem/1.5 var(--cinzel);letter-spacing:.18em;text-transform:uppercase}
-.motto::after{content:"";display:block;width:3.5rem;height:1px;margin:1.25rem 0 0 auto;background:var(--gold)}
-
-/* ---- Corpo: coluna ancorada na mesma margem direita do hero ---- */
-.sec{max-width:var(--measure);margin-left:auto}
-.sec+.sec{margin-top:clamp(3.25rem,7vw,5rem)}
-.sec h2{position:relative;margin-bottom:1.1rem;padding-top:1.05rem;color:var(--gold-text);font:400 1rem/1.45 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-wrap:balance}
-.sec h2::before{content:"";position:absolute;top:0;left:0;width:3.5rem;height:1px;background:var(--rule)}
-.body>*+*{margin-top:1rem}
-
-h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinzel);letter-spacing:.1em;text-transform:uppercase;text-wrap:balance}
-/* ofícios sob o nome; o ponto que abriria cada linha cai fora da área visível */
-.intro .craft{overflow:hidden;margin-top:.55rem;color:var(--gold-text);font:500 clamp(.8125rem,.78rem + .2vw,.9375rem)/1.7 var(--cinzel);letter-spacing:.2em;text-transform:uppercase}
-.craft ul{display:flex;flex-wrap:wrap;margin-left:-1.9em}
-.craft li{position:relative;padding-left:1.9em;white-space:nowrap}
-.craft li::before{content:"\00B7";content:"\00B7" / "";position:absolute;left:.8em;letter-spacing:0}
-.intro .glance{margin-top:1.5rem}
-.aside{font-style:italic}
-.actions{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.75rem;margin-top:1.75rem}
-.btn{display:inline-flex;align-items:center;min-height:2.75rem;padding:.7rem 1.4rem .7rem calc(1.4rem + .16em);border:1px solid var(--gold);color:var(--gold-hi);font:500 .8125rem/1.3 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-decoration:none}
-.btn:hover{background:var(--gold);color:var(--bg)}
-
-.entry+.entry{margin-top:2.4rem}
-.entry h3{font-size:1.22em;line-height:1.25;text-wrap:balance}
-.meta{margin-top:.15rem;color:var(--muted);font-style:italic}
-.entry p:not(.meta),.entry .facts{margin-top:.8rem}
-.facts{display:grid;grid-template-columns:minmax(0,1fr)}
-.facts dt{color:var(--muted);font-style:italic}
-.facts dd+dt{margin-top:.7rem}
-/* pares curtos (idiomas): rótulo e valor lado a lado também no celular */
-.facts.pair{grid-template-columns:7.5rem minmax(0,1fr);gap:.35rem 1.25rem}
-.facts.pair dd+dt{margin-top:0}
-.note{color:var(--muted);font-style:italic}
-/* evita uma palavra sozinha na última linha; navegadores que não conhecem a regra a ignoram */
-p,dd{text-wrap:pretty}
-/* detalhes dos projetos: abrem no próprio lugar */
-.entry details{margin-top:.6rem}
-.entry summary{display:inline-flex;align-items:center;gap:.6em;min-height:2.75rem;cursor:pointer;list-style:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase}
-.entry summary::-webkit-details-marker{display:none}
-.entry summary::before{content:"+";content:"+" / "";width:.7em;font-size:1.15rem;letter-spacing:0}
-.entry details[open]>summary::before{content:"\2212";content:"\2212" / ""}
-.entry summary:hover{color:var(--gold-hi)}
-.entry details[open] .see,.entry details:not([open]) .hide{display:none}
-
-/* copiar o e-mail: útil para quem usa webmail e não tem programa de e-mail configurado */
-.mail{display:inline-flex;flex-wrap:wrap;align-items:baseline;column-gap:.9rem}
-.copy{min-height:2.25rem;padding:0;border:0;background:none;color:var(--gold-text);font:500 .75rem/1 var(--cinzel);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.copy:hover{color:var(--gold-hi)}
-.copy .ok,.copy.done .idle{display:none}
-.copy.done .ok{display:inline}
-.entry details .facts{margin-top:.3rem}
-
-/* botão de voltar ao topo: aparece quando a apresentação sai da tela (o script põe a classe "on") */
-.totop{position:fixed;right:var(--edge);bottom:1.25rem;z-index:2;display:grid;place-items:center;width:2.75rem;height:2.75rem;border:1px solid var(--gold);border-radius:50%;background:var(--bg);color:var(--gold-hi);font:400 1.125rem/1 var(--garamond);text-decoration:none;opacity:0;visibility:hidden;transform:translateY(.5rem);transition:opacity .25s ease,transform .25s ease,visibility 0s linear .25s,background-color .15s ease,color .15s ease}
-.totop.on:not(.down){opacity:1;visibility:visible;transform:none;transition:opacity .25s ease,transform .25s ease,visibility 0s,background-color .15s ease,color .15s ease}
-.totop:hover{background:var(--gold);color:var(--bg)}
-
-.foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 5rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
-
-@media (min-width:36rem){
-  .facts,.facts.pair{grid-template-columns:9rem minmax(0,1fr);gap:.6rem 1.5rem}
-  .facts dd+dt{margin-top:0}
-}
-
-/* telas largas: os títulos das seções pendem para a margem livre, alinhados à direita */
-@media (min-width:62rem){
-  .sec{display:grid;grid-template-columns:minmax(0,1fr) var(--measure);column-gap:3rem;align-items:baseline;max-width:none;margin-left:0}
-  .sec h2{margin:0 -.16em 0 0;text-align:right}
-  .sec h2::before{left:auto;right:.16em}
-  .sec .body{grid-column:2}
-}
-
-@media (prefers-reduced-motion:reduce){a{transition:none}}
-
-/* entrada, uma vez: o filete sob o lema se desenha e a apresentação surge do quase transparente */
-@media (prefers-reduced-motion:no-preference){
-  .motto::after{animation:draw .45s cubic-bezier(.2,.7,.2,1) both}
-  .intro .body>*{animation:rise .45s ease-out both}
-}
-/* telas largas: o espaçamento das letras do nome se fecha (no celular mudaria a quebra de linha) */
-@media (prefers-reduced-motion:no-preference) and (min-width:36rem){
-  .intro h1{animation-name:settle}
-}
-/* rolagem suave pelo sumário e pelo botão de voltar ao topo; detalhes dos projetos abrem com movimento */
-@media (prefers-reduced-motion:no-preference){
-  html{scroll-behavior:smooth}
-  .entry details[open]>.facts{animation:unfold .3s ease-out}
-}
-/* onde o navegador permite, a altura também se abre e se fecha suavemente */
-@media (prefers-reduced-motion:no-preference){
-  @supports (interpolate-size:allow-keywords){
-    :root{interpolate-size:allow-keywords}
-    .entry details::details-content{block-size:0;overflow:hidden;transition:block-size .3s ease,content-visibility .3s allow-discrete}
-    .entry details[open]::details-content{block-size:auto}
-  }
-}
-@media (prefers-reduced-motion:reduce){.totop{transition:none}}
-@keyframes unfold{from{opacity:0;transform:translateY(-.4rem)}}
-@keyframes draw{from{transform:scaleX(0)}}
-@keyframes rise{from{opacity:.2}}
-@keyframes settle{from{opacity:.2;letter-spacing:.16em}}
-
-@media print{
-  :root{--bg:#fff;--text:#111;--muted:#444;--gold:#6B5326;--gold-text:#6B5326;--gold-hi:#6B5326;--rule:#bbb;color-scheme:light}
-  .top,.skip,.jump,.totop,.entry summary,.copy{display:none}
-  .entry details::details-content{block-size:auto;content-visibility:visible}
-  .hero{padding-block:1rem 2rem}
-}
-</style>
-<script>
-(function () {
-  'use strict';
-
-  // Código de cada idioma (pastas /pt/, /en/... e ?lang=) e etiqueta lang da edição.
-  var TAGS = { pt: 'pt-BR', en: 'en', es: 'es', it: 'it' };
-  var root = document.documentElement;
-
-  // "pt-BR" -> "pt"; devolve null se não for um dos quatro idiomas.
-  function pick(value) {
-    var code = String(value || '').toLowerCase().split(/[-_]/)[0];
-    return TAGS.hasOwnProperty(code) ? code : null;
-  }
-
-  function fromUrl() {
-    var match = /[?&]lang=([^&#]*)/.exec(location.search);
-    return match ? pick(match[1]) : null;
-  }
-
-  function fromBrowser() {
-    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
-    for (var i = 0; i < list.length; i++) {
-      var code = pick(list[i]);
-      if (code) return code;
-    }
-    return null;
-  }
-
-  // País deduzido do fuso horário do aparelho, sem nenhuma consulta externa.
-  // Só entram fusos de países com língua clara; nos demais vale o idioma do navegador.
-  var ZONES = {
-    pt: /^(America\/(Sao_Paulo|Araguaina|Bahia|Belem|Boa_Vista|Campo_Grande|Cuiaba|Eirunepe|Fortaleza|Maceio|Manaus|Noronha|Porto_Velho|Recife|Rio_Branco|Santarem)|Brazil\/.+|Europe\/Lisbon|Portugal|Atlantic\/(Azores|Madeira|Cape_Verde)|Africa\/(Luanda|Maputo|Bissau|Sao_Tome))$/,
-    it: /^(Europe\/(Rome|Vatican|San_Marino)|Italy)$/,
-    es: /^(Europe\/Madrid|Africa\/(Ceuta|Malabo)|Atlantic\/Canary|America\/(Argentina\/.+|Buenos_Aires|Catamarca|Cordoba|Jujuy|Mendoza|Mexico_City|Cancun|Merida|Monterrey|Matamoros|Chihuahua|Ciudad_Juarez|Ojinaga|Mazatlan|Bahia_Banderas|Hermosillo|Tijuana|Bogota|Lima|Santiago|Punta_Arenas|Caracas|Montevideo|Asuncion|La_Paz|Guayaquil|Guatemala|El_Salvador|Tegucigalpa|Managua|Costa_Rica|Panama|Havana|Santo_Domingo)|Pacific\/(Easter|Galapagos)|Chile\/.+|Mexico\/.+|Cuba)$/
-  };
-
-  function fromZone() {
-    try {
-      var zone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-      for (var code in ZONES) {
-        if (ZONES.hasOwnProperty(code) && ZONES[code].test(zone)) return code;
-      }
-    } catch (error) { /* navegador sem Intl: segue para o idioma do navegador */ }
-    return null;
-  }
-
-  // As páginas de cada idioma trazem o idioma fixo em data-lang. Na página inicial, a ordem é:
-  // parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
-  var current = pick(root.getAttribute('data-lang')) || fromUrl() || fromZone() || fromBrowser() || 'en';
-  root.lang = TAGS[current]; // definido antes de o corpo ser lido: o idioma errado nunca chega a aparecer
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var edition = document.querySelector('main > [lang="' + TAGS[current] + '"]');
-    var description = document.querySelector('meta[name="description"]');
-    if (edition) {
-      document.title = edition.getAttribute('data-title');
-      if (description) description.setAttribute('content', edition.getAttribute('data-desc'));
-    }
-    // seletor de idioma: nome para leitores de tela e idioma ativo marcado
-    var nav = document.querySelector('.langs');
-    nav.setAttribute('aria-label', nav.getAttribute('data-' + current));
-    var links = nav.querySelectorAll('a');
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].getAttribute('data-lang') === current) links[i].setAttribute('aria-current', 'true');
-      else links[i].removeAttribute('aria-current');
-    }
-    // botão de voltar ao topo: aparece quando a apresentação sai da tela
-    var button = document.querySelector('.totop');
-    var intro = edition && edition.querySelector('.intro');
-    if (button && intro && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) {
-        button.classList.toggle('on', !entries[0].isIntersecting);
-      }).observe(intro);
-      // recolhe-se enquanto o visitante rola para baixo lendo; volta quando ele para ou sobe
-      var lastY = window.scrollY, rest;
-      window.addEventListener('scroll', function () {
-        var y = window.scrollY;
-        if (y > lastY + 4) {
-          button.classList.add('down');
-          clearTimeout(rest);
-          rest = setTimeout(function () { button.classList.remove('down'); }, 700);
-        } else if (y < lastY - 4) {
-          clearTimeout(rest);
-          button.classList.remove('down');
-        }
-        lastY = y;
-      }, { passive: true });
-    }
-    // botões de copiar o e-mail: aparecem só onde o navegador permite copiar
-    if (navigator.clipboard && window.isSecureContext) {
-      var copies = document.querySelectorAll('.copy');
-      for (var c = 0; c < copies.length; c++) {
-        copies[c].hidden = false;
-        copies[c].addEventListener('click', function () {
-          var copy = this, status = this.nextElementSibling;
-          navigator.clipboard.writeText(copy.getAttribute('data-copy')).then(function () {
-            copy.classList.add('done');
-            status.textContent = copy.getAttribute('data-said');
-            setTimeout(function () { copy.classList.remove('done'); status.textContent = ''; }, 2000);
-          });
-        });
-      }
-    }
-    // sumário: marca a seção que está sendo lida (faixa no terço superior da tela)
-    var jumps = edition ? edition.querySelectorAll('.jump a[href^="#"]') : [];
-    if (jumps.length && 'IntersectionObserver' in window) {
-      var strip = edition.querySelector('.jump ul');
-      var mark = function (id) {
-        for (var j = 0; j < jumps.length; j++) {
-          var on = jumps[j].getAttribute('href') === '#' + id;
-          if (on) {
-            jumps[j].setAttribute('aria-current', 'location');
-            // no celular, traz o link marcado para dentro da faixa
-            var left = jumps[j].offsetLeft - strip.offsetLeft;
-            if (left < strip.scrollLeft || left + jumps[j].offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left - 16;
-          } else jumps[j].removeAttribute('aria-current');
-        }
-      };
-      var spy = new IntersectionObserver(function (entries) {
-        for (var k = 0; k < entries.length; k++) if (entries[k].isIntersecting) mark(entries[k].target.id);
-      }, { rootMargin: '-30% 0px -65% 0px' });
-      for (var n = 0; n < jumps.length; n++) {
-        var target = document.getElementById(jumps[n].getAttribute('href').slice(1));
-        if (target) spy.observe(target);
-      }
-      if (intro) new IntersectionObserver(function (entries) { if (entries[0].isIntersecting) mark(''); }, { rootMargin: '-30% 0px -65% 0px' }).observe(intro);
-    }
-  });
-
-  // impressão ou PDF: abre os detalhes dos projetos e os fecha de novo depois
-  var opened = [];
-  window.addEventListener('beforeprint', function () {
-    opened = [].slice.call(document.querySelectorAll('details:not([open])'));
-    for (var i = 0; i < opened.length; i++) opened[i].open = true;
-  });
-  window.addEventListener('afterprint', function () {
-    for (var i = 0; i < opened.length; i++) opened[i].open = false;
-    opened = [];
-  });
-})();
-</script>
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/language.js"></script>
+<script type="module" src="/assets/page.js"></script>
 </head>
 <body>
 

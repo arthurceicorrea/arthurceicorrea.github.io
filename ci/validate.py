@@ -1,7 +1,8 @@
 """Validação estática do site montado por ci/build.py, executada pelo pipeline antes de publicar.
 
-Confere em todas as páginas (inicial, 404 e uma por idioma): hashes da CSP,
-aninhamento do HTML, ids únicos, ausência de estilos e manipuladores embutidos,
+Confere em todas as páginas (inicial, 404 e uma por idioma): a política de segurança
+(CSP) exatamente como definida, nenhum estilo ou script embutido (só os dados
+estruturados), aninhamento do HTML, ids únicos, ausência de atributos style e on...,
 links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos
 e existentes, e dados estruturados. Na página inicial, a paridade das quatro
 edições; nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e
@@ -11,8 +12,6 @@ ausência de telefone nas páginas e nos currículos.
 Uso: python ci/build.py && python ci/validate.py _site
 """
 import json
-import base64
-import hashlib
 import os
 import re
 import sys
@@ -34,6 +33,9 @@ ALLOWED_EXTERNAL = (
 )
 # telefone brasileiro: +55, (11) 9xxxx-xxxx ou 9xxxx-xxxx
 PHONE = re.compile(r'\+\s?55\b|\(\d{2}\)\s?9\d{4}-?\d{4}|\b9\d{4}-\d{4}\b')
+# Política de segurança de todas as páginas: estilos e scripts só de arquivos do próprio site.
+POLICY = ("default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; "
+          "connect-src 'self'; base-uri 'none'; form-action 'none'")
 VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
 
 failures = []
@@ -43,10 +45,6 @@ def check(ok, label, detail=''):
     print(('ok    ' if ok else 'FALHA ') + label + (' :: %s' % (detail,) if detail and not ok else ''))
     if not ok:
         failures.append(label)
-
-
-def sha256(text):
-    return 'sha256-' + base64.b64encode(hashlib.sha256(text.encode('utf-8')).digest()).decode()
 
 
 def local_file(url):
@@ -91,25 +89,35 @@ class Parser(HTMLParser):
             self.edition = None
 
 
+def stylesheets(parsed, where):
+    """Texto das folhas de estilo locais ligadas à página (<link rel="stylesheet">)."""
+    links = [a.get('href') for tag, a, line in parsed.tags if tag == 'link' and a.get('rel') == 'stylesheet']
+    check(len(links) == 1 and links[0].startswith('/assets/'), 'uma folha de estilo, servida de /assets/' + where, links)
+    text = ''
+    for href in links:
+        if os.path.isfile(local_file(href)):
+            text += open(local_file(href), encoding='utf-8').read()
+    return text
+
+
 def check_page(name, edition=None):
     """Verificações comuns a todas as páginas. edition=None exige as quatro edições;
     edition='pt-BR' (etc.) exige só aquela. Devolve (texto bruto, corpo sem comentários, analisador)."""
     where = ' [%s]' % name
     raw = open(os.path.join(ROOT, name), encoding='utf-8').read()
-    check('\r' not in raw, 'quebras de linha LF (os hashes da CSP dependem disso)' + where)
+    check('\r' not in raw, 'quebras de linha LF' + where)
     code = re.sub(r'<!--.*?-->', '', raw, flags=re.S)
 
     # ---------- CSP ----------
-    blocks = {tag: re.findall(r'^<%s>(.*?)</%s>$' % (tag, tag), raw, flags=re.S | re.M) for tag in ('style', 'script')}
-    one_each = len(blocks['style']) == 1 and len(blocks['script']) == 1
-    check(one_each, 'um único bloco de estilo e um único bloco de script' + where)
+    check(not re.search(r'<style[\s>]', code), 'nenhum bloco de estilo embutido' + where)
+    inline = [attrs for attrs, content in re.findall(r'<script\b([^>]*)>(.*?)</script>', code, flags=re.S)
+              if 'src=' not in attrs and attrs.strip() != 'type="application/ld+json"']
+    check(not inline, 'nenhum script embutido além dos dados estruturados (JSON-LD)' + where, inline)
     meta = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', raw)
     check(bool(meta), 'meta CSP presente' + where)
-    if meta and one_each:
+    if meta:
         csp = meta.group(1)
-        want_style, want_script = sha256(blocks['style'][0]), sha256(blocks['script'][0])
-        check("style-src '%s'" % want_style in csp, 'hash do estilo confere com a CSP' + where, want_style)
-        check("script-src '%s'" % want_script in csp, 'hash do script confere com a CSP' + where, want_script)
+        check(csp == POLICY, 'política de segurança exatamente como definida' + where, csp)
         check("default-src 'none'" in csp and 'unsafe-inline' not in csp and 'unsafe-eval' not in csp,
               "CSP restritiva (default-src 'none', sem unsafe-inline nem unsafe-eval)" + where)
 
@@ -130,12 +138,13 @@ def check_page(name, edition=None):
     # páginas servidas em vários níveis de pasta: tudo o que é local tem de ser absoluto
     relative = [a.get(attr) for tag, a, line in p.tags for attr in ('href', 'src')
                 if a.get(attr) and not a.get(attr).startswith(('/', '#', 'data:', 'http://', 'https://', 'mailto:'))]
-    relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw) if not u.startswith('/')]
+    styles = stylesheets(p, where)
+    relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw + styles) if not u.startswith('/')]
     check(not relative, 'só caminhos locais absolutos' + where, relative)
 
     body = code.split('<body>', 1)[1] if '<body>' in code else ''
     check(not re.search(r'\sstyle\s*=', code), 'nenhum atributo style embutido' + where)
-    check(not re.search(r'\son[a-z]+\s*=', body), 'nenhum manipulador de evento embutido' + where)
+    check(not re.search(r'\son[a-z]+\s*=', code), 'nenhum manipulador de evento embutido' + where)
 
     # ---------- links e recursos ----------
     for tag, a, line in p.tags:
@@ -154,7 +163,7 @@ def check_page(name, edition=None):
             elif not url.startswith(('mailto:', '#', '?', 'data:')):
                 check(os.path.isfile(local_file(url)), 'arquivo local existe: %s' % url + where)
 
-    for url in re.findall(r'url\("([^"]+)"\)', blocks['style'][0] if blocks['style'] else ''):
+    for url in re.findall(r'url\("([^"]+)"\)', styles):
         check(os.path.isfile(local_file(url)), 'fonte local existe: %s' % url + where)
 
     text_only = re.sub(r'<[^>]+>', ' ', body)
