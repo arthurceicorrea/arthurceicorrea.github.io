@@ -91,6 +91,17 @@ class Parser(HTMLParser):
             self.edition = None
 
 
+def stylesheets(parsed, where):
+    """Texto das folhas de estilo locais ligadas à página (<link rel="stylesheet">)."""
+    links = [a.get('href') for tag, a, line in parsed.tags if tag == 'link' and a.get('rel') == 'stylesheet']
+    check(len(links) == 1 and links[0].startswith('/assets/'), 'uma folha de estilo, servida de /assets/' + where, links)
+    text = ''
+    for href in links:
+        if os.path.isfile(local_file(href)):
+            text += open(local_file(href), encoding='utf-8').read()
+    return text
+
+
 def check_page(name, edition=None):
     """Verificações comuns a todas as páginas. edition=None exige as quatro edições;
     edition='pt-BR' (etc.) exige só aquela. Devolve (texto bruto, corpo sem comentários, analisador)."""
@@ -101,14 +112,16 @@ def check_page(name, edition=None):
 
     # ---------- CSP ----------
     blocks = {tag: re.findall(r'^<%s>(.*?)</%s>$' % (tag, tag), raw, flags=re.S | re.M) for tag in ('style', 'script')}
-    one_each = len(blocks['style']) == 1 and len(blocks['script']) == 1
-    check(one_each, 'um único bloco de estilo e um único bloco de script' + where)
+    check(not re.search(r'<style[\s>]', code), 'nenhum bloco de estilo embutido' + where)
+    one_script = len(blocks['script']) == 1
+    check(one_script, 'um único bloco de script' + where)
     meta = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', raw)
     check(bool(meta), 'meta CSP presente' + where)
-    if meta and one_each:
+    if meta:
         csp = meta.group(1)
-        want_style, want_script = sha256(blocks['style'][0]), sha256(blocks['script'][0])
-        check("style-src '%s'" % want_style in csp, 'hash do estilo confere com a CSP' + where, want_style)
+        check("style-src 'self';" in csp, "estilos só do próprio site (style-src 'self')" + where)
+    if meta and one_script:
+        want_script = sha256(blocks['script'][0])
         check("script-src '%s'" % want_script in csp, 'hash do script confere com a CSP' + where, want_script)
         check("default-src 'none'" in csp and 'unsafe-inline' not in csp and 'unsafe-eval' not in csp,
               "CSP restritiva (default-src 'none', sem unsafe-inline nem unsafe-eval)" + where)
@@ -130,7 +143,8 @@ def check_page(name, edition=None):
     # páginas servidas em vários níveis de pasta: tudo o que é local tem de ser absoluto
     relative = [a.get(attr) for tag, a, line in p.tags for attr in ('href', 'src')
                 if a.get(attr) and not a.get(attr).startswith(('/', '#', 'data:', 'http://', 'https://', 'mailto:'))]
-    relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw) if not u.startswith('/')]
+    styles = stylesheets(p, where)
+    relative += [u for u in re.findall(r'url\("([^"]+)"\)', raw + styles) if not u.startswith('/')]
     check(not relative, 'só caminhos locais absolutos' + where, relative)
 
     body = code.split('<body>', 1)[1] if '<body>' in code else ''
@@ -154,7 +168,7 @@ def check_page(name, edition=None):
             elif not url.startswith(('mailto:', '#', '?', 'data:')):
                 check(os.path.isfile(local_file(url)), 'arquivo local existe: %s' % url + where)
 
-    for url in re.findall(r'url\("([^"]+)"\)', blocks['style'][0] if blocks['style'] else ''):
+    for url in re.findall(r'url\("([^"]+)"\)', styles):
         check(os.path.isfile(local_file(url)), 'fonte local existe: %s' % url + where)
 
     text_only = re.sub(r'<[^>]+>', ' ', body)

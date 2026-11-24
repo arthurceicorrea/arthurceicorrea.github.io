@@ -1,0 +1,24 @@
+/* Fontes e variáveis: cores, famílias tipográficas e medidas usadas pelas outras camadas. */
+@layer tokens {
+  /* ---- Fontes locais: arquivos .woff2 na pasta fonts/ ---- */
+  @font-face{font-family:"Cinzel";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/cinzel-400.woff2") format("woff2")}
+  @font-face{font-family:"Cinzel";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/cinzel-500.woff2") format("woff2")}
+  @font-face{font-family:"EB Garamond";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400.woff2") format("woff2")}
+  @font-face{font-family:"EB Garamond";font-style:italic;font-weight:400;font-display:swap;src:url("/fonts/eb-garamond-400-italic.woff2") format("woff2")}
+
+  /* ---- Paleta e tipos herdados da capa do LinkedIn (Versão A) ---- */
+  :root{
+    --bg:#14181E;
+    --gold:#B8935A;      /* títulos grandes e detalhes: contraste 6,24:1 sobre o fundo (AA) */
+    --gold-text:#C9A26B; /* dourado em texto pequeno ou corrido e em links: 7,52:1 (AAA) */
+    --gold-hi:#E0BE8A;   /* hover, foco e idioma ativo: 10,09:1 */
+    --text:#D3DAE2;      /* texto: 12,63:1 */
+    --muted:#9AA6B2;     /* atribuição, rótulos e datas: 7,18:1 */
+    --rule:#3A424D;      /* filetes, apenas decorativos: 1,75:1 */
+    --cinzel:"Cinzel","Trajan Pro","Times New Roman",serif;
+    --garamond:"EB Garamond",Garamond,"Adobe Garamond Pro",Georgia,"Times New Roman",serif;
+    --measure:40rem;
+    --edge:clamp(1.25rem,5vw,3rem);
+    color-scheme:dark;
+  }
+}

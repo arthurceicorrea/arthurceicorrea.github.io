@@ -2,12 +2,13 @@
 
 - Copia a página inicial (index.html, com as quatro edições e a escolha automática
   do idioma), a 404, as fontes, os currículos, as imagens e os arquivos de indexação.
+- Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
+  página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 - Gera uma página por idioma (/pt/, /en/, /es/, /it/): só a edição daquele idioma,
   idioma fixo, e título, descrição, endereço canônico e prévia de compartilhamento
-  (Open Graph) no idioma da página. Os blocos de estilo e de script não mudam, de
-  modo que os hashes da política de segurança continuam valendo.
+  (Open Graph) no idioma da página.
 
 Uso: python ci/build.py   (a partir da raiz do repositório; cria ou recria _site/)
 """
@@ -33,6 +34,11 @@ IMAGE_ALT = {
 }
 FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png', 'arthur-cei-correa.vcf'] + sorted(IMAGES.values())
 FOLDERS = ['fonts', 'cv']
+# Folhas de estilo publicadas em /assets/: ordem das camadas e arquivos de src/css/, nesta ordem.
+CSS = {
+    'site.css': ('tokens, base, layout, components', ['tokens.css', 'base.css', 'layout.css', 'components.css']),
+    '404.css': ('tokens, page', ['tokens.css', '404.css']),
+}
 VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
 
 
@@ -156,6 +162,23 @@ def language_page(source, code):
     return page
 
 
+def assets():
+    """Monta /assets/ a partir de src/: as folhas de estilo e os scripts."""
+    folder = os.path.join(OUT, 'assets')
+    os.makedirs(folder)
+    for name, (layers, parts) in CSS.items():
+        text = '/* Gerado por ci/build.py a partir de src/css/. Edite lá, não aqui. */\n@layer %s;\n' % layers
+        for part in parts:
+            text += '\n' + open(os.path.join(ROOT, 'src', 'css', part), encoding='utf-8').read()
+        with open(os.path.join(folder, name), 'w', encoding='utf-8', newline='\n') as f:
+            f.write(text)
+    scripts = os.path.join(ROOT, 'src', 'js')
+    if os.path.isdir(scripts):
+        for name in sorted(os.listdir(scripts)):
+            if name.endswith('.js'):
+                shutil.copy2(os.path.join(scripts, name), os.path.join(folder, name))
+
+
 def main():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -164,6 +187,7 @@ def main():
         shutil.copy2(os.path.join(ROOT, name), os.path.join(OUT, name))
     for folder in FOLDERS:
         shutil.copytree(os.path.join(ROOT, folder), os.path.join(OUT, folder))
+    assets()
     commit_date = git('log', '-1', '--format=%cs')
     day = datetime.date.fromisoformat(commit_date) if commit_date else datetime.date.today()
     version = os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD') or 'local'

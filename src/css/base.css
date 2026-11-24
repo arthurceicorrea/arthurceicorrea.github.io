@@ -1,0 +1,35 @@
+/* Base: elementos HTML, foco, idiomas e utilitários, sem classes de componente. */
+@layer base {
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 clamp(1.1875rem,1.1rem + .4vw,1.25rem)/1.55 var(--garamond)}
+  h1,h2,h3,p,dl,dd,ul,figure,blockquote{margin:0;padding:0}
+  h1,h2,h3{font-weight:400}
+  ul{list-style:none}
+  ::selection{background:var(--gold);color:var(--bg)}
+  a{color:var(--gold-text);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:1px;text-underline-offset:.2em;overflow-wrap:anywhere;transition:color .15s ease,background-color .15s ease}
+  a:hover{color:var(--gold-hi)}
+  :focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+  main:focus,main:focus-visible{outline:none}
+
+  /* ---- Idiomas: só aparece o bloco cujo lang coincide com o do elemento html ---- */
+  html:not([lang="pt-BR"]) .t[lang="pt-BR"],
+  html:not([lang="en"]) .t[lang="en"],
+  html:not([lang="es"]) .t[lang="es"],
+  html:not([lang="it"]) .t[lang="it"]{display:none!important}
+
+  /* ---- Utilitários ---- */
+  .vh{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+  /* ---- Título principal ---- */
+  h1{color:var(--text);font:400 clamp(1.5rem,1rem + 2.2vw,2.25rem)/1.2 var(--cinzel);letter-spacing:.1em;text-transform:uppercase;text-wrap:balance}
+
+  /* evita uma palavra sozinha na última linha; navegadores que não conhecem a regra a ignoram */
+  p,dd{text-wrap:pretty}
+
+  @media (prefers-reduced-motion:reduce){a{transition:none}}
+  /* rolagem suave pelo sumário e pelo botão de voltar ao topo */
+  @media (prefers-reduced-motion:no-preference){
+    html{scroll-behavior:smooth}
+  }
+}
