@@ -5,8 +5,10 @@
 - Monta cada página a partir do modelo src/page.html (Jinja2):
   - /pt/, /en/, /es/, /it/: só a edição daquele idioma, com o idioma fixo, e título,
     descrição, endereço canônico e prévia de compartilhamento (Open Graph) no idioma;
-  - a página inicial: as quatro edições, e o script de idioma mostra a do visitante.
-- Monta a 404 a partir de src/404.html, também com as quatro edições.
+  - a página inicial: a edição em inglês, marcada com data-home; o script de idioma
+    leva os outros visitantes à página do seu idioma.
+- Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
+  mostra a do visitante.
 - Copia, como estão, os arquivos de static/: fontes, currículos, imagens, vCard e
   arquivos de indexação.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
@@ -133,10 +135,10 @@ def render(env, template, path, **context):
         f.write(text)
 
 
-def head(code, content, url, og_description=None, data_lang=None):
+def head(code, content, url, og_description=None, data_lang=None, home=False):
     meta = content[code]['meta']
     return types.SimpleNamespace(
-        html_lang=TAGS[code], data_lang=data_lang, current=code,
+        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code,
         title=meta['title'], description=meta['description'], og_description=og_description or meta['description'],
         locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
         url=url, image=IMAGES[code], image_alt=meta['image_alt'])
@@ -153,8 +155,9 @@ def pages(content, day):
     }
     everyone = [edition(code, content) for code in TAGS]
     root_description = content[DEFAULT]['meta']['og_description_root']
-    render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description),
-           editions=everyone, **shared)
+    # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
+    render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description, home=True),
+           editions=[edition(DEFAULT, content)], **shared)
     for code in TAGS:
         render(env, 'page.html', os.path.join(code, 'index.html'),
                page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)], **shared)

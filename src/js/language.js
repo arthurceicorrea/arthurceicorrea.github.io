@@ -1,5 +1,6 @@
 // Escolha do idioma. Carregado no <head> sem defer: define o idioma antes da primeira
-// pintura, para o visitante nunca ver o idioma errado. Usado também pela página 404.
+// pintura, para o visitante nunca ver o idioma errado. Usado também pela página 404, que traz as
+// quatro edições, e pela página inicial, que leva cada visitante à página do seu idioma.
 (function () {
   'use strict';
 
@@ -45,9 +46,17 @@
     return null;
   }
 
-  // As páginas de cada idioma trazem o idioma fixo em data-lang. Na página inicial, a ordem é:
-  // parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
+  // As páginas de cada idioma trazem o idioma fixo em data-lang. Na página inicial e na 404, a ordem
+  // é: parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
   var current = pick(root.getAttribute('data-lang')) || fromUrl() || fromZone() || fromBrowser() || 'en';
+
+  // A página inicial (data-home) é a edição em inglês. Quem tem outro idioma vai para a página dele,
+  // antes de o corpo ser lido. replace() não deixa a página inicial no histórico: o botão Voltar não
+  // cai num ciclo. Sem JavaScript, a página inicial fica em inglês.
+  if (root.hasAttribute('data-home') && current !== 'en') {
+    location.replace('/' + current + '/' + location.hash);
+    return;
+  }
   root.lang = TAGS[current]; // definido antes de o corpo ser lido: o idioma errado nunca chega a aparecer
 
   document.addEventListener('DOMContentLoaded', function () {

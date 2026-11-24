@@ -1,14 +1,16 @@
 """Teste do site montado num Chrome sem interface, executado pelo pipeline antes de publicar.
 
 Serve a pasta _site localmente e confere:
-- página inicial com ?lang= nos quatro idiomas, no celular e em tela larga: edição certa,
-  seletor, botões de currículo, fontes, nenhuma rolagem horizontal, nenhum erro no console
-  (inclusive bloqueios da CSP);
+- página inicial com ?lang= nos quatro idiomas, no celular e em tela larga: leva à página do
+  idioma (fica na página inicial, em inglês, com ?lang=en); edição certa, seletor, botões de
+  currículo, fontes, nenhuma rolagem horizontal, nenhum erro no console (inclusive bloqueios da CSP);
+- página inicial sem JavaScript: fica em inglês; e o botão Voltar não volta a ela depois de levar
+  o visitante à página do seu idioma;
 - páginas /pt/, /en/, /es/, /it/: uma só edição, idioma fixo mesmo com fuso de outro país,
   título traduzido, e funcionamento sem JavaScript;
 - seletor de idioma, que leva de uma página a outra;
 - escolha do idioma pelo país (fuso horário simulado de Brasil, Portugal, Itália, Espanha,
-  Argentina, México, EUA e Polônia), na página inicial e na 404;
+  Argentina, México, EUA e Polônia): a página inicial leva à página do idioma, e a 404 mostra a edição;
 - página 404 no idioma do navegador.
 
 Uso: python ci/build.py && python ci/smoke.py _site
@@ -19,6 +21,7 @@ import http.server
 import os
 import sys
 import threading
+from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright
 
@@ -64,12 +67,20 @@ def open_page(browser, path, errors=None, **options):
     options.setdefault('locale', 'en-US')
     ctx = browser.new_context(**options)
     page = ctx.new_page()
+    # Downloads que a página inicial começou e cancelou ao levar o visitante à página do idioma dele
+    # (net::ERR_ABORTED) não são erro: a página seguinte baixa o que precisa. Qualquer outra falha é.
+    left_home = []
     if errors is not None:
+        started = {}
+        page.on('request', lambda r: started.__setitem__(r, page.main_frame.url))
         page.on('console', lambda m: errors.append(m.text) if m.type in ('error', 'warning') else None)
         page.on('pageerror', lambda e: errors.append(str(e)))
-        page.on('requestfailed', lambda r: errors.append('falhou: ' + r.url))
+        page.on('requestfailed', lambda r: (left_home if r.failure == 'net::ERR_ABORTED' and urlparse(started.get(r, '')).path == '/'
+                                            else errors).append('falhou: ' + r.url))
     page.goto(SITE + path)
     page.wait_for_load_state('networkidle')
+    if errors is not None and urlparse(page.url).path == '/':
+        errors.extend(left_home)  # não saiu da página inicial: o cancelamento não se explica, é erro
     return ctx, page
 
 
@@ -86,9 +97,12 @@ with sync_playwright() as pw:
                 page.evaluate('document.fonts.ready')
                 s = page.evaluate(STATE)
                 where = '/%s, %dpx' % (path, width)
+                if path.startswith('?'):
+                    landed = page.evaluate('location.pathname')
+                    check(landed == ('/' if code == 'en' else '/%s/' % code),
+                          'página inicial leva à página do idioma (%s)' % where, landed)
                 check(s['lang'] == tag and s['visible'] == [tag], 'edição certa visível (%s)' % where, s['visible'])
-                if path.endswith('/'):
-                    check(s['editions'] == [tag], 'só uma edição na página (%s)' % where, s['editions'])
+                check(s['editions'] == [tag], 'só uma edição na página (%s)' % where, s['editions'])
                 check(s['current'] == [code] and s['navVisible'], 'seletor visível e no idioma ativo (%s)' % where, s['current'])
                 check(len(s['jumps']) == 5 and all(s['jumps']), 'sumário leva às cinco seções visíveis (%s)' % where, s['jumps'])
                 check(len(s['cv']) == 2 and all(h == '/cv/arthur-cei-correa-cv-%s.pdf' % code for h in s['cv']),
@@ -113,10 +127,22 @@ with sync_playwright() as pw:
         ctx.close()
     check(len(titles) == 4, 'título traduzido nas quatro páginas', titles)
 
+    # página inicial: sem JavaScript fica em inglês; com JavaScript, o botão Voltar não volta a ela
+    ctx, page = open_page(browser, '', java_script_enabled=False, timezone_id='America/Sao_Paulo', locale='pt-BR')
+    s = page.evaluate(STATE)
+    check(s['lang'] == 'en' and s['visible'] == ['en'] and s['current'] == ['en'] and page.evaluate('location.pathname') == '/',
+          'página inicial sem JavaScript fica em inglês', (s['lang'], s['visible'], s['current']))
+    ctx.close()
+    ctx, page = open_page(browser, '', timezone_id='Europe/Rome')
+    page.go_back()
+    check(not page.url.startswith(SITE), 'botão Voltar não volta à página inicial depois de levar ao idioma', page.url)
+    ctx.close()
+
     # seletor: leva de uma página a outra
     errors = []
     ctx, page = open_page(browser, '', errors, locale='pt-BR')
-    check(page.evaluate('document.documentElement.lang') == 'pt-BR', 'página inicial no idioma do navegador (fuso sem país)')
+    check(page.evaluate('document.documentElement.lang') == 'pt-BR' and page.evaluate('location.pathname') == '/pt/',
+          'página inicial leva ao idioma do navegador (fuso sem país)', page.evaluate('location.pathname'))
     for code, tag in (('it', 'it'), ('es', 'es'), ('en', 'en'), ('pt', 'pt-BR')):
         with page.expect_navigation():
             page.click('.langs a[data-lang="%s"]' % code)
@@ -146,6 +172,10 @@ with sync_playwright() as pw:
             errors = []
             ctx, page = open_page(browser, target + query, errors, locale=locale, timezone_id=zone)
             got = page.evaluate('document.documentElement.lang')
+            if not target:
+                landed = page.evaluate('location.pathname')
+                code = [c for c, t in TAGS.items() if t == tag][0]
+                got = (got, landed) if landed != ('/' if code == 'en' else '/%s/' % code) else got
             check(got == tag and not errors, 'país: %s -> %s (/%s)' % (label, tag, target), (got, errors[:2]))
             ctx.close()
 
