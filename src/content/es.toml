@@ -81,7 +81,7 @@ aside = "Trabajo mejor con tareas claras y comunicación por escrito."
 
 [[intro.glance]]
 term = "Busco"
-text = "Pasantía o puesto junior en DevOps e IA aplicada"
+text = "Pasantía o puesto junior en DevOps, IA aplicada y seguridad"
 
 [[intro.glance]]
 term = "Inicio"
@@ -107,12 +107,12 @@ text = "Diciembre de 2027, FIAP"
 # arquivos. repo é o endereço do repositório; sem repositório público, use repo_note no lugar.
 [[projects]]
 title = "Vinheria Agnello: integración de infraestructura"
-meta = "FIAP, 2026, con el equipo CodeSquad"
+meta = "FIAP, 2026 (fase 7), con el equipo CodeSquad"
 summary = "Integré dos microservicios .NET en Docker Compose, con red, autenticación y TLS, y configuré el pipeline de Jenkins que los entrega."
 stack = "Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT)."
-repo_note = "Privado, sin enlace público."
+repo_note = "Privado, sin enlace público; código disponible para demostración en entrevista."
 problem = "Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega."
-role = "Integré los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT)."
+role = "Integré y validé los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT)."
 
 [[projects]]
 title = "Frio Solidário, Global Solution 2026/2 (FIAP)"
@@ -121,13 +121,13 @@ summary = "Me encargué de la seguridad y las pruebas de la API, que monitorea l
 stack = ".NET 10, EF Core, PostgreSQL, JWT, BCrypt, xUnit."
 repo = "https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution"
 problem = "Monitorear la cadena de frío en bancos de alimentos y comercios donantes: sensores miden temperatura, humedad y apertura de puerta, la API compara cada lectura con el rango del equipo y la app avisa al voluntario antes de que se pierda el lote."
-role = "Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas ejecutado con evidencias y pruebas xUnit de las reglas de negocio."
+role = "Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas con 8 casos, ejecutado con evidencias, y pruebas xUnit de las reglas de negocio, como la regla de alerta."
 
 [[projects]]
 title = "SellOut EasyTrack"
 meta = "2.º puesto en el FIAP Challenge 2025 (Asteria), con el equipo CodeSquad"
 summary = "Aplicación de escritorio para la gestión de ventas; desarrollé principalmente la lógica central del back-end."
-stack = "Java 11, Maven, MySQL, JUnit, R (análisis)."
+stack = "Java 11, Maven, MySQL, FlatLaf, JUnit, R (análisis)."
 repo = "https://github.com/arthurceicorrea/SellOutEasyTrack"
 problem = "Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025."
 role = "Desarrollé principalmente la lógica central del back-end."
@@ -152,24 +152,32 @@ link_note = "en inglés; se abre en una pestaña nueva"
 intro = "Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera."
 
 [[skills.groups]]
-name = "DevOps"
-items = "Terraform, Docker, Kubernetes, Linux, Azure DevOps."
+name = "DevOps y nube"
+items = "Azure DevOps, CI/CD (Jenkins, GitHub Actions), Docker, Docker Compose, Git; nociones de Terraform y Kubernetes (pasantía); AWS y Azure (laboratorios)."
 
 [[skills.groups]]
-name = "IA aplicada"
-items = "Python, scikit-learn, LangGraph, RAG, ChromaDB."
+name = "Sistemas operativos"
+items = "Linux (Debian, shell, SSH), Windows Server (Active Directory, DHCP, DNS)."
 
 [[skills.groups]]
-name = "Seguridad"
-items = "Área de estudio, con aplicación práctica en un proyecto académico: autenticación JWT, TLS, perfiles de acceso, protección contra inyección SQL y XSS."
+name = "IA aplicada y datos"
+items = "Python (scikit-learn, pandas), LangGraph, RAG, ChromaDB; R, Tableau, Power BI."
+
+[[skills.groups]]
+name = "Seguridad y redes"
+items = "Área de estudio, con aplicación práctica en un proyecto académico: autenticación JWT, TLS, perfiles de acceso, protección contra inyección SQL y XSS; redes: DNS y DHCP."
 
 [[skills.groups]]
 name = "Pruebas"
-items = "JUnit y xUnit; pruebas manuales, con plan y evidencias, y pruebas automatizadas."
+items = "JUnit, xUnit y Cucumber (BDD); pruebas manuales, con plan y evidencias, y pruebas automatizadas."
 
 [[skills.groups]]
-name = "Lenguajes y bases de datos"
-items = "Java, Python, C#, JavaScript, SQL, Oracle Database."
+name = "Lenguajes"
+items = "Java, C#, Python, JavaScript, SQL, R."
+
+[[skills.groups]]
+name = "Bases de datos"
+items = "SQL, MySQL, Oracle Database (modelado relacional)."
 
 [languages]
 
@@ -189,15 +197,19 @@ level = "avanzado"
 name = "Italiano"
 level = "básico"
 
+[[languages.items]]
+name = "Latín"
+level = "básico"
+
 [[education]]
-title = "Ingeniería de Software, FIAP (São Paulo)"
+title = "Grado (bacharelado) en Ingeniería de Software, FIAP (São Paulo)"
 meta = "febrero de 2023 a diciembre de 2027 (previsto)"
-text = "Laboratorios de la carrera: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins y GitHub Actions, machine learning con Python y scikit-learn."
+text = "Faculdade de Informática e Administração Paulista. Laboratorios de la carrera: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins y GitHub Actions, machine learning con Python y scikit-learn."
 
 [[education]]
 title = "Pasantía de DevOps, Vivo (Telefônica Brasil)"
 meta = "agosto de 2024 a diciembre de 2025"
-text = "Bajo supervisión, observé, estudié y contribuí: apoyé el mantenimiento de pipelines de CI/CD en Azure DevOps y el análisis de cuellos de botella, en entornos con Terraform, Docker, Kubernetes y Linux."
+text = "Bajo supervisión, observé, estudié y contribuí: apoyé el mantenimiento y la optimización de pipelines de CI/CD en Azure DevOps y el análisis de cuellos de botella, en entornos con Terraform, Docker, Kubernetes y Linux, y estudié en la práctica conceptos de confiabilidad (SLI, SLO y SLA)."
 
 [contact]
 reply = "Respondo en un plazo de dos días."
@@ -209,6 +221,10 @@ button = "Descargar currículum en español (PDF)"
 # Antes da lista dos outros currículos; conjunction liga os dois últimos.
 also = "También en"
 conjunction = "e"
+
+[resume]
+summary = "Resumen"
+page = "Página {page} de {total}"
 
 [footer]
 privacy = "Página sin cookies, sin rastreadores y sin recursos de terceros."

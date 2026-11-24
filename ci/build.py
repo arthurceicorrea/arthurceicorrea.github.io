@@ -9,8 +9,11 @@
     leva os outros visitantes à página do seu idioma.
 - Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
   mostra a do visitante.
-- Copia, como estão, os arquivos de static/: fontes, currículos, imagens, vCard e
-  arquivos de indexação.
+- Copia, como estão, os arquivos de static/: fontes, imagens, vCard e arquivos de
+  indexação.
+- Gera os quatro currículos em PDF (A4) a partir do modelo src/cv.html, com os mesmos
+  textos da página: abre cada um no Chrome (Playwright) e o imprime em /cv/. O HTML
+  do currículo não é publicado, só o PDF.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
 - Gera sitemap.xml: a página inicial e as quatro páginas de idioma, cada uma com as
@@ -21,10 +24,15 @@
 Uso: python ci/build.py   (a partir da raiz do repositório; cria ou recria _site/)
 """
 import datetime
+import functools
+import http.server
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
+import threading
 import tomllib
 import types
 
@@ -60,6 +68,8 @@ CSS = {
     'site.css': ('tokens, base, layout, components', ['tokens.css', 'base.css', 'layout.css', 'components.css']),
     '404.css': ('tokens, page', ['tokens.css', '404.css']),
 }
+# Estilo do currículo: só usado para imprimir o PDF, não é publicado.
+CV_CSS = ('tokens, cv', ['tokens.css', 'cv.css'])
 
 
 def git(*args):
@@ -127,9 +137,9 @@ def edition(code, content):
     return namespace(dict(content[code], code=code, tag=TAGS[code]))
 
 
-def render(env, template, path, **context):
+def render(env, template, path, folder=OUT, **context):
     text = env.get_template(template).render(**context)
-    target = os.path.join(OUT, path)
+    target = os.path.join(folder, path)
     os.makedirs(os.path.dirname(target), exist_ok=True)
     with open(target, 'w', encoding='utf-8', newline='\n') as f:
         f.write(text)
@@ -144,9 +154,13 @@ def head(code, content, url, og_description=None, data_lang=None, home=False):
         url=url, image=IMAGES[code], image_alt=meta['image_alt'])
 
 
+def environment():
+    return Environment(loader=FileSystemLoader(SRC), autoescape=True, undefined=StrictUndefined,
+                       trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
+
+
 def pages(content, day):
-    env = Environment(loader=FileSystemLoader(SRC), autoescape=True, undefined=StrictUndefined,
-                      trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
+    env = environment()
     shared = {
         'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
         'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
@@ -175,20 +189,86 @@ def sitemap():
                 '%s</urlset>\n' % urls)
 
 
+def stylesheet(layers, parts):
+    """Junta arquivos de src/css/ numa folha só, declarando antes a ordem das camadas."""
+    text = '/* Gerado por ci/build.py a partir de src/css/. Edite lá, não aqui. */\n@layer %s;\n' % layers
+    for part in parts:
+        text += '\n' + open(os.path.join(SRC, 'css', part), encoding='utf-8').read()
+    return text
+
+
 def assets():
     """Monta /assets/ a partir de src/: as folhas de estilo e os scripts."""
     folder = os.path.join(OUT, 'assets')
     os.makedirs(folder)
     for name, (layers, parts) in CSS.items():
-        text = '/* Gerado por ci/build.py a partir de src/css/. Edite lá, não aqui. */\n@layer %s;\n' % layers
-        for part in parts:
-            text += '\n' + open(os.path.join(SRC, 'css', part), encoding='utf-8').read()
         with open(os.path.join(folder, name), 'w', encoding='utf-8', newline='\n') as f:
-            f.write(text)
+            f.write(stylesheet(layers, parts))
     scripts = os.path.join(SRC, 'js')
     for name in sorted(os.listdir(scripts)):
         if name.endswith('.js'):
             shutil.copy2(os.path.join(scripts, name), os.path.join(folder, name))
+
+
+def css_string(text):
+    return '"%s"' % text.replace('\\', '\\\\').replace('"', '\\"')
+
+
+def page_label(text):
+    """Rodapé do PDF em CSS: "Página {page} de {total}" vira "Página " counter(page) " de " counter(pages)."""
+    counters = {'{page}': 'counter(page)', '{total}': 'counter(pages)'}
+    parts = re.split(r'(\{page\}|\{total\})', text)
+    return Markup(' '.join(counters.get(part) or css_string(part) for part in parts if part))
+
+
+def adds_nothing(role, summary):
+    """O papel no projeto já está dito no resumo (sem contar maiúsculas e o ponto final)."""
+    return role.rstrip('.').lower() in summary.lower()
+
+
+class Quiet(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
+def cvs(content):
+    """Gera /cv/arthur-cei-correa-cv-<idioma>.pdf: monta src/cv.html numa pasta temporária,
+    com as fontes e o estilo, serve essa pasta num servidor local e a imprime no Chrome."""
+    from playwright.sync_api import Error, sync_playwright
+    env = environment()
+    target = os.path.join(OUT, 'cv')
+    os.makedirs(target, exist_ok=True)
+    with tempfile.TemporaryDirectory() as folder:
+        # fontes do site (Cinzel, no nome e nos títulos) e as só do currículo (src/fonts/)
+        shutil.copytree(os.path.join(ROOT, 'static', 'fonts'), os.path.join(folder, 'fonts'))
+        shutil.copytree(os.path.join(SRC, 'fonts'), os.path.join(folder, 'fonts'), dirs_exist_ok=True)
+        with open(os.path.join(folder, 'cv.css'), 'w', encoding='utf-8', newline='\n') as f:
+            f.write(stylesheet(*CV_CSS))
+        for code in TAGS:
+            e = edition(code, content)
+            render(env, 'cv.html', 'cv-%s.html' % code, folder=folder, e=e, email=EMAIL, linkedin=LINKEDIN,
+                   github=GITHUB, site=BASE + code + '/', article=namespace(ARTICLE), long_date=long_date,
+                   adds_nothing=adds_nothing, page_label=page_label(e.resume.page))
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=folder))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        address = 'http://127.0.0.1:%d/' % server.server_address[1]
+        try:
+            with sync_playwright() as pw:
+                chrome = os.environ.get('CHROME_PATH')
+                try:
+                    browser = pw.chromium.launch(executable_path=chrome) if chrome else pw.chromium.launch(channel='chrome')
+                except Error as error:
+                    sys.exit('Não foi possível abrir o Chrome para gerar os currículos (instale o Google Chrome '
+                             'ou indique o caminho em CHROME_PATH):\n%s' % error)
+                page = browser.new_page()
+                for code in TAGS:
+                    page.goto(address + 'cv-%s.html' % code)
+                    page.evaluate('document.fonts.ready.then(() => true)')
+                    page.pdf(path=os.path.join(target, 'arthur-cei-correa-cv-%s.pdf' % code), prefer_css_page_size=True,
+                             print_background=True, tagged=True, outline=True)
+                browser.close()
+        finally:
+            server.shutdown()
 
 
 def main():
@@ -196,7 +276,7 @@ def main():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     os.makedirs(OUT)
-    # arquivos estáticos (fontes, currículos, imagens, vCard, robots.txt...), copiados como estão
+    # arquivos estáticos (fontes, imagens, vCard, robots.txt...), copiados como estão
     shutil.copytree(os.path.join(ROOT, 'static'), OUT, dirs_exist_ok=True)
     assets()
     commit_date = git('log', '-1', '--format=%cs')
@@ -205,6 +285,7 @@ def main():
     with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(version + '\n')
     pages(content, day)
+    cvs(content)
     sitemap()
     count = sum(len(files) for _, _, files in os.walk(OUT))
     print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (

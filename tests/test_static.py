@@ -7,8 +7,11 @@ links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos e
 e dados estruturados. Na página inicial, só a edição em inglês, marcada (data-home) para o
 script levar cada visitante à página do seu idioma; na 404, a paridade das quatro edições;
 nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e prévia de
-compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml, versão publicada e a
-ausência de telefone nas páginas, nos currículos e no cartão de contato.
+compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml, versão publicada, a
+ausência de telefone nas páginas, nos currículos e no cartão de contato, e os currículos
+gerados: os quatro existem, trazem os textos da página no seu idioma (resumo, formação e
+experiência, projetos, competências, idiomas e artigo), cabem em duas páginas e numeram as
+páginas no idioma do currículo.
 
 Testes que valem para várias páginas, links ou arquivos rodam uma vez para cada um; o item
 aparece entre colchetes no nome do teste, por exemplo test_local_file_exists[pt/index.html:142:/cv/...].
@@ -16,6 +19,7 @@ aparece entre colchetes no nome do teste, por exemplo test_local_file_exists[pt/
 Uso: make build && python -m pytest tests/test_static.py
 """
 import datetime
+import functools
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -418,9 +422,80 @@ def test_sitemap_declares_alternates(loc):
 
 # ---------- currículos e cartão de contato ----------
 
-def cv_text(name):
+CV_NAMES = ['arthur-cei-correa-cv-%s.pdf' % code for code in CODES]
+# Rodapé da primeira página de cada currículo, escrito aqui e não lido do conteúdo.
+CV_FOOTERS = {'pt': 'Página 1 de 2', 'en': 'Page 1 of 2', 'es': 'Página 1 de 2', 'it': 'Pagina 1 di 2'}
+
+
+@functools.lru_cache(maxsize=None)
+def cv_reader(name):
     from pypdf import PdfReader
-    return ''.join(p.extract_text() or '' for p in PdfReader(helpers.path('cv', name)).pages)
+    return PdfReader(helpers.path('cv', name))
+
+
+@functools.lru_cache(maxsize=None)
+def cv_text(name):
+    return ''.join(p.extract_text() or '' for p in cv_reader(name).pages)
+
+
+def squeezed(text):
+    """Texto sem espaços nem quebras de linha: a extração do PDF quebra as linhas onde a página quebrou."""
+    return re.sub(r'\s+', '', text)
+
+
+def site_texts():
+    """Textos da página que o currículo também precisa trazer, por idioma: (idioma, onde, texto)."""
+    import tomllib
+    found = []
+    for code in CODES:
+        with open(os.path.join(helpers.REPO, 'src', 'content', code + '.toml'), 'rb') as f:
+            c = tomllib.load(f)
+        found.append((code, 'intro.summary', c['intro']['summary']))
+        found += [(code, 'intro.glance[%d]' % i, g['text']) for i, g in enumerate(c['intro']['glance'], 1)]
+        for i, e in enumerate(c['education'], 1):
+            found += [(code, 'education[%d].%s' % (i, k), e[k]) for k in ('title', 'meta', 'text')]
+        for i, p in enumerate(c['projects'], 1):
+            found += [(code, 'projects[%d].%s' % (i, k), p[k]) for k in ('title', 'meta', 'summary', 'stack')]
+            found.append((code, 'projects[%d].role' % i, p['role']))
+            found.append((code, 'projects[%d].repo' % i, p['repo'].split('://', 1)[1] if 'repo' in p else p['repo_note']))
+        for i, g in enumerate(c['skills']['groups'], 1):
+            found += [(code, 'skills.groups[%d].%s' % (i, k), g[k]) for k in ('name', 'items')]
+        found += [(code, 'languages.items[%d]' % i, '%s (%s)' % (l['name'], l['level'])) for i, l in enumerate(c['languages']['items'], 1)]
+        found.append((code, 'article.summary', c['article']['summary']))
+    return [pytest.param(code, where, text, id='%s:%s' % (code, where)) for code, where, text in found]
+
+
+def test_all_four_cvs_are_built():
+    assert helpers.cv_files() == sorted(CV_NAMES), 'cv/: esperados %s; encontrados %s' % (sorted(CV_NAMES), helpers.cv_files())
+
+
+@pytest.mark.parametrize('code, where, text', site_texts())
+def test_cv_has_the_site_text(code, where, text):
+    name = 'arthur-cei-correa-cv-%s.pdf' % code
+    expected, found = squeezed(text), squeezed(cv_text(name))
+    if where.endswith('.role'):
+        # quando o resumo do projeto já diz o papel (SellOut EasyTrack), o currículo não o repete:
+        # basta estar no resumo, que pode começar com minúscula e não terminar ali
+        expected, found = expected.rstrip('.').lower(), found.lower()
+    assert expected in found, '%s: falta o texto de %s em src/content/%s.toml: %r' % (name, where, code, text)
+
+
+@pytest.mark.parametrize('name', CV_NAMES)
+def test_cv_has_at_most_two_pages(name):
+    pages = len(cv_reader(name).pages)
+    assert pages <= 2, '%s: %d páginas; o currículo deve caber em duas' % (name, pages)
+
+
+@pytest.mark.parametrize('name', CV_NAMES)
+def test_cv_title_is_the_name(name):
+    title = (cv_reader(name).metadata or {}).get('/Title')
+    assert title == 'Arthur Cei Corrêa', '%s: título do documento %r; esperado Arthur Cei Corrêa' % (name, title)
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_cv_footer_numbers_pages_in_its_language(code):
+    name = 'arthur-cei-correa-cv-%s.pdf' % code
+    assert CV_FOOTERS[code] in cv_text(name), '%s: falta o rodapé "%s"' % (name, CV_FOOTERS[code])
 
 
 def test_pypdf_is_available():

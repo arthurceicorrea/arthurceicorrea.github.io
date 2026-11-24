@@ -1,5 +1,5 @@
 # Dependências do pipeline, em versões exatas (o Dependabot propõe as atualizações)
-# Testes
+# Testes; o Playwright também imprime os currículos em PDF no build
 pypdf==7.1.1
 playwright==1.65.2
 pytest==9.2.0
