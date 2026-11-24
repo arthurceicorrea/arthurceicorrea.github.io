@@ -1,52 +1,62 @@
 """Monta a pasta publicada (_site) a partir do repositório.
 
-- Copia a página inicial (index.html, com as quatro edições e a escolha automática
-  do idioma), a 404, as fontes, os currículos, as imagens e os arquivos de indexação.
+- Lê os textos de src/content/<idioma>.toml e para, com uma mensagem, se faltar um
+  texto: cada chave de pt.toml precisa existir nos outros três idiomas.
+- Monta cada página a partir do modelo src/page.html (Jinja2):
+  - /pt/, /en/, /es/, /it/: só a edição daquele idioma, com o idioma fixo, e título,
+    descrição, endereço canônico e prévia de compartilhamento (Open Graph) no idioma;
+  - a página inicial: as quatro edições, e o script de idioma mostra a do visitante.
+- Monta a 404 a partir de src/404.html, também com as quatro edições.
+- Copia, como estão, os arquivos de static/: fontes, currículos, imagens, vCard e
+  arquivos de indexação.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
+- Gera sitemap.xml: a página inicial e as quatro páginas de idioma, cada uma com as
+  versões nos outros idiomas (hreflang).
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
-- Gera uma página por idioma (/pt/, /en/, /es/, /it/): só a edição daquele idioma,
-  idioma fixo, e título, descrição, endereço canônico e prévia de compartilhamento
-  (Open Graph) no idioma da página.
 
 Uso: python ci/build.py   (a partir da raiz do repositório; cria ou recria _site/)
 """
 import datetime
 import os
-import re
 import shutil
 import subprocess
 import sys
-from html.parser import HTMLParser
+import tomllib
+import types
+
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, '_site')
+SRC = os.path.join(ROOT, 'src')
 BASE = 'https://arthurceicorrea.github.io/'
+# Idiomas, na ordem do seletor: código no endereço, etiqueta de idioma, região do Open Graph,
+# imagem de prévia e nome do idioma nele mesmo.
 TAGS = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}
 LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
 IMAGES = {'pt': 'og-pt.png', 'en': 'og.png', 'es': 'og-es.png', 'it': 'og-it.png'}
-IMAGE_ALT = {
-    'pt': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, segurança',
-    'en': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, applied AI, security',
-    'es': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, seguridad',
-    'it': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA applicata, sicurezza',
+NAMES = {'pt': 'Português', 'en': 'English', 'es': 'Español', 'it': 'Italiano'}
+DEFAULT = 'en'  # idioma da página inicial sem JavaScript e da 404
+# Dados que não mudam com o idioma.
+EMAIL = 'arthurceicorrea@gmail.com'
+LINKEDIN = 'https://www.linkedin.com/in/arthurceicorrea/'
+GITHUB = 'https://github.com/arthurceicorrea'
+ARTICLE = {
+    'headline': 'From Purism to Prudence: Artificial Intelligence and the Right Order of Means',
+    'url': 'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
+    'date': '2026-08-24',
+    'lang': 'en',
 }
-FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png', 'arthur-cei-correa.vcf'] + sorted(IMAGES.values())
-FOLDERS = ['fonts', 'cv']
+# Política de segurança de todas as páginas: estilos e scripts só de arquivos do próprio site.
+POLICY = ("default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; "
+          "connect-src 'self'; base-uri 'none'; form-action 'none'")
 # Folhas de estilo publicadas em /assets/: ordem das camadas e arquivos de src/css/, nesta ordem.
 CSS = {
     'site.css': ('tokens, base, layout, components', ['tokens.css', 'base.css', 'layout.css', 'components.css']),
     '404.css': ('tokens, page', ['tokens.css', '404.css']),
-}
-VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
-
-
-MONTHS = {
-    'pt': ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'],
-    'en': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    'es': ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
-    'it': ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'],
 }
 
 
@@ -57,109 +67,109 @@ def git(*args):
         return ''
 
 
-def long_date(day, code):
-    month = MONTHS[code][day.month - 1]
-    if code == 'en':
-        return '%s %d, %d' % (month, day.day, day.year)
-    if code == 'it':
-        return '%d %s %d' % (day.day, month, day.year)
-    return '%d de %s de %d' % (day.day, month, day.year)
+def namespace(value):
+    """Dicionários viram objetos simples: no modelo, e.ui.copy é o texto, e não o método copy."""
+    if isinstance(value, dict):
+        return types.SimpleNamespace(**{k: namespace(v) for k, v in value.items()})
+    if isinstance(value, list):
+        return [namespace(v) for v in value]
+    return value
 
 
-def stamp(source, day):
-    """Data da última atualização e ano do rodapé, nos quatro idiomas."""
-    for code, tag in TAGS.items():
-        source = replace_once(
-            source,
-            r'(<span class="t" lang="%s">[^<]*)<time datetime="[^"]*">[^<]*</time>' % re.escape(tag),
-            None, lambda m: '%s<time datetime="%s">%s</time>' % (m.group(1), day.isoformat(), long_date(day, code)))
-    return replace_once(source, r'<span class="year">\d{4}</span>', '<span class="year">%d</span>' % day.year)
+def as_date(day):
+    return datetime.date.fromisoformat(day) if isinstance(day, str) else day
 
 
-class OtherEditions(HTMLParser):
-    """Localiza, por posição no texto, os elementos class="t" de outros idiomas."""
-
-    def __init__(self, source, keep):
-        super().__init__(convert_charrefs=False)
-        self.keep = keep
-        self.line_starts = [0] + [m.end() for m in re.finditer('\n', source)]
-        self.stack, self.ranges = [], []
-
-    def position(self):
-        line, column = self.getpos()
-        return self.line_starts[line - 1] + column
-
-    def handle_starttag(self, tag, attrs):
-        if tag in VOID:
-            return
-        a = dict(attrs)
-        drop = a.get('class') == 't' and a.get('lang') in TAGS.values() and a.get('lang') != self.keep
-        self.stack.append((tag, self.position() if drop else None))
-
-    def handle_endtag(self, tag):
-        if tag in VOID:
-            return
-        open_tag, start = self.stack.pop()
-        assert open_tag == tag, 'HTML mal aninhado perto de </%s>' % tag
-        if start is not None:
-            self.ranges.append((start, self.position() + len('</%s>' % tag)))
+def long_date(day, edition):
+    """Data por extenso no formato do idioma, por exemplo 24 de agosto de 2026."""
+    day = as_date(day)
+    return edition.date.format.format(day=day.day, month=edition.date.months[day.month - 1], year=day.year)
 
 
-def without_other_editions(source, keep):
-    parser = OtherEditions(source, keep)
-    parser.feed(source)
-    parser.close()
-    assert not parser.stack, 'HTML mal aninhado'
-    result, cursor = [], 0
-    for start, end in sorted(parser.ranges):
-        if start < cursor:
-            continue  # já removido junto com o elemento que o contém
-        line_start = source.rfind('\n', 0, start) + 1
-        if not source[line_start:start].strip():
-            start = line_start  # leva junto a indentação
-        if source[end:end + 1] == '\n':
-            end += 1  # e a quebra de linha
-        result.append(source[cursor:start])
-        cursor = end
-    result.append(source[cursor:])
-    return ''.join(result)
+def time_tag(day, edition):
+    day = as_date(day)
+    return Markup('<time datetime="%s">%s</time>') % (day.isoformat(), long_date(day, edition))
 
 
-def replace_once(text, pattern, replacement, function=None):
-    new, count = re.subn(pattern, function or (lambda m: replacement), text, count=1)
-    assert count == 1, 'não encontrado: %s' % pattern
-    return new
+def missing(reference, other, path=''):
+    """Chaves de reference (pt.toml) que faltam em other, também dentro dos itens das listas.
+    Chaves a mais em other são permitidas (por exemplo, uma nota que só um idioma tem)."""
+    if isinstance(reference, dict):
+        if not isinstance(other, dict):
+            return ['%s deveria ser uma tabela' % path]
+        found = []
+        for key, value in reference.items():
+            where = path + '.' + key if path else key
+            found += missing(value, other[key], where) if key in other else ['falta %s' % where]
+        return found
+    if isinstance(reference, list):
+        if not isinstance(other, list) or len(other) != len(reference):
+            return ['%s tem %d itens em pt.toml e %s aqui' % (path, len(reference), len(other) if isinstance(other, list) else 'nenhum')]
+        return [problem for i, (a, b) in enumerate(zip(reference, other)) for problem in missing(a, b, '%s[%d]' % (path, i + 1))]
+    return []
 
 
-def attribute(edition_tag, name, source):
-    match = re.search(r'<div class="t" lang="%s"\s+data-title="([^"]+)"\s+data-desc="([^"]+)">' % re.escape(edition_tag), source)
-    assert match, 'edição %s sem data-title/data-desc' % edition_tag
-    return match.group(1) if name == 'title' else match.group(2)
+def load_content():
+    content = {}
+    for code in TAGS:
+        with open(os.path.join(SRC, 'content', code + '.toml'), 'rb') as f:
+            content[code] = tomllib.load(f)
+    problems = ['src/content/%s.toml: %s' % (code, problem)
+                for code in TAGS if code != 'pt' for problem in missing(content['pt'], content[code])]
+    if problems:
+        sys.exit('Faltam textos (cada chave de pt.toml precisa existir nos outros idiomas):\n  ' + '\n  '.join(problems))
+    return content
 
 
-def language_page(source, code):
-    tag = TAGS[code]
-    title, description = attribute(tag, 'title', source), attribute(tag, 'desc', source)
-    url = BASE + code + '/'
-    page = without_other_editions(source, tag)
-    page = replace_once(page, r'<html lang="en">', '<html lang="%s" data-lang="%s">' % (tag, code))
-    page = replace_once(page, r'<title>[^<]*</title>', '<title>%s</title>' % title)
-    page = replace_once(page, r'<meta name="description" content="[^"]*">', '<meta name="description" content="%s">' % description)
-    page = replace_once(page, r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="%s">' % title)
-    page = replace_once(page, r'<meta property="og:description" content="[^"]*">', '<meta property="og:description" content="%s">' % description)
-    locales = '<meta property="og:locale" content="%s">\n' % LOCALES[code] + ''.join(
-        '<meta property="og:locale:alternate" content="%s">\n' % LOCALES[other] for other in TAGS if other != code)
-    page = replace_once(page, r'<meta property="og:locale" content="[^"]*">\n(?:<meta property="og:locale:alternate" content="[^"]*">\n)+', locales)
-    page = replace_once(page, r'<link rel="canonical" href="[^"]*">', '<link rel="canonical" href="%s">' % url)
-    page = replace_once(page, r'<meta property="og:url" content="[^"]*">', '<meta property="og:url" content="%s">' % url)
-    page = replace_once(page, r'<meta property="og:image" content="[^"]*">', '<meta property="og:image" content="%s%s">' % (BASE, IMAGES[code]))
-    page = replace_once(page, r'<meta property="og:image:alt" content="[^"]*">', '<meta property="og:image:alt" content="%s">' % IMAGE_ALT[code])
-    page = replace_once(page, r'<meta name="twitter:image" content="[^"]*">', '<meta name="twitter:image" content="%s%s">' % (BASE, IMAGES[code]))
-    # idioma ativo marcado no seletor também sem JavaScript
-    page = page.replace(' aria-current="true">', '>')
-    link = '<a href="/%s/" data-lang="%s" lang="%s" hreflang="%s">' % (code, code, tag, tag)
-    page = replace_once(page, re.escape(link), link[:-1] + ' aria-current="true">')
-    return page
+def edition(code, content):
+    return namespace(dict(content[code], code=code, tag=TAGS[code]))
+
+
+def render(env, template, path, **context):
+    text = env.get_template(template).render(**context)
+    target = os.path.join(OUT, path)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    with open(target, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(text)
+
+
+def head(code, content, url, og_description=None, data_lang=None):
+    meta = content[code]['meta']
+    return types.SimpleNamespace(
+        html_lang=TAGS[code], data_lang=data_lang, current=code,
+        title=meta['title'], description=meta['description'], og_description=og_description or meta['description'],
+        locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
+        url=url, image=IMAGES[code], image_alt=meta['image_alt'])
+
+
+def pages(content, day):
+    env = Environment(loader=FileSystemLoader(SRC), autoescape=True, undefined=StrictUndefined,
+                      trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
+    shared = {
+        'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
+        'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
+        'article': namespace(ARTICLE), 'updated': day, 'time_tag': time_tag,
+        'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
+    }
+    everyone = [edition(code, content) for code in TAGS]
+    root_description = content[DEFAULT]['meta']['og_description_root']
+    render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description),
+           editions=everyone, **shared)
+    for code in TAGS:
+        render(env, 'page.html', os.path.join(code, 'index.html'),
+               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)], **shared)
+    render(env, '404.html', '404.html', editions=everyone, default=edition(DEFAULT, content), **shared)
+
+
+def sitemap():
+    """sitemap.xml: cada página publicada, com as versões por idioma e a padrão (x-default)."""
+    links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s/"/>\n' % (tag, BASE, code) for code, tag in TAGS.items())
+    links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % BASE
+    urls = ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in [BASE] + [BASE + code + '/' for code in TAGS])
+    with open(os.path.join(OUT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+                '%s</urlset>\n' % urls)
 
 
 def assets():
@@ -169,37 +179,30 @@ def assets():
     for name, (layers, parts) in CSS.items():
         text = '/* Gerado por ci/build.py a partir de src/css/. Edite lá, não aqui. */\n@layer %s;\n' % layers
         for part in parts:
-            text += '\n' + open(os.path.join(ROOT, 'src', 'css', part), encoding='utf-8').read()
+            text += '\n' + open(os.path.join(SRC, 'css', part), encoding='utf-8').read()
         with open(os.path.join(folder, name), 'w', encoding='utf-8', newline='\n') as f:
             f.write(text)
-    scripts = os.path.join(ROOT, 'src', 'js')
-    if os.path.isdir(scripts):
-        for name in sorted(os.listdir(scripts)):
-            if name.endswith('.js'):
-                shutil.copy2(os.path.join(scripts, name), os.path.join(folder, name))
+    scripts = os.path.join(SRC, 'js')
+    for name in sorted(os.listdir(scripts)):
+        if name.endswith('.js'):
+            shutil.copy2(os.path.join(scripts, name), os.path.join(folder, name))
 
 
 def main():
+    content = load_content()
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     os.makedirs(OUT)
-    for name in FILES:
-        shutil.copy2(os.path.join(ROOT, name), os.path.join(OUT, name))
-    for folder in FOLDERS:
-        shutil.copytree(os.path.join(ROOT, folder), os.path.join(OUT, folder))
+    # arquivos estáticos (fontes, currículos, imagens, vCard, robots.txt...), copiados como estão
+    shutil.copytree(os.path.join(ROOT, 'static'), OUT, dirs_exist_ok=True)
     assets()
     commit_date = git('log', '-1', '--format=%cs')
     day = datetime.date.fromisoformat(commit_date) if commit_date else datetime.date.today()
     version = os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD') or 'local'
     with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(version + '\n')
-    source = stamp(open(os.path.join(ROOT, 'index.html'), encoding='utf-8').read(), day)
-    with open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8', newline='\n') as f:
-        f.write(source)
-    for code in TAGS:
-        os.makedirs(os.path.join(OUT, code))
-        with open(os.path.join(OUT, code, 'index.html'), 'w', encoding='utf-8', newline='\n') as f:
-            f.write(language_page(source, code))
+    pages(content, day)
+    sitemap()
     count = sum(len(files) for _, _, files in os.walk(OUT))
     print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
         count, ', '.join('/%s/' % c for c in TAGS), version[:7], day.isoformat()))

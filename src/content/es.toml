@@ -1,0 +1,223 @@
+# Textos da página em espanhol (es). O modelo é src/page.html; o build é ci/build.py.
+# Mudou um texto aqui, mude nos quatro arquivos. Cada chave de pt.toml precisa existir nos outros três:
+# se faltar uma, o build para e diz qual.
+# Escrever o texto como ele deve aparecer: o build escapa <, > e &. A exceção são as chaves
+# terminadas em _html, que levam marcação. {date} vira a data no formato de [date].
+
+[meta]
+title = "Arthur Cei Corrêa — DevOps, IA aplicada y seguridad"
+description = "Portafolio de Arthur Cei Corrêa, estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Proyectos, competencias y currículum."
+# Texto alternativo da imagem de prévia (Open Graph).
+image_alt = "Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, seguridad"
+
+[date]
+months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+# Formato das datas por extenso: {day}, {month} e {year}.
+format = "{day} de {month} de {year}"
+
+[ui]
+# Rótulos da interface.
+skip = "Ir al contenido"
+jump_label = "Secciones de la página"
+cv = "Currículum"
+# Lido por leitores de tela depois de links que abrem em nova aba.
+new_tab = "se abre en una pestaña nueva"
+copy = "Copiar"
+copy_what = "el correo"
+copied = "Copiado"
+copied_said = "Correo copiado."
+stack = "Stack"
+repository = "Repositorio"
+problem = "Problema"
+role = "Mi papel"
+see_details = "Ver detalles"
+hide_details = "Ocultar detalles"
+to_top = "Volver arriba"
+
+# Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
+
+[sections.projects]
+id = "proyectos"
+jump = "Proyectos"
+title = "Proyectos"
+
+[sections.article]
+id = "articulo"
+jump = "Artículo"
+title = "Artículo"
+
+[sections.skills]
+id = "habilidades"
+jump = "Competencias"
+title = "Competencias"
+
+[sections.languages]
+title = "Idiomas"
+
+[sections.education]
+id = "formacion"
+jump = "Formación"
+title = "Formación y experiencia"
+
+[sections.contact]
+id = "contacto"
+jump = "Contacto"
+title = "Contacto"
+
+[sections.cv]
+title = "Currículum"
+
+[hero]
+# Tradução do lema em latim, Sapientis est ordinare.
+translation = "«Al sabio le corresponde ordenar.»"
+author = "— Santo Tomás de Aquino"
+
+[intro]
+craft = ["DevOps", "IA aplicada", "Seguridad"]
+cv_button = "Descargar currículum (PDF)"
+summary = "Estudiante de Ingeniería de Software en FIAP, enfocado en DevOps, IA aplicada y seguridad. Hice una pasantía de DevOps en Vivo de agosto de 2024 a diciembre de 2025: observé, estudié y contribuí bajo supervisión."
+# Linha opcional sobre o jeito de trabalhar: apague-a (nos quatro idiomas) se preferir.
+aside = "Trabajo mejor con tareas claras y comunicación por escrito."
+
+[[intro.glance]]
+term = "Busco"
+text = "Pasantía o puesto junior en DevOps e IA aplicada"
+
+[[intro.glance]]
+term = "Inicio"
+text = "Inmediato"
+
+[[intro.glance]]
+term = "Modalidad"
+text = "Remota o híbrida, en Brasil o en el exterior"
+
+[[intro.glance]]
+term = "Ubicación"
+text = "São Paulo, Brasil (UTC−3)"
+
+[[intro.glance]]
+term = "Idiomas"
+text = "Portugués nativo, inglés fluido, español avanzado"
+
+[[intro.glance]]
+term = "Graduación"
+text = "Diciembre de 2027, FIAP"
+
+# Projetos, na ordem da página. Para acrescentar um, acrescente um bloco [[projects]] na mesma posição nos quatro
+# arquivos. repo é o endereço do repositório; sem repositório público, use repo_note no lugar.
+[[projects]]
+title = "Vinheria Agnello: integración de infraestructura"
+meta = "FIAP, 2026, con el equipo CodeSquad"
+summary = "Integré dos microservicios .NET en Docker Compose, con red, autenticación y TLS, y configuré el pipeline de Jenkins que los entrega."
+stack = "Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT)."
+repo_note = "Privado, sin enlace público."
+problem = "Lograr que dos microservicios .NET funcionen juntos, con servicios de red (DNS y DHCP), autenticación y tráfico cifrado, y automatizar la entrega."
+role = "Integré los dos microservicios con Docker Compose, con DNS y DHCP (dnsmasq), autenticación JWT y TLS. Configuré el pipeline de Jenkins que compila, publica y despliega los servicios, con scripts de validación automatizada y evidencias de ejecución. También contribuí con paneles en Tableau y Node-RED (MQTT)."
+
+[[projects]]
+title = "Frio Solidário, Global Solution 2026/2 (FIAP)"
+meta = "Noviembre de 2026, con el equipo CodeSquad"
+summary = "Me encargué de la seguridad y las pruebas de la API, que monitorea la cadena de frío de bancos de alimentos."
+stack = ".NET 10, EF Core, PostgreSQL, JWT, BCrypt, xUnit."
+repo = "https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution"
+problem = "Monitorear la cadena de frío en bancos de alimentos y comercios donantes: sensores miden temperatura, humedad y apertura de puerta, la API compara cada lectura con el rango del equipo y la app avisa al voluntario antes de que se pierda el lote."
+role = "Seguridad y pruebas de una API .NET: autenticación JWT, perfiles de acceso, aislamiento de datos por institución y protección contra inyección SQL y XSS; plan de pruebas ejecutado con evidencias y pruebas xUnit de las reglas de negocio."
+
+[[projects]]
+title = "SellOut EasyTrack"
+meta = "2.º puesto en el FIAP Challenge 2025 (Asteria), con el equipo CodeSquad"
+summary = "Aplicación de escritorio para la gestión de ventas; desarrollé principalmente la lógica central del back-end."
+stack = "Java 11, Maven, MySQL, JUnit, R (análisis)."
+repo = "https://github.com/arthurceicorrea/SellOutEasyTrack"
+problem = "Aplicación de escritorio para la gestión de ventas, desarrollada para el FIAP Challenge 2025."
+role = "Desarrollé principalmente la lógica central del back-end."
+
+[[projects]]
+title = "Este sitio"
+meta = "2026, proyecto personal"
+summary = "Portafolio en cuatro idiomas, que solo se publica tras superar pruebas automáticas. Concebí y dirigí el proyecto."
+stack = "HTML y CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core, Lighthouse."
+repo = "https://github.com/arthurceicorrea/arthurceicorrea.github.io"
+problem = "Un portafolio en cuatro idiomas, accesible y sin recursos de terceros, que solo se publica después de superar pruebas automáticas."
+role = "Concebí y dirigí el proyecto: definí los requisitos, las verificaciones del pipeline y las prioridades de cada mejora. Usé IA como herramienta para escribir el código."
+
+[article]
+# O título, o endereço e a data do artigo ficam em ci/build.py (ARTICLE).
+meta = "LinkedIn, {date}, en inglés"
+summary = "Ensayo sobre el uso de la IA en el trabajo, a la luz de la tradición aristotélico-tomista: el instrumento sirve al intelecto, pero no se delega lo que aún no se ha aprendido, y el código, las configuraciones y los pipelines sugeridos por la IA deben leerse, probarse y entenderse antes de llegar a producción."
+link = "Leer el artículo en LinkedIn"
+link_note = "en inglés; se abre en una pestaña nueva"
+
+[skills]
+intro = "Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera."
+
+[[skills.groups]]
+name = "DevOps"
+items = "Terraform, Docker, Kubernetes, Linux, Azure DevOps."
+
+[[skills.groups]]
+name = "IA aplicada"
+items = "Python, scikit-learn, LangGraph, RAG, ChromaDB."
+
+[[skills.groups]]
+name = "Seguridad"
+items = "Área de estudio, con aplicación práctica en un proyecto académico: autenticación JWT, TLS, perfiles de acceso, protección contra inyección SQL y XSS."
+
+[[skills.groups]]
+name = "Pruebas"
+items = "JUnit y xUnit; pruebas manuales, con plan y evidencias, y pruebas automatizadas."
+
+[[skills.groups]]
+name = "Lenguajes y bases de datos"
+items = "Java, Python, C#, JavaScript, SQL, Oracle Database."
+
+[languages]
+
+[[languages.items]]
+name = "Portugués"
+level = "nativo"
+
+[[languages.items]]
+name = "Inglés"
+level = "fluido"
+
+[[languages.items]]
+name = "Español"
+level = "avanzado"
+
+[[languages.items]]
+name = "Italiano"
+level = "básico"
+
+[[education]]
+title = "Ingeniería de Software, FIAP (São Paulo)"
+meta = "febrero de 2023 a diciembre de 2027 (previsto)"
+text = "Laboratorios de la carrera: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins y GitHub Actions, machine learning con Python y scikit-learn."
+
+[[education]]
+title = "Pasantía de DevOps, Vivo (Telefônica Brasil)"
+meta = "agosto de 2024 a diciembre de 2025"
+text = "Bajo supervisión, observé, estudié y contribuí: apoyé el mantenimiento de pipelines de CI/CD en Azure DevOps y el análisis de cuellos de botella, en entornos con Terraform, Docker, Kubernetes y Linux."
+
+[contact]
+reply = "Respondo en un plazo de dos días."
+email = "Correo"
+vcard = "Guardar en contactos"
+
+[cv]
+button = "Descargar currículum en español (PDF)"
+# Antes da lista dos outros currículos; conjunction liga os dois últimos.
+also = "También en"
+conjunction = "e"
+
+[footer]
+privacy = "Página sin cookies, sin rastreadores y sin recursos de terceros."
+pipeline_html = "Publicada por un pipeline de GitHub Actions que valida la página en cada cambio: <a href=\"https://github.com/arthurceicorrea/arthurceicorrea.github.io\" target=\"_blank\" rel=\"noopener noreferrer\">código fuente<span class=\"vh\"> (se abre en una pestaña nueva)</span></a>."
+updated = "Actualizada el {date}."
+
+[error_page]
+# Página 404 (src/404.html).
+title = "Página no encontrada — Arthur Cei Corrêa"
+heading = "Página no encontrada"
+text = "La dirección abierta no existe en este sitio."
+home = "Ir al inicio"

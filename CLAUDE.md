@@ -19,6 +19,6 @@ Site estático em quatro idiomas (pt-BR, en, es, it), publicado no GitHub Pages 
 - Link externo com `target="_blank"` leva `rel="noopener noreferrer"` e precisa constar em `ALLOWED_EXTERNAL`, em `ci/validate.py`.
 - Nunca publicar telefone, endereço ou dados de saúde. Os testes procuram telefones.
 - Conteúdo verdadeiro: não inventar fatos, métricas, certificações ou competências.
-- Mudou um texto num idioma, mude nos quatro.
+- Mudou um texto num idioma, mude nos quatro. Os textos ficam em `src/content/{pt,en,es,it}.toml`; o modelo da página é `src/page.html`.
 - Ações do GitHub ficam presas por hash de commit, com a versão num comentário. Ferramentas de teste ficam com versões exatas.
 - Mensagens de commit em inglês, no imperativo.

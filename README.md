@@ -7,13 +7,13 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 
 - No frameworks, no third-party scripts, fonts or trackers; a restrictive Content Security Policy (`style-src 'self'; script-src 'self'`): no inline styles or scripts, only files served by the site.
 - Choose the language with `?lang=pt`, `?lang=en`, `?lang=es` or `?lang=it`; otherwise the visitor's country, inferred from the device time zone with no external lookup (Brazil and Portugal: PT; Italy: IT; Spain and Spanish-speaking America: ES), then the browser language, then English.
-- Fonts: Cinzel and EB Garamond, self-hosted as WOFF2 under the SIL Open Font License (see `fonts/`).
+- Fonts: Cinzel and EB Garamond, self-hosted as WOFF2 under the SIL Open Font License (see `static/fonts/`).
 
 ## Pipeline
 
-`index.html` is the single source of the page; its styles are in `src/css/` and its scripts in `src/js/`. Every push to `main` runs [`.github/workflows/site.yml`](.github/workflows/site.yml):
+The page is written once, as a Jinja2 template (`src/page.html`, and `src/404.html` for the error page). Its texts are in `src/content/{pt,en,es,it}.toml`, one file per language, its styles in `src/css/` and its scripts in `src/js/`. Fonts, CVs, images and other files served as they are live in `static/`. Every push to `main` runs [`.github/workflows/site.yml`](.github/workflows/site.yml):
 
-1. **Build** (`ci/build.py`): copies the site to `_site/`, joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`, and generates one page per language, each with only its own edition and with title, description, canonical URL and sharing preview (Open Graph image) in that language.
+1. **Build** (`ci/build.py`): stops if a text of `pt.toml` is missing from another language; renders the template into `_site/` (the home page with the four editions, and one page per language, each with only its own edition and with title, description, canonical URL and sharing preview in that language); copies `static/`; joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`; and writes `sitemap.xml`.
 2. **Static validation** (`ci/validate.py _site`): the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, and no phone number in the pages or the CVs.
 3. **W3C HTML validation**: the official Nu Html Checker on every generated page.
 4. **Browser test** (`ci/smoke.py _site`): headless Chrome on mobile and desktop widths — right language shown, fonts loaded, no console errors or CSP violations, language switch, pages without JavaScript, language chosen by country (simulated time zones), 404 page.
@@ -47,4 +47,4 @@ If your system has `python3` but no `python`, add `PYTHON=python3` to any comman
 
 The code (HTML structure, CSS, JavaScript and the scripts in `ci/`) is released under the [MIT License](LICENSE).
 The texts, the CVs and the images are by Arthur Cei Corrêa, all rights reserved; they are not covered by the MIT License.
-The fonts in `fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
+The fonts in `static/fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
