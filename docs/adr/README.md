@@ -11,5 +11,6 @@ Each record explains one decision about how this site is built and published: th
 | [5](0005-jinja2-and-toml-instead-of-a-site-generator.md) | Jinja2 and TOML instead of a site generator or framework | 2026-11-24 |
 | [6](0006-one-pull-request-per-change-with-required-pipeline.md) | One pull request per change, with the pipeline required | 2026-11-23 |
 | [7](0007-github-actions-pinned-by-commit-hash.md) | GitHub Actions pinned by commit hash | 2026-11-20 |
+| [8](0008-cvs-printed-by-the-build-in-a-legible-typeface.md) | CVs printed by the build, in a legible typeface | 2026-11-24 |
 
 A decision that changes gets a new record that supersedes the old one; the old one stays, marked as superseded, so the history of the reasoning is kept.
