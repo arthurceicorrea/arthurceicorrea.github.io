@@ -2,6 +2,12 @@
 # Testes
 pypdf==7.1.1
 playwright==1.65.2
+pytest==9.2.0
+# Dependências do pytest, fixadas para o pipeline instalar sempre o mesmo conjunto
+iniconfig==2.3.1
+packaging==26.4
+pluggy==1.7.0
+Pygments==2.21.0
 # Build: modelo das páginas (Jinja2, que usa o MarkupSafe)
 Jinja2==3.1.6
 MarkupSafe==3.0.4

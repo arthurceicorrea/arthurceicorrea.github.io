@@ -5,3 +5,4 @@ ci/package-lock.json
 lighthouse-report/
 .lighthouseci/
 __pycache__/
+.pytest_cache/
