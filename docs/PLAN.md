@@ -129,7 +129,7 @@ Esta etapa é uma configuração, não código. Arthur faz no GitHub:
 **Pronto quando:**
 - `/pt/`, `/en/`, `/es/` e `/it/` ficam iguais pixel a pixel às de antes;
 - a raiz redireciona conforme o descrito;
-- os testes de idioma do `ci/smoke.py` foram ajustados só no que diz respeito à raiz, cada ajuste explicado no pull request;
+- os testes de idioma do `ci/smoke.py`, e também os checks da raiz em `ci/validate.py` e `ci/monitor.py` (que exigiam as quatro edições na raiz), foram ajustados só no que diz respeito à raiz, cada ajuste explicado no pull request;
 - tudo mais passa sem mudança.
 
 Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as páginas de idioma, depois a raiz.

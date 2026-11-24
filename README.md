@@ -6,17 +6,17 @@ Personal portfolio of Arthur Cei Corrêa — DevOps, applied AI and security.
 One static page in Portuguese, English, Spanish and Italian, published at <https://arthurceicorrea.github.io/>, with a page per language at `/pt/`, `/en/`, `/es/` and `/it/`.
 
 - No frameworks, no third-party scripts, fonts or trackers; a restrictive Content Security Policy (`style-src 'self'; script-src 'self'`): no inline styles or scripts, only files served by the site.
-- Choose the language with `?lang=pt`, `?lang=en`, `?lang=es` or `?lang=it`; otherwise the visitor's country, inferred from the device time zone with no external lookup (Brazil and Portugal: PT; Italy: IT; Spain and Spanish-speaking America: ES), then the browser language, then English.
+- The home page is the English edition. It sends other visitors to their language page, choosing with `?lang=pt`, `?lang=en`, `?lang=es` or `?lang=it`; otherwise the visitor's country, inferred from the device time zone with no external lookup (Brazil and Portugal: PT; Italy: IT; Spain and Spanish-speaking America: ES), then the browser language, then English. Without JavaScript, it stays in English.
 - Fonts: Cinzel and EB Garamond, self-hosted as WOFF2 under the SIL Open Font License (see `static/fonts/`).
 
 ## Pipeline
 
 The page is written once, as a Jinja2 template (`src/page.html`, and `src/404.html` for the error page). Its texts are in `src/content/{pt,en,es,it}.toml`, one file per language, its styles in `src/css/` and its scripts in `src/js/`. Fonts, CVs, images and other files served as they are live in `static/`. Every push to `main` runs [`.github/workflows/site.yml`](.github/workflows/site.yml):
 
-1. **Build** (`ci/build.py`): stops if a text of `pt.toml` is missing from another language; renders the template into `_site/` (the home page with the four editions, and one page per language, each with only its own edition and with title, description, canonical URL and sharing preview in that language); copies `static/`; joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`; and writes `sitemap.xml`.
+1. **Build** (`ci/build.py`): stops if a text of `pt.toml` is missing from another language; renders the template into `_site/` (the home page in English, and one page per language, each with only its own edition and with title, description, canonical URL and sharing preview in that language); copies `static/`; joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`; and writes `sitemap.xml`.
 2. **Static validation** (`ci/validate.py _site`): the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, and no phone number in the pages or the CVs.
 3. **W3C HTML validation**: the official Nu Html Checker on every generated page.
-4. **Browser test** (`ci/smoke.py _site`): headless Chrome on mobile and desktop widths — right language shown, fonts loaded, no console errors or CSP violations, language switch, pages without JavaScript, language chosen by country (simulated time zones), 404 page.
+4. **Browser test** (`ci/smoke.py _site`): headless Chrome on mobile and desktop widths — right language shown, home page sending each visitor to their language page, fonts loaded, no console errors or CSP violations, language switch, pages without JavaScript, language chosen by country (simulated time zones), 404 page.
 5. **Accessibility audit** (`ci/a11y.py`): axe-core on every page, mobile and desktop; any WCAG 2.2 A or AA violation fails the run.
 6. **Lighthouse** (`ci/lighthouserc.json`): performance, accessibility, best practices and SEO for each page. Accessibility below 95 or best practices below 90 fail the run; the scores, and the audits that lose points, appear in the run summary, with the full reports kept as an artifact.
 7. **Deploy**: only if all checks pass, `_site/` is published to GitHub Pages. Pull requests run the checks without publishing.
