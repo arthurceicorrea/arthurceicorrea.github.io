@@ -11,6 +11,8 @@
   arquivos de indexação.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
+- Gera sitemap.xml: a página inicial e as quatro páginas de idioma, cada uma com as
+  versões nos outros idiomas (hreflang).
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 
@@ -159,6 +161,17 @@ def pages(content, day):
     render(env, '404.html', '404.html', editions=everyone, default=edition(DEFAULT, content), **shared)
 
 
+def sitemap():
+    """sitemap.xml: cada página publicada, com as versões por idioma e a padrão (x-default)."""
+    links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s/"/>\n' % (tag, BASE, code) for code, tag in TAGS.items())
+    links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % BASE
+    urls = ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in [BASE] + [BASE + code + '/' for code in TAGS])
+    with open(os.path.join(OUT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+                '%s</urlset>\n' % urls)
+
+
 def assets():
     """Monta /assets/ a partir de src/: as folhas de estilo e os scripts."""
     folder = os.path.join(OUT, 'assets')
@@ -189,6 +202,7 @@ def main():
     with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(version + '\n')
     pages(content, day)
+    sitemap()
     count = sum(len(files) for _, _, files in os.walk(OUT))
     print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
         count, ', '.join('/%s/' % c for c in TAGS), version[:7], day.isoformat()))
