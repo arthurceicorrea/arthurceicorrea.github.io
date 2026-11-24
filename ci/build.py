@@ -1,6 +1,7 @@
 """Monta a pasta publicada (_site) a partir do repositório.
 
-- Lê os textos de src/content/<idioma>.toml.
+- Lê os textos de src/content/<idioma>.toml e para, com uma mensagem, se faltar um
+  texto: cada chave de pt.toml precisa existir nos outros três idiomas.
 - Monta cada página a partir do modelo src/page.html (Jinja2):
   - /pt/, /en/, /es/, /it/: só a edição daquele idioma, com o idioma fixo, e título,
     descrição, endereço canônico e prévia de compartilhamento (Open Graph) no idioma;
@@ -88,11 +89,33 @@ def time_tag(day, edition):
     return Markup('<time datetime="%s">%s</time>') % (day.isoformat(), long_date(day, edition))
 
 
+def missing(reference, other, path=''):
+    """Chaves de reference (pt.toml) que faltam em other, também dentro dos itens das listas.
+    Chaves a mais em other são permitidas (por exemplo, uma nota que só um idioma tem)."""
+    if isinstance(reference, dict):
+        if not isinstance(other, dict):
+            return ['%s deveria ser uma tabela' % path]
+        found = []
+        for key, value in reference.items():
+            where = path + '.' + key if path else key
+            found += missing(value, other[key], where) if key in other else ['falta %s' % where]
+        return found
+    if isinstance(reference, list):
+        if not isinstance(other, list) or len(other) != len(reference):
+            return ['%s tem %d itens em pt.toml e %s aqui' % (path, len(reference), len(other) if isinstance(other, list) else 'nenhum')]
+        return [problem for i, (a, b) in enumerate(zip(reference, other)) for problem in missing(a, b, '%s[%d]' % (path, i + 1))]
+    return []
+
+
 def load_content():
     content = {}
     for code in TAGS:
         with open(os.path.join(SRC, 'content', code + '.toml'), 'rb') as f:
             content[code] = tomllib.load(f)
+    problems = ['src/content/%s.toml: %s' % (code, problem)
+                for code in TAGS if code != 'pt' for problem in missing(content['pt'], content[code])]
+    if problems:
+        sys.exit('Faltam textos (cada chave de pt.toml precisa existir nos outros idiomas):\n  ' + '\n  '.join(problems))
     return content
 
 
