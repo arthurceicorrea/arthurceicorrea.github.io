@@ -43,6 +43,7 @@ src/                    source of the pages
   content/              every text, one file per language: pt.toml, en.toml, es.toml, it.toml
   css/                  styles, one @layer per file: tokens, base, layout, components, plus 404.css and cv.css
   js/                   language.js (picks the language, before the first paint) and page.js (the rest)
+  fonts/                the CV's typeface, Atkinson Hyperlegible Next (not published), with its licence
 static/                 files served as they are: fonts/, images, vCard, robots.txt
 ci/                     build and pipeline tools
   build.py              builds _site/ from src/ and static/
@@ -79,7 +80,7 @@ The **Validar** job:
    - renders the template into `_site/`: the home page in English, and one page per language, each with only its own edition and with title, description, canonical URL and sharing preview in that language;
    - copies `static/`;
    - joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`;
-   - prints the four CVs from `src/cv.html` to `/cv/`, with Playwright in Chrome: A4, tagged PDF with an outline, the page texts in each language, and the page numbers in the CV's language;
+   - prints the four CVs from `src/cv.html` to `/cv/`, with Playwright in Chrome: A4, tagged PDF with an outline, the page texts in each language, and the page numbers in the CV's language; the CV text uses Atkinson Hyperlegible Next, a typeface made for legibility ([ADR 8](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md));
    - writes `sitemap.xml` and `version.txt`, and fills in the footer date and year from the last commit.
 3. **Static validation** (`tests/test_content.py` and `tests/test_static.py`): every text in all four languages, the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, no phone number in the pages, the CVs or the vCard, and the CVs themselves: all four built, each with its page's texts, at most two pages, page numbers in its language.
 4. **W3C HTML validation**: the official Nu Html Checker on every generated page.
@@ -137,9 +138,10 @@ The main decisions behind the site are recorded in [`docs/adr/`](docs/adr/), eac
 5. [Jinja2 and TOML instead of a site generator or framework](docs/adr/0005-jinja2-and-toml-instead-of-a-site-generator.md)
 6. [One pull request per change, with the pipeline required](docs/adr/0006-one-pull-request-per-change-with-required-pipeline.md)
 7. [GitHub Actions pinned by commit hash](docs/adr/0007-github-actions-pinned-by-commit-hash.md)
+8. [CVs printed by the build, in a legible typeface](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md)
 
 ## License
 
 The code (HTML structure, CSS, JavaScript and the scripts in `ci/`) is released under the [MIT License](LICENSE).
 The texts, the CVs and the images are by Arthur Cei Corrêa, all rights reserved; they are not covered by the MIT License.
-The fonts in `static/fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
+The fonts in `static/fonts/` and `src/fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.

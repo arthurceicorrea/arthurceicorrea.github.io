@@ -239,7 +239,9 @@ def cvs(content):
     target = os.path.join(OUT, 'cv')
     os.makedirs(target, exist_ok=True)
     with tempfile.TemporaryDirectory() as folder:
+        # fontes do site (Cinzel, no nome e nos títulos) e as só do currículo (src/fonts/)
         shutil.copytree(os.path.join(ROOT, 'static', 'fonts'), os.path.join(folder, 'fonts'))
+        shutil.copytree(os.path.join(SRC, 'fonts'), os.path.join(folder, 'fonts'), dirs_exist_ok=True)
         with open(os.path.join(folder, 'cv.css'), 'w', encoding='utf-8', newline='\n') as f:
             f.write(stylesheet(*CV_CSS))
         for code in TAGS:
