@@ -111,18 +111,16 @@ def check_page(name, edition=None):
     code = re.sub(r'<!--.*?-->', '', raw, flags=re.S)
 
     # ---------- CSP ----------
-    blocks = {tag: re.findall(r'^<%s>(.*?)</%s>$' % (tag, tag), raw, flags=re.S | re.M) for tag in ('style', 'script')}
     check(not re.search(r'<style[\s>]', code), 'nenhum bloco de estilo embutido' + where)
-    one_script = len(blocks['script']) == 1
-    check(one_script, 'um único bloco de script' + where)
+    inline = [attrs for attrs, content in re.findall(r'<script\b([^>]*)>(.*?)</script>', code, flags=re.S)
+              if 'src=' not in attrs and attrs.strip() != 'type="application/ld+json"']
+    check(not inline, 'nenhum script embutido além dos dados estruturados (JSON-LD)' + where, inline)
     meta = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)">', raw)
     check(bool(meta), 'meta CSP presente' + where)
     if meta:
         csp = meta.group(1)
         check("style-src 'self';" in csp, "estilos só do próprio site (style-src 'self')" + where)
-    if meta and one_script:
-        want_script = sha256(blocks['script'][0])
-        check("script-src '%s'" % want_script in csp, 'hash do script confere com a CSP' + where, want_script)
+        check("script-src 'self';" in csp, "scripts só do próprio site (script-src 'self')" + where)
         check("default-src 'none'" in csp and 'unsafe-inline' not in csp and 'unsafe-eval' not in csp,
               "CSP restritiva (default-src 'none', sem unsafe-inline nem unsafe-eval)" + where)
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'sha256-OYPu73ehHxkgIQyyYzTw2G31Vs+7rYm/tE7R8JD2P6w='; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <!--
   PORTFÓLIO DE ARTHUR CEI CORRÊA — página única, sem nenhuma dependência externa.
@@ -108,147 +108,8 @@
 <link rel="preload" href="/fonts/cinzel-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css">
-<script>
-(function () {
-  'use strict';
-
-  // Código de cada idioma (pastas /pt/, /en/... e ?lang=) e etiqueta lang da edição.
-  var TAGS = { pt: 'pt-BR', en: 'en', es: 'es', it: 'it' };
-  var root = document.documentElement;
-
-  // "pt-BR" -> "pt"; devolve null se não for um dos quatro idiomas.
-  function pick(value) {
-    var code = String(value || '').toLowerCase().split(/[-_]/)[0];
-    return TAGS.hasOwnProperty(code) ? code : null;
-  }
-
-  function fromUrl() {
-    var match = /[?&]lang=([^&#]*)/.exec(location.search);
-    return match ? pick(match[1]) : null;
-  }
-
-  function fromBrowser() {
-    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
-    for (var i = 0; i < list.length; i++) {
-      var code = pick(list[i]);
-      if (code) return code;
-    }
-    return null;
-  }
-
-  // País deduzido do fuso horário do aparelho, sem nenhuma consulta externa.
-  // Só entram fusos de países com língua clara; nos demais vale o idioma do navegador.
-  var ZONES = {
-    pt: /^(America\/(Sao_Paulo|Araguaina|Bahia|Belem|Boa_Vista|Campo_Grande|Cuiaba|Eirunepe|Fortaleza|Maceio|Manaus|Noronha|Porto_Velho|Recife|Rio_Branco|Santarem)|Brazil\/.+|Europe\/Lisbon|Portugal|Atlantic\/(Azores|Madeira|Cape_Verde)|Africa\/(Luanda|Maputo|Bissau|Sao_Tome))$/,
-    it: /^(Europe\/(Rome|Vatican|San_Marino)|Italy)$/,
-    es: /^(Europe\/Madrid|Africa\/(Ceuta|Malabo)|Atlantic\/Canary|America\/(Argentina\/.+|Buenos_Aires|Catamarca|Cordoba|Jujuy|Mendoza|Mexico_City|Cancun|Merida|Monterrey|Matamoros|Chihuahua|Ciudad_Juarez|Ojinaga|Mazatlan|Bahia_Banderas|Hermosillo|Tijuana|Bogota|Lima|Santiago|Punta_Arenas|Caracas|Montevideo|Asuncion|La_Paz|Guayaquil|Guatemala|El_Salvador|Tegucigalpa|Managua|Costa_Rica|Panama|Havana|Santo_Domingo)|Pacific\/(Easter|Galapagos)|Chile\/.+|Mexico\/.+|Cuba)$/
-  };
-
-  function fromZone() {
-    try {
-      var zone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-      for (var code in ZONES) {
-        if (ZONES.hasOwnProperty(code) && ZONES[code].test(zone)) return code;
-      }
-    } catch (error) { /* navegador sem Intl: segue para o idioma do navegador */ }
-    return null;
-  }
-
-  // As páginas de cada idioma trazem o idioma fixo em data-lang. Na página inicial, a ordem é:
-  // parâmetro da URL, país (pelo fuso horário), idioma do navegador, inglês.
-  var current = pick(root.getAttribute('data-lang')) || fromUrl() || fromZone() || fromBrowser() || 'en';
-  root.lang = TAGS[current]; // definido antes de o corpo ser lido: o idioma errado nunca chega a aparecer
-
-  document.addEventListener('DOMContentLoaded', function () {
-    var edition = document.querySelector('main > [lang="' + TAGS[current] + '"]');
-    var description = document.querySelector('meta[name="description"]');
-    if (edition) {
-      document.title = edition.getAttribute('data-title');
-      if (description) description.setAttribute('content', edition.getAttribute('data-desc'));
-    }
-    // seletor de idioma: nome para leitores de tela e idioma ativo marcado
-    var nav = document.querySelector('.langs');
-    nav.setAttribute('aria-label', nav.getAttribute('data-' + current));
-    var links = nav.querySelectorAll('a');
-    for (var i = 0; i < links.length; i++) {
-      if (links[i].getAttribute('data-lang') === current) links[i].setAttribute('aria-current', 'true');
-      else links[i].removeAttribute('aria-current');
-    }
-    // botão de voltar ao topo: aparece quando a apresentação sai da tela
-    var button = document.querySelector('.totop');
-    var intro = edition && edition.querySelector('.intro');
-    if (button && intro && 'IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) {
-        button.classList.toggle('on', !entries[0].isIntersecting);
-      }).observe(intro);
-      // recolhe-se enquanto o visitante rola para baixo lendo; volta quando ele para ou sobe
-      var lastY = window.scrollY, rest;
-      window.addEventListener('scroll', function () {
-        var y = window.scrollY;
-        if (y > lastY + 4) {
-          button.classList.add('down');
-          clearTimeout(rest);
-          rest = setTimeout(function () { button.classList.remove('down'); }, 700);
-        } else if (y < lastY - 4) {
-          clearTimeout(rest);
-          button.classList.remove('down');
-        }
-        lastY = y;
-      }, { passive: true });
-    }
-    // botões de copiar o e-mail: aparecem só onde o navegador permite copiar
-    if (navigator.clipboard && window.isSecureContext) {
-      var copies = document.querySelectorAll('.copy');
-      for (var c = 0; c < copies.length; c++) {
-        copies[c].hidden = false;
-        copies[c].addEventListener('click', function () {
-          var copy = this, status = this.nextElementSibling;
-          navigator.clipboard.writeText(copy.getAttribute('data-copy')).then(function () {
-            copy.classList.add('done');
-            status.textContent = copy.getAttribute('data-said');
-            setTimeout(function () { copy.classList.remove('done'); status.textContent = ''; }, 2000);
-          });
-        });
-      }
-    }
-    // sumário: marca a seção que está sendo lida (faixa no terço superior da tela)
-    var jumps = edition ? edition.querySelectorAll('.jump a[href^="#"]') : [];
-    if (jumps.length && 'IntersectionObserver' in window) {
-      var strip = edition.querySelector('.jump ul');
-      var mark = function (id) {
-        for (var j = 0; j < jumps.length; j++) {
-          var on = jumps[j].getAttribute('href') === '#' + id;
-          if (on) {
-            jumps[j].setAttribute('aria-current', 'location');
-            // no celular, traz o link marcado para dentro da faixa
-            var left = jumps[j].offsetLeft - strip.offsetLeft;
-            if (left < strip.scrollLeft || left + jumps[j].offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left - 16;
-          } else jumps[j].removeAttribute('aria-current');
-        }
-      };
-      var spy = new IntersectionObserver(function (entries) {
-        for (var k = 0; k < entries.length; k++) if (entries[k].isIntersecting) mark(entries[k].target.id);
-      }, { rootMargin: '-30% 0px -65% 0px' });
-      for (var n = 0; n < jumps.length; n++) {
-        var target = document.getElementById(jumps[n].getAttribute('href').slice(1));
-        if (target) spy.observe(target);
-      }
-      if (intro) new IntersectionObserver(function (entries) { if (entries[0].isIntersecting) mark(''); }, { rootMargin: '-30% 0px -65% 0px' }).observe(intro);
-    }
-  });
-
-  // impressão ou PDF: abre os detalhes dos projetos e os fecha de novo depois
-  var opened = [];
-  window.addEventListener('beforeprint', function () {
-    opened = [].slice.call(document.querySelectorAll('details:not([open])'));
-    for (var i = 0; i < opened.length; i++) opened[i].open = true;
-  });
-  window.addEventListener('afterprint', function () {
-    for (var i = 0; i < opened.length; i++) opened[i].open = false;
-    opened = [];
-  });
-})();
-</script>
+<script src="/assets/language.js"></script>
+<script type="module" src="/assets/page.js"></script>
 </head>
 <body>
 
