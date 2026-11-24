@@ -1,24 +1,113 @@
 /* Página 404: só as regras dela. As fontes e as cores vêm de tokens.css (montado antes, em /assets/404.css). */
 @layer page {
-  *,*::before,*::after{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-  body{margin:0;min-height:100vh;min-height:100svh;display:flex;align-items:center;background:var(--bg);color:var(--text);font:400 clamp(1.1875rem,1.1rem + .4vw,1.25rem)/1.55 var(--garamond)}
-  h1,p{margin:0}
-  main{width:100%;max-width:64rem;margin-inline:auto;padding:3rem clamp(1.25rem,5vw,3rem);text-align:right}
-  :focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 clamp(1.1875rem, 1.1rem + 0.4vw, 1.25rem)/1.55 var(--garamond);
+  }
+
+  h1,
+  p {
+    margin: 0;
+  }
+
+  main {
+    width: 100%;
+    max-width: 64rem;
+    margin-inline: auto;
+    padding: 3rem clamp(1.25rem, 5vw, 3rem);
+    text-align: right;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--gold-hi);
+    outline-offset: 3px;
+  }
 
   /* só aparece o bloco cujo lang coincide com o do elemento html */
   html:not([lang="pt-BR"]) .t[lang="pt-BR"],
   html:not([lang="en"]) .t[lang="en"],
   html:not([lang="es"]) .t[lang="es"],
-  html:not([lang="it"]) .t[lang="it"]{display:none!important}
+  html:not([lang="it"]) .t[lang="it"] {
+    display: none !important;
+  }
 
-  .code{margin-right:-.18em;color:var(--muted);font:400 .9375rem/1.5 var(--cinzel);letter-spacing:.18em}
-  h1{margin:.6rem -.11em 0 0;color:var(--gold);font:400 clamp(1.75rem,1rem + 2.6vw,2.75rem)/1.15 var(--cinzel);letter-spacing:.11em;text-transform:uppercase;text-wrap:balance}
-  .why{position:relative;margin-top:1.5rem;padding-top:1.35rem}
-  .why::before{content:"";position:absolute;top:0;right:0;width:3.5rem;height:1px;background:var(--rule)}
-  .home{margin-top:1.75rem}
-  .btn{display:inline-flex;align-items:center;min-height:2.75rem;padding:.7rem 1.4rem .7rem calc(1.4rem + .16em);border:1px solid var(--gold);color:var(--gold-hi);font:500 .8125rem/1.3 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-decoration:none;transition:color .15s ease,background-color .15s ease}
-  .btn:hover{background:var(--gold);color:var(--bg)}
-  @media (prefers-reduced-motion:reduce){.btn{transition:none}}
+  .code {
+    margin-right: -0.18em;
+    color: var(--muted);
+    font: 400 0.9375rem/1.5 var(--cinzel);
+    letter-spacing: 0.18em;
+  }
+
+  h1 {
+    margin: 0.6rem -0.11em 0 0;
+    color: var(--gold);
+    font: 400 clamp(1.75rem, 1rem + 2.6vw, 2.75rem)/1.15 var(--cinzel);
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .why {
+    position: relative;
+    margin-top: 1.5rem;
+    padding-top: 1.35rem;
+  }
+
+  .why::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3.5rem;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .home {
+    margin-top: 1.75rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.7rem 1.4rem 0.7rem calc(1.4rem + 0.16em);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+    font: 500 0.8125rem/1.3 var(--cinzel);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: none;
+    }
+  }
 }

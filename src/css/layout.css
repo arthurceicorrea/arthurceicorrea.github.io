@@ -1,55 +1,260 @@
 /* Layout: topo com o seletor de idioma, sumário fixo, hero, seções e rodapé. */
 @layer layout {
-  .wrap{max-width:64rem;margin-inline:auto;padding-inline:var(--edge)}
+  .wrap {
+    max-width: 64rem;
+    margin-inline: auto;
+    padding-inline: var(--edge);
+  }
 
   /* ---- Seletor de idioma: links para as páginas de cada idioma ---- */
-  .top{display:flex;justify-content:flex-end;min-height:4.25rem;padding-block:.75rem}
-  .langs ul{display:flex;margin-right:-.7rem}
-  .langs li{display:flex;align-items:center}
-  .langs li+li::before{content:"\00B7";content:"\00B7" / "";color:var(--gold);font:500 .8125rem/1 var(--cinzel)}
-  .langs a{display:inline-flex;align-items:center;justify-content:center;min-width:2.75rem;min-height:2.75rem;padding-left:.16em;color:var(--muted);font:500 .8125rem/1 var(--cinzel);letter-spacing:.16em;text-decoration:none}
-  .langs a:hover{color:var(--gold-hi)}
+  .top {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 4.25rem;
+    padding-block: 0.75rem;
+  }
+
+  .langs ul {
+    display: flex;
+    margin-right: -0.7rem;
+  }
+
+  .langs li {
+    display: flex;
+    align-items: center;
+  }
+
+  .langs li + li::before {
+    content: "\00B7";
+    content: "\00B7" / "";
+    color: var(--gold);
+    font: 500 0.8125rem/1 var(--cinzel);
+  }
+
+  .langs a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding-left: 0.16em;
+    color: var(--muted);
+    font: 500 0.8125rem/1 var(--cinzel);
+    letter-spacing: 0.16em;
+    text-decoration: none;
+  }
+
+  .langs a:hover {
+    color: var(--gold-hi);
+  }
+
   html[lang="pt-BR"] .langs [data-lang="pt"],
   html[lang="en"] .langs [data-lang="en"],
   html[lang="es"] .langs [data-lang="es"],
-  html[lang="it"] .langs [data-lang="it"]{color:var(--gold-hi);text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
+  html[lang="it"] .langs [data-lang="it"] {
+    color: var(--gold-hi);
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-underline-offset: 0.55em;
+  }
 
   /* ---- Sumário fixo: acompanha a rolagem; no celular a faixa de links rola de lado ---- */
-  .jump{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:1.25rem;margin-inline:calc(-1 * var(--edge));padding:.3rem var(--edge) .3rem calc(var(--edge) + max(0px, 100% - var(--measure)));background:var(--bg);border-bottom:1px solid var(--rule)}
-  .jump ul{display:flex;flex:1;gap:1.5rem;min-width:0;margin:-4px;padding:4px;overflow-x:auto;scrollbar-width:none}
-  .jump ul::-webkit-scrollbar{display:none}
-  .jump a{display:inline-flex;align-items:center;min-height:2.5rem;color:var(--muted);font:500 .75rem/1 var(--cinzel);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
-  .jump a:hover,.jump a[aria-current]{color:var(--gold-hi)}
-  .jump a[aria-current]{text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:.55em}
-  .jump .cv{flex:none;min-height:2.25rem;padding:0 .9rem 0 calc(.9rem + .12em);border:1px solid var(--gold);color:var(--gold-hi)}
-  .jump .cv:hover{background:var(--gold);color:var(--bg)}
-  .sec{scroll-margin-top:4.5rem}
+  .jump {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-inline: calc(-1 * var(--edge));
+    padding: 0.3rem var(--edge) 0.3rem
+      calc(var(--edge) + max(0px, 100% - var(--measure)));
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .jump ul {
+    display: flex;
+    flex: 1;
+    gap: 1.5rem;
+    min-width: 0;
+    margin: -4px;
+    padding: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .jump ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line no-descending-specificity -- .jump a (sumário) e .langs a:hover (topo)
+     nunca atingem o mesmo link; qualquer ordem dos dois componentes faria a regra apontar um par. */
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    color: var(--muted);
+    font: 500 0.75rem/1 var(--cinzel);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .jump a:hover,
+  .jump a[aria-current] {
+    color: var(--gold-hi);
+  }
+
+  .jump a[aria-current] {
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-underline-offset: 0.55em;
+  }
+
+  .jump .cv {
+    flex: none;
+    min-height: 2.25rem;
+    padding: 0 0.9rem 0 calc(0.9rem + 0.12em);
+    border: 1px solid var(--gold);
+    color: var(--gold-hi);
+  }
+
+  .jump .cv:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
   /* celular: a borda direita da faixa esmaece, sinal de que há mais links ao rolar */
-  @media (max-width:47.99rem){.jump ul{gap:1.15rem;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 2.5rem),transparent)}}
+  @media (max-width: 47.99rem) {
+    .jump ul {
+      gap: 1.15rem;
+      -webkit-mask-image: linear-gradient(
+        to right,
+        #000 calc(100% - 2.5rem),
+        transparent
+      );
+      mask-image: linear-gradient(
+        to right,
+        #000 calc(100% - 2.5rem),
+        transparent
+      );
+    }
+  }
 
   /* ---- Hero: o lema como epígrafe, alinhado à direita, como na capa ---- */
-  .hero{padding-block:clamp(1.75rem,6vh,3.5rem) clamp(1.75rem,5vh,3rem);text-align:right}
+  .hero {
+    padding-block: clamp(1.75rem, 6vh, 3.5rem) clamp(1.75rem, 5vh, 3rem);
+    text-align: right;
+  }
+
   /* margens negativas: anulam o espaço que o letter-spacing deixa depois da última letra */
-  .motto blockquote p{margin-right:-.11em;color:var(--gold);font:400 clamp(1.25rem,.95rem + 1.2vw,1.75rem)/1.2 var(--cinzel);letter-spacing:.11em;text-transform:uppercase}
-  .motto blockquote span{white-space:nowrap}
-  .motto .tr{margin-top:.45em;font-size:clamp(1.0625rem,1rem + .3vw,1.25rem);font-style:italic;line-height:1.25;text-wrap:balance}
-  .motto figcaption{margin:.5rem -.18em 0 0;color:var(--muted);font:400 .8125rem/1.5 var(--cinzel);letter-spacing:.18em;text-transform:uppercase}
-  .motto::after{content:"";display:block;width:3.5rem;height:1px;margin:1.25rem 0 0 auto;background:var(--gold)}
+  .motto blockquote p {
+    margin-right: -0.11em;
+    color: var(--gold);
+    font: 400 clamp(1.25rem, 0.95rem + 1.2vw, 1.75rem)/1.2 var(--cinzel);
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .motto blockquote span {
+    white-space: nowrap;
+  }
+
+  .motto .tr {
+    margin-top: 0.45em;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    font-style: italic;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .motto figcaption {
+    margin: 0.5rem -0.18em 0 0;
+    color: var(--muted);
+    font: 400 0.8125rem/1.5 var(--cinzel);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .motto::after {
+    content: "";
+    display: block;
+    width: 3.5rem;
+    height: 1px;
+    margin: 1.25rem 0 0 auto;
+    background: var(--gold);
+  }
 
   /* ---- Corpo: coluna ancorada na mesma margem direita do hero ---- */
-  .sec{max-width:var(--measure);margin-left:auto}
-  .sec+.sec{margin-top:clamp(3.25rem,7vw,5rem)}
-  .sec h2{position:relative;margin-bottom:1.1rem;padding-top:1.05rem;color:var(--gold-text);font:400 1rem/1.45 var(--cinzel);letter-spacing:.16em;text-transform:uppercase;text-wrap:balance}
-  .sec h2::before{content:"";position:absolute;top:0;left:0;width:3.5rem;height:1px;background:var(--rule)}
-  .body>*+*{margin-top:1rem}
+  .sec {
+    max-width: var(--measure);
+    margin-left: auto;
+    scroll-margin-top: 4.5rem; /* ao vir do sumário, o título da seção fica abaixo do sumário fixo */
+  }
 
-  .foot{margin-top:clamp(4rem,9vw,6.5rem);padding-block:1.5rem 5rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.875em;text-align:right}
+  .sec + .sec {
+    margin-top: clamp(3.25rem, 7vw, 5rem);
+  }
+
+  .sec h2 {
+    position: relative;
+    margin-bottom: 1.1rem;
+    padding-top: 1.05rem;
+    color: var(--gold-text);
+    font: 400 1rem/1.45 var(--cinzel);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .sec h2::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3.5rem;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .body > * + * {
+    margin-top: 1rem;
+  }
+
+  .foot {
+    margin-top: clamp(4rem, 9vw, 6.5rem);
+    padding-block: 1.5rem 5rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.875em;
+    text-align: right;
+  }
 
   /* telas largas: os títulos das seções pendem para a margem livre, alinhados à direita */
-  @media (min-width:62rem){
-    .sec{display:grid;grid-template-columns:minmax(0,1fr) var(--measure);column-gap:3rem;align-items:baseline;max-width:none;margin-left:0}
-    .sec h2{margin:0 -.16em 0 0;text-align:right}
-    .sec h2::before{left:auto;right:.16em}
-    .sec .body{grid-column:2}
+  @media (min-width: 62rem) {
+    .sec {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--measure);
+      column-gap: 3rem;
+      align-items: baseline;
+      max-width: none;
+      margin-left: 0;
+    }
+
+    .sec h2 {
+      margin: 0 -0.16em 0 0;
+      text-align: right;
+    }
+
+    .sec h2::before {
+      left: auto;
+      right: 0.16em;
+    }
+
+    .sec .body {
+      grid-column: 2;
+    }
   }
 }

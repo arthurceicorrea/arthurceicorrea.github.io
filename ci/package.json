@@ -1,10 +1,16 @@
 {
   "name": "portfolio-ci",
   "private": true,
-  "description": "Ferramentas de auditoria do pipeline (versões exatas; o Dependabot propõe as atualizações)",
+  "description": "Ferramentas do pipeline: auditoria e verificadores de estilo do código (versões exatas; o Dependabot propõe as atualizações)",
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@lhci/cli": "0.16.1",
     "axe-core": "4.14.1",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "prettier": "3.10.1",
+    "stylelint": "18.1.0",
+    "stylelint-config-standard": "41.1.0",
     "vnu-jar": "26.11.20"
   }
 }

@@ -4,7 +4,8 @@ Site estático em quatro idiomas (pt-BR, en, es, it), publicado no GitHub Pages 
 
 ## Comandos
 
-- Instalar: `make setup` (as dependências de `ci/requirements.txt` e `ci/package.json`)
+- Instalar: `make setup` (as dependências de `ci/requirements.txt` e, com `npm ci`, de `ci/package-lock.json`)
+- Verificar o estilo do código: `make lint` (Stylelint, ESLint e Prettier em `src/css/` e `src/js/`). Para corrigir a formatação: `ci/node_modules/.bin/prettier --write "src/css/**/*.css" "src/js/**/*.js"`.
 - Montar: `make build` (roda `python ci/build.py` e gera `_site/`)
 - Testar: `make test`, depois de `make build`. Roda, na ordem do workflow, o pytest com `tests/test_content.py` e `tests/test_static.py`, o validador do W3C (precisa de Java), e o pytest com `tests/test_browser.py` e `tests/test_a11y.py`. O Lighthouse só roda no pipeline.
 - Um teste só: `python -m pytest -k nome` (por exemplo, `-k csp`).
