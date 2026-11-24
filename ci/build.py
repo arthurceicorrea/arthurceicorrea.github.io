@@ -1,7 +1,8 @@
 """Monta a pasta publicada (_site) a partir do repositório.
 
 - Copia a página inicial (index.html, com as quatro edições e a escolha automática
-  do idioma), a 404, as fontes, os currículos, as imagens e os arquivos de indexação.
+  do idioma), a 404 e, como estão, os arquivos de static/: fontes, currículos, imagens,
+  vCard e arquivos de indexação.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
@@ -32,8 +33,7 @@ IMAGE_ALT = {
     'es': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA aplicada, seguridad',
     'it': 'Sapientis est ordinare — Arthur Cei Corrêa: DevOps, IA applicata, sicurezza',
 }
-FILES = ['404.html', 'robots.txt', 'sitemap.xml', '.nojekyll', 'apple-touch-icon.png', 'favicon-32.png', 'arthur-cei-correa.vcf'] + sorted(IMAGES.values())
-FOLDERS = ['fonts', 'cv']
+FILES = ['404.html']
 # Folhas de estilo publicadas em /assets/: ordem das camadas e arquivos de src/css/, nesta ordem.
 CSS = {
     'site.css': ('tokens, base, layout, components', ['tokens.css', 'base.css', 'layout.css', 'components.css']),
@@ -185,8 +185,8 @@ def main():
     os.makedirs(OUT)
     for name in FILES:
         shutil.copy2(os.path.join(ROOT, name), os.path.join(OUT, name))
-    for folder in FOLDERS:
-        shutil.copytree(os.path.join(ROOT, folder), os.path.join(OUT, folder))
+    # arquivos estáticos (fontes, currículos, imagens, vCard, robots.txt...), copiados como estão
+    shutil.copytree(os.path.join(ROOT, 'static'), OUT, dirs_exist_ok=True)
     assets()
     commit_date = git('log', '-1', '--format=%cs')
     day = datetime.date.fromisoformat(commit_date) if commit_date else datetime.date.today()

@@ -7,7 +7,7 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 
 - No frameworks, no third-party scripts, fonts or trackers; a restrictive Content Security Policy (`style-src 'self'; script-src 'self'`): no inline styles or scripts, only files served by the site.
 - Choose the language with `?lang=pt`, `?lang=en`, `?lang=es` or `?lang=it`; otherwise the visitor's country, inferred from the device time zone with no external lookup (Brazil and Portugal: PT; Italy: IT; Spain and Spanish-speaking America: ES), then the browser language, then English.
-- Fonts: Cinzel and EB Garamond, self-hosted as WOFF2 under the SIL Open Font License (see `fonts/`).
+- Fonts: Cinzel and EB Garamond, self-hosted as WOFF2 under the SIL Open Font License (see `static/fonts/`).
 
 ## Pipeline
 
@@ -47,4 +47,4 @@ If your system has `python3` but no `python`, add `PYTHON=python3` to any comman
 
 The code (HTML structure, CSS, JavaScript and the scripts in `ci/`) is released under the [MIT License](LICENSE).
 The texts, the CVs and the images are by Arthur Cei Corrêa, all rights reserved; they are not covered by the MIT License.
-The fonts in `fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
+The fonts in `static/fonts/` are not by Arthur Cei Corrêa and keep their own SIL Open Font License.
