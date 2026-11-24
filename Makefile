@@ -5,9 +5,10 @@
 PYTHON ?= python
 SITE := _site
 VNU := ci/node_modules/vnu-jar/build/dist/vnu.jar
+BIN := ci/node_modules/.bin
 
 .DEFAULT_GOAL := build
-.PHONY: setup build test serve
+.PHONY: setup build lint test serve
 
 # Instala as ferramentas de teste, nas versões exatas de ci/requirements.txt e ci/package.json.
 setup:
@@ -17,6 +18,13 @@ setup:
 # Monta o site em _site/ (página inicial, uma página por idioma, 404 e arquivos).
 build:
 	$(PYTHON) ci/build.py
+
+# Verifica o estilo do código: CSS com o Stylelint, JavaScript com o ESLint, e a formatação dos dois
+# com o Prettier. Para corrigir a formatação: $(BIN)/prettier --write "src/css/**/*.css" "src/js/**/*.js"
+lint:
+	$(BIN)/stylelint --config ci/stylelint.config.js "src/css/**/*.css"
+	$(BIN)/eslint --config ci/eslint.config.js src/js
+	$(BIN)/prettier --check "src/css/**/*.css" "src/js/**/*.js"
 
 # Valida o site já montado, na ordem do pipeline: textos completos e validação estática (pytest),
 # validador do W3C, teste no navegador (pytest) e acessibilidade (pytest). Os testes ficam em tests/.
