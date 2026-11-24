@@ -11,12 +11,13 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 - **Nothing from third parties.** No frameworks, no third-party scripts, fonts or images, no analytics, no cookies. The fonts, Cinzel and EB Garamond, are self-hosted as WOFF2 under the SIL Open Font License. ([ADR 4](docs/adr/0004-no-third-party-resources-and-no-analytics.md))
 - **A restrictive Content Security Policy**, in a meta tag: `style-src 'self'; script-src 'self'`, so no inline styles or scripts run, only files served by the site. ([ADR 2](docs/adr/0002-content-security-policy-in-a-meta-tag-with-self.md))
 - **Accessible**: WCAG 2.2 AA, checked on every page by axe and Lighthouse.
+- **CVs from the same content.** The four PDF CVs are printed by the build from the same texts as the page, so the site and the CVs always say the same.
 - **No phone number, address or health data** in the pages or the CVs; the tests look for phone numbers.
 
 ## Running locally
 
 Requirements: Python 3.12, Node 22, Java 21 (for the W3C validator), Google Chrome and `make`.
-The browser tests use the system Chrome, or the path in `CHROME_PATH`.
+The build, which prints the CVs, and the browser tests use the system Chrome, or the path in `CHROME_PATH`.
 
 ```sh
 make setup   # install the tools, at the exact versions in ci/requirements.txt and ci/package-lock.json
@@ -37,11 +38,12 @@ make serve   # serve _site/ at http://localhost:8000/
 ```
 src/                    source of the pages
   page.html             the page, written once (Jinja2 template)
+  cv.html               the CV, printed to PDF in each language (Jinja2 template; not published)
   404.html              the error page (Jinja2 template)
   content/              every text, one file per language: pt.toml, en.toml, es.toml, it.toml
-  css/                  styles, one @layer per file: tokens, base, layout, components, plus 404.css
+  css/                  styles, one @layer per file: tokens, base, layout, components, plus 404.css and cv.css
   js/                   language.js (picks the language, before the first paint) and page.js (the rest)
-static/                 files served as they are: fonts/, cv/ (PDF CVs), images, vCard, robots.txt
+static/                 files served as they are: fonts/, images, vCard, robots.txt
 ci/                     build and pipeline tools
   build.py              builds _site/ from src/ and static/
   monitor.py            checks the live site (after each deploy and weekly)
@@ -77,8 +79,9 @@ The **Validar** job:
    - renders the template into `_site/`: the home page in English, and one page per language, each with only its own edition and with title, description, canonical URL and sharing preview in that language;
    - copies `static/`;
    - joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`;
+   - prints the four CVs from `src/cv.html` to `/cv/`, with Playwright in Chrome: A4, tagged PDF with an outline, the page texts in each language, and the page numbers in the CV's language;
    - writes `sitemap.xml` and `version.txt`, and fills in the footer date and year from the last commit.
-3. **Static validation** (`tests/test_content.py` and `tests/test_static.py`): every text in all four languages, the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, and no phone number in the pages, the CVs or the vCard.
+3. **Static validation** (`tests/test_content.py` and `tests/test_static.py`): every text in all four languages, the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, no phone number in the pages, the CVs or the vCard, and the CVs themselves: all four built, each with its page's texts, at most two pages, page numbers in its language.
 4. **W3C HTML validation**: the official Nu Html Checker on every generated page.
 5. **Browser test** (`tests/test_browser.py`): headless Chrome on mobile and desktop widths. Checks the right language shown, the home page sending each visitor to their language page, fonts loaded, no console errors or CSP violations, the language switch, pages without JavaScript, the language chosen by country (simulated time zones), the buttons and the 404 page.
 6. **Accessibility audit** (`tests/test_a11y.py`): axe-core on every page, mobile and desktop. Any WCAG 2.2 A or AA violation fails the run.
@@ -106,7 +109,7 @@ The tests are in `tests/` and run with [pytest](https://docs.pytest.org/). Each 
 | File | What it checks | Needs |
 |---|---|---|
 | `tests/test_content.py` | every key of `pt.toml` exists in the other three languages | nothing |
-| `tests/test_static.py` | the built HTML, without a browser: security policy, links, languages, structured data, sitemap, CVs | `make build` |
+| `tests/test_static.py` | the built HTML and CVs, without a browser: security policy, links, languages, structured data, sitemap, CVs matching the page | `make build` |
 | `tests/test_browser.py` | the site in headless Chrome: languages, redirects, switcher, buttons, 404 | `make build` |
 | `tests/test_a11y.py` | axe-core accessibility audit, WCAG 2.2 A and AA | `make build`, `make setup` |
 
