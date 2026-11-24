@@ -1,0 +1,39 @@
+{#
+  Página de erro 404 do portfólio (Jinja2), montada por ci/build.py com os textos de
+  [error_page] em src/content/<idioma>.toml. O GitHub Pages a serve para qualquer endereço
+  inexistente, em qualquer profundidade; por isso os caminhos são absolutos (/assets/..., /).
+  Traz as quatro edições: o script de idioma (/assets/language.js: ?lang=, país pelo fuso
+  horário, navegador, inglês) mostra a do visitante. Estilo: /assets/404.css, montado a partir
+  de src/css/tokens.css e src/css/404.css. A política de segurança é a da página principal.
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="{{ policy }}">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<title>{{ default.error_page.title }}</title>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14181E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20fill='%2314181E'/%3E%3Cpath%20fill='%23B8935A'%20fill-rule='evenodd'%20d='M32%2012%2050%2052h-7l-3.6-9H24.6L21%2052h-7zM32%2024l-5%2013h10z'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/404.css">
+<script src="/assets/language.js"></script>
+</head>
+<body>
+<main>
+  <p class="code">404</p>
+{% for e in editions %}
+
+  <div class="t" lang="{{ e.tag }}" data-title="{{ e.error_page.title }}">
+    <h1>{{ e.error_page.heading }}</h1>
+    <p class="why">{{ e.error_page.text }}</p>
+    <p class="home"><a class="btn" href="/">{{ e.error_page.home }}</a></p>
+  </div>
+{% endfor %}
+</main>
+</body>
+</html>
