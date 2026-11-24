@@ -10,10 +10,11 @@ BIN := ci/node_modules/.bin
 .DEFAULT_GOAL := build
 .PHONY: setup build lint test serve
 
-# Instala as ferramentas de teste, nas versões exatas de ci/requirements.txt e ci/package.json.
+# Instala as ferramentas de teste e de verificação do código, nas versões exatas de ci/requirements.txt
+# e de ci/package-lock.json (npm ci instala exatamente o que está no lockfile).
 setup:
 	$(PYTHON) -m pip install -r ci/requirements.txt
-	npm install --prefix ci --no-audit --no-fund
+	npm ci --prefix ci --no-audit --no-fund
 
 # Monta o site em _site/ (página inicial, uma página por idioma, 404 e arquivos).
 build:

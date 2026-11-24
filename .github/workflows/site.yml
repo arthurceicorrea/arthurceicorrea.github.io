@@ -27,11 +27,17 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
+          # guarda os pacotes baixados pelo pip entre execuções; muda quando ci/requirements.txt muda
+          cache: pip
+          cache-dependency-path: ci/requirements.txt
 
       - name: Preparar o Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '22'
+          # guarda os pacotes baixados pelo npm entre execuções; muda quando ci/package-lock.json muda
+          cache: npm
+          cache-dependency-path: ci/package-lock.json
 
       - name: Preparar o Java (validador do W3C)
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6
@@ -42,7 +48,13 @@ jobs:
       - name: Instalar as ferramentas de teste
         run: |
           pip install -r ci/requirements.txt
-          npm install --prefix ci --no-audit --no-fund
+          npm ci --prefix ci --no-audit --no-fund
+
+      - name: Verificar o estilo do código (Stylelint, ESLint, Prettier)
+        run: |
+          ci/node_modules/.bin/stylelint --config ci/stylelint.config.js "src/css/**/*.css"
+          ci/node_modules/.bin/eslint --config ci/eslint.config.js src/js
+          ci/node_modules/.bin/prettier --check "src/css/**/*.css" "src/js/**/*.js"
 
       - name: Montar o site (página inicial e uma página por idioma)
         run: python ci/build.py
