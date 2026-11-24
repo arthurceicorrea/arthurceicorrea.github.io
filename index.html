@@ -14,6 +14,9 @@
   Por isso todos os caminhos locais são absolutos (/fonts/..., /cv/...).
 
   Arquivos esperados na raiz do site:
+    assets/site.css         (montado por ci/build.py a partir de src/css/)
+    assets/language.js      (cópia de src/js/language.js)
+    assets/page.js          (cópia de src/js/page.js)
     fonts/cinzel-400.woff2  (pré-carregada, como a eb-garamond-400)
     fonts/cinzel-500.woff2
     fonts/eb-garamond-400.woff2
@@ -25,21 +28,19 @@
 
   Idiomas: o conteúdo existe quatro vezes dentro do elemento main, um bloco por idioma
   (lang="pt-BR", "en", "es", "it"). O CSS mostra apenas o bloco cujo lang coincide
-  com o do elemento html; o script só escolhe o idioma e atualiza esse atributo.
+  com o do elemento html; o script de idioma só o escolhe e atualiza esse atributo.
   Nas páginas de cada idioma, o idioma vem fixo (atributo data-lang do elemento html).
   Na página inicial, nesta ordem: ?lang= no endereço; o país, deduzido do fuso horário do
   aparelho (Brasil e Portugal: PT; Itália: IT; Espanha e América hispânica: ES); o idioma
   do navegador; inglês. Sem JavaScript, a página inicial aparece em inglês, e o seletor
   de idioma leva às páginas de cada idioma.
 
-  Política de segurança (CSP): os dois valores sha256 da meta tag acima correspondem
-  ao conteúdo exato do bloco de estilos e do bloco de script (tudo o que está entre a
-  etiqueta de abertura e a de fechamento, inclusive espaços e quebras de linha).
-  Editar o texto do corpo da página não exige nada. Se alterar os estilos ou o script,
-  recalcule o hash respectivo: o console do Chrome ou do Edge mostra o valor esperado
-  na mensagem de bloqueio; basta colá-lo na meta tag. Ou rode: python ci/csp_hash.py index.html
-  Se o domínio passar pela Cloudflare, desligue Email Obfuscation, Rocket Loader e
-  Auto Minify, pois reescrevem o HTML e invalidam os hashes.
+  Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
+  (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
+  além do bloco de dados estruturados (application/ld+json), que é dado e não é executado.
+  Estilos e scripts se editam em src/css/ e src/js/; a página e a política não mudam.
+  Se o domínio passar pela Cloudflare, desligue Email Obfuscation e Rocket Loader,
+  pois injetam scripts embutidos, que a política bloqueia.
   A diretiva frame-ancestors não funciona em meta tag; se a hospedagem permitir
   cabeçalhos HTTP, acrescente lá: Content-Security-Policy: frame-ancestors 'none'.
 

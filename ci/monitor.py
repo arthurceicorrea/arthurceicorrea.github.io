@@ -6,7 +6,8 @@ Confere:
 - página inicial e páginas /pt/, /en/, /es/, /it/: resposta 200, HTML, idioma certo e
   política de segurança presente;
 - página 404 personalizada para endereços inexistentes;
-- robots.txt, sitemap.xml, currículos em PDF, fontes e imagens de prévia;
+- robots.txt, sitemap.xml, currículos em PDF, fontes, folhas de estilo e scripts de /assets/
+  e imagens de prévia;
 - redirecionamento de http para https;
 - certificado HTTPS válido por pelo menos 14 dias.
 
@@ -90,6 +91,10 @@ FILES = {
     'cv/arthur-cei-correa-cv-en.pdf': ('application/pdf', b'%PDF'),
     'cv/arthur-cei-correa-cv-es.pdf': ('application/pdf', b'%PDF'),
     'cv/arthur-cei-correa-cv-it.pdf': ('application/pdf', b'%PDF'),
+    'assets/site.css': ('text/css', b'@layer'),
+    'assets/404.css': ('text/css', b'@layer'),
+    'assets/language.js': ('javascript', b'//'),
+    'assets/page.js': ('javascript', b'//'),
     'fonts/cinzel-400.woff2': ('font/woff2', b'wOF2'),
     'fonts/eb-garamond-400.woff2': ('font/woff2', b'wOF2'),
     'og.png': ('image/png', b'\x89PNG'),
