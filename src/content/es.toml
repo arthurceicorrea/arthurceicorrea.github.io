@@ -222,6 +222,10 @@ button = "Descargar currículum en español (PDF)"
 also = "También en"
 conjunction = "e"
 
+[resume]
+summary = "Resumen"
+page = "Página {page} de {total}"
+
 [footer]
 privacy = "Página sin cookies, sin rastreadores y sin recursos de terceros."
 pipeline_html = "Publicada por un pipeline de GitHub Actions que valida la página en cada cambio: <a href=\"https://github.com/arthurceicorrea/arthurceicorrea.github.io\" target=\"_blank\" rel=\"noopener noreferrer\">código fuente<span class=\"vh\"> (se abre en una pestaña nueva)</span></a>."

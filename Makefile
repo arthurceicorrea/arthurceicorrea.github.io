@@ -16,7 +16,8 @@ setup:
 	$(PYTHON) -m pip install -r ci/requirements.txt
 	npm ci --prefix ci --no-audit --no-fund
 
-# Monta o site em _site/ (página inicial, uma página por idioma, 404 e arquivos).
+# Monta o site em _site/ (página inicial, uma página por idioma, 404, currículos em PDF e arquivos).
+# Os currículos são impressos no Chrome: o do sistema, ou o do caminho em CHROME_PATH.
 build:
 	$(PYTHON) ci/build.py
 

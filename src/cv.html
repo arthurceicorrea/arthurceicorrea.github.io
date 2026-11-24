@@ -1,0 +1,105 @@
+{#
+  Currículo em PDF (Jinja2), um por idioma, montado por ci/build.py com os textos de
+  src/content/<idioma>.toml: os mesmos da página (resumo, projetos, artigo, competências,
+  idiomas, formação e experiência) e os de [resume], que só o currículo usa.
+  Este HTML não é publicado: o build o abre no Chrome (Playwright) e publica só o PDF,
+  em /cv/arthur-cei-correa-cv-<idioma>.pdf. O estilo está em src/css/cv.css.
+#}
+{# rótulo de um endereço: sem https:// nem www. #}
+{% macro url_label(url) %}{% set rest = url.split('://', 1)[1] %}{{ (rest[4:] if rest.startswith('www.') else rest).rstrip('/') }}{% endmacro %}
+<!DOCTYPE html>
+<html lang="{{ e.tag }}">
+<head>
+<meta charset="utf-8">
+<title>Arthur Cei Corrêa</title>
+<meta name="author" content="Arthur Cei Corrêa">
+<link rel="stylesheet" href="/cv.css">
+{# rodapé de cada página no idioma do currículo: texto gerado pelo build, não publicado #}
+<style>
+@page { @bottom-right { content: {{ page_label }}; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Arthur Cei Corrêa</h1>
+  <p class="craft">{{ e.intro.craft | join(' · ') }}</p>
+  <p class="contact">
+    <a href="mailto:{{ email }}">{{ email }}</a> ·
+    <a href="{{ linkedin }}">{{ url_label(linkedin) }}</a> ·
+    <a href="{{ github }}">{{ url_label(github) }}</a> ·
+    <a href="{{ site }}">{{ url_label(site) }}</a>
+  </p>
+</header>
+
+<section>
+  <h2>{{ e.resume.summary }}</h2>
+  <p>{{ e.intro.summary }}</p>
+  <dl class="glance">
+{% for fact in e.intro.glance %}
+    <div><dt>{{ fact.term }}</dt> <dd>{{ fact.text }}</dd></div>
+{% endfor %}
+  </dl>
+</section>
+
+<section>
+  <h2>{{ e.sections.education.title }}</h2>
+{% for entry in e.education %}
+  <article>
+    <h3>{{ entry.title }}</h3>
+    <p class="meta">{{ entry.meta }}</p>
+    <p>{{ entry.text }}</p>
+  </article>
+{% endfor %}
+</section>
+
+<section>
+  <h2>{{ e.sections.projects.title }}</h2>
+{% for p in e.projects %}
+  <article>
+    <h3>{{ p.title }}</h3>
+    <p class="meta">{{ p.meta }}</p>
+    <p>{{ p.summary }}</p>
+    <dl class="facts">
+{# o papel só aparece quando acrescenta algo ao resumo (no SellOut EasyTrack, o resumo já o diz) #}
+{% if not adds_nothing(p.role, p.summary) %}
+      <div><dt>{{ e.ui.role }}</dt> <dd>{{ p.role }}</dd></div>
+{% endif %}
+      <div><dt>{{ e.ui.stack }}</dt> <dd>{{ p.stack }}</dd></div>
+{% if p.repo is defined %}
+      <div><dt>{{ e.ui.repository }}</dt> <dd><a href="{{ p.repo }}">{{ url_label(p.repo) }}</a></dd></div>
+{% else %}
+      <div><dt>{{ e.ui.repository }}</dt> <dd>{{ p.repo_note }}</dd></div>
+{% endif %}
+    </dl>
+  </article>
+{% endfor %}
+</section>
+
+<section>
+  <h2>{{ e.sections.skills.title }}</h2>
+  <p>{{ e.skills.intro }}</p>
+  <dl class="facts">
+{% for group in e.skills.groups %}
+    <div><dt>{{ group.name }}</dt> <dd>{{ group.items }}</dd></div>
+{% endfor %}
+  </dl>
+</section>
+
+<section>
+  <h2>{{ e.sections.languages.title }}</h2>
+  <p>{% for item in e.languages.items %}{{ item.name }} ({{ item.level }}){% if not loop.last %} · {% endif %}{% endfor %}</p>
+</section>
+
+<section>
+  <h2>{{ e.sections.article.title }}</h2>
+  <article>
+    <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.headline }}</h3>
+    <p class="meta">{{ e.article.meta | replace('{date}', long_date(article.date, e)) }}</p>
+    <p>{{ e.article.summary }}</p>
+    <p><a href="{{ article.url }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
+  </article>
+</section>
+
+</body>
+</html>

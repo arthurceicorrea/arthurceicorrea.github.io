@@ -222,6 +222,12 @@ button = "Baixar currículo em português (PDF)"
 also = "Também em"
 conjunction = "e"
 
+[resume]
+# Só o currículo em PDF (src/cv.html) usa estas chaves; o resto dele vem das mesmas chaves da página.
+summary = "Resumo"
+# Rodapé de cada página do PDF: {page} é o número da página, {total} o total de páginas.
+page = "Página {page} de {total}"
+
 [footer]
 privacy = "Página sem cookies, sem rastreadores e sem recursos de terceiros."
 pipeline_html = "Publicada por um pipeline no GitHub Actions, que valida a página a cada alteração: <a href=\"https://github.com/arthurceicorrea/arthurceicorrea.github.io\" target=\"_blank\" rel=\"noopener noreferrer\">código-fonte<span class=\"vh\"> (abre em nova aba)</span></a>."

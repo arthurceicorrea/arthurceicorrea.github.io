@@ -1,0 +1,143 @@
+/* Currículo em PDF (src/cv.html), impresso em A4 pelo Chrome. As fontes vêm de tokens.css
+   (montado antes); as cores são outras, escuras sobre papel branco. Não é publicado. */
+@layer cv {
+  @page {
+    size: a4;
+    margin: 16mm 18mm 18mm;
+
+    @bottom-left {
+      content: "Arthur Cei Corrêa";
+      font: 8.5pt var(--garamond);
+      color: var(--soft);
+    }
+
+    @bottom-right {
+      font: 8.5pt var(--garamond);
+      color: var(--soft);
+    }
+  }
+
+  :root {
+    --ink: #1b1f24; /* texto: 16,56:1 sobre o branco */
+    --soft: #4f5864; /* datas, rótulos e rodapé: 7,21:1 */
+    --gold-print: #7a5a2b; /* nome do foco e títulos de seção: 6,32:1 */
+    --line: #c9b48f; /* filetes, apenas decorativos */
+
+    color-scheme: light;
+  }
+
+  html {
+    font: 11pt/1.3 var(--garamond);
+    color: var(--ink);
+    background: #fff;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  dl,
+  dd {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  header {
+    margin-bottom: 4mm;
+  }
+
+  h1 {
+    font: 500 22pt/1.1 var(--cinzel);
+    letter-spacing: 0.02em;
+  }
+
+  .craft {
+    margin-top: 1mm;
+    font: 400 10.5pt var(--cinzel);
+    letter-spacing: 0.08em;
+    color: var(--gold-print);
+  }
+
+  .contact {
+    margin-top: 1.5mm;
+    color: var(--soft);
+  }
+
+  section {
+    margin-top: 4mm;
+  }
+
+  h2 {
+    font: 500 10.5pt var(--cinzel);
+    letter-spacing: 0.12em;
+    color: var(--gold-print);
+    border-bottom: 0.5pt solid var(--line);
+    padding-bottom: 0.8mm;
+    margin-bottom: 2mm;
+    break-after: avoid;
+  }
+
+  article {
+    break-inside: avoid;
+  }
+
+  article + article {
+    margin-top: 2.6mm;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  .meta {
+    font-style: italic;
+    color: var(--soft);
+  }
+
+  .meta + p {
+    margin-top: 0.6mm;
+  }
+
+  .facts,
+  .glance {
+    display: grid;
+    gap: 0.5mm;
+    margin-top: 1mm;
+  }
+
+  .glance {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 6mm;
+  }
+
+  .facts div,
+  .glance div {
+    display: grid;
+    grid-template-columns: 34mm 1fr;
+    column-gap: 3mm;
+    break-inside: avoid;
+  }
+
+  .glance div {
+    grid-template-columns: 21mm 1fr;
+  }
+
+  dt {
+    font-style: italic;
+    color: var(--soft);
+  }
+
+  section > p + .facts {
+    margin-top: 1.5mm;
+  }
+}

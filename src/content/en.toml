@@ -224,6 +224,10 @@ button = "Download CV in English (PDF)"
 also = "Also in"
 conjunction = "and"
 
+[resume]
+summary = "Summary"
+page = "Page {page} of {total}"
+
 [footer]
 privacy = "No cookies, no trackers and no third-party resources on this page."
 pipeline_html = "Published by a GitHub Actions pipeline that checks the page on every change: <a href=\"https://github.com/arthurceicorrea/arthurceicorrea.github.io\" target=\"_blank\" rel=\"noopener noreferrer\">source code<span class=\"vh\"> (opens in a new tab)</span></a>."

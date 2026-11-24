@@ -226,6 +226,10 @@ button = "Scarica il CV in italiano (PDF)"
 also = "Anche in"
 conjunction = "e"
 
+[resume]
+summary = "Profilo"
+page = "Pagina {page} di {total}"
+
 [footer]
 privacy = "Pagina senza cookie, senza tracciamento e senza risorse di terze parti."
 pipeline_html = "Pubblicata da una pipeline di GitHub Actions, che controlla la pagina a ogni modifica: <a href=\"https://github.com/arthurceicorrea/arthurceicorrea.github.io\" target=\"_blank\" rel=\"noopener noreferrer\">codice sorgente<span class=\"vh\"> (si apre in una nuova scheda)</span></a>."
