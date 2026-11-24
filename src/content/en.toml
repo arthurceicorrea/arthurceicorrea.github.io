@@ -83,7 +83,7 @@ aside = "I work best with clear tasks and written communication."
 
 [[intro.glance]]
 term = "Looking for"
-text = "Internship or junior role in DevOps and applied AI"
+text = "Internship or junior role in DevOps, applied AI and security"
 
 [[intro.glance]]
 term = "Start"
@@ -109,12 +109,12 @@ text = "December 2027, FIAP"
 # arquivos. repo é o endereço do repositório; sem repositório público, use repo_note no lugar.
 [[projects]]
 title = "Vinheria Agnello: infrastructure integration"
-meta = "FIAP, 2026, with team CodeSquad"
+meta = "FIAP, 2026 (phase 7), with team CodeSquad"
 summary = "I integrated two .NET microservices in Docker Compose, with networking, authentication and TLS, and set up the Jenkins pipeline that delivers them."
 stack = "Docker Compose, .NET, dnsmasq, JWT, TLS, Jenkins, Tableau, Node-RED (MQTT)."
-repo_note = "Private, no public link."
+repo_note = "Private, no public link; code available for demonstration in an interview."
 problem = "Getting two .NET microservices to work together, with network services (DNS and DHCP), authentication and encrypted traffic, and automating delivery."
-role = "I integrated the two microservices with Docker Compose, with DNS and DHCP (dnsmasq), JWT authentication and TLS. I configured the Jenkins pipeline that builds, publishes and deploys the services, with automated validation scripts and execution evidence. I also contributed Tableau and Node-RED (MQTT) dashboards."
+role = "I integrated and validated the two microservices with Docker Compose, with DNS and DHCP (dnsmasq), JWT authentication and TLS. I configured the Jenkins pipeline that builds, publishes and deploys the services, with automated validation scripts and execution evidence. I also contributed Tableau and Node-RED (MQTT) dashboards."
 
 [[projects]]
 title = "Frio Solidário, Global Solution 2026/2 (FIAP)"
@@ -123,13 +123,13 @@ summary = "I handled security and testing for the API, which monitors the cold c
 stack = ".NET 10, EF Core, PostgreSQL, JWT, BCrypt, xUnit."
 repo = "https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution"
 problem = "Monitor the cold chain in food banks and donor shops: sensors measure temperature, humidity and door opening, the API checks each reading against the equipment’s range, and the app warns the volunteer before a batch is lost."
-role = "Security and testing of a .NET API: JWT authentication, role-based access, per-institution data isolation, and protection against SQL injection and XSS; a test plan executed with evidence and xUnit tests of the business rules."
+role = "Security and testing of a .NET API: JWT authentication, role-based access, per-institution data isolation, and protection against SQL injection and XSS; an 8-case test plan executed with evidence, and xUnit tests of the business rules, such as the alert rule."
 
 [[projects]]
 title = "SellOut EasyTrack"
 meta = "2nd place in the FIAP Challenge 2025 (Asteria), with team CodeSquad"
 summary = "A desktop sales management application; I mainly developed the core back-end logic."
-stack = "Java 11, Maven, MySQL, JUnit, R (analysis)."
+stack = "Java 11, Maven, MySQL, FlatLaf, JUnit, R (analysis)."
 repo = "https://github.com/arthurceicorrea/SellOutEasyTrack"
 problem = "A desktop application for sales management, built for the FIAP Challenge 2025."
 role = "I mainly developed the core back-end logic."
@@ -154,24 +154,32 @@ link_note = "opens in a new tab"
 intro = "Technologies I have had hands-on contact with: in my internship, in projects and in coursework labs."
 
 [[skills.groups]]
-name = "DevOps"
-items = "Terraform, Docker, Kubernetes, Linux, Azure DevOps."
+name = "DevOps and cloud"
+items = "Azure DevOps, CI/CD (Jenkins, GitHub Actions), Docker, Docker Compose, Git; working knowledge of Terraform and Kubernetes (internship); AWS and Azure (labs)."
 
 [[skills.groups]]
-name = "Applied AI"
-items = "Python, scikit-learn, LangGraph, RAG, ChromaDB."
+name = "Operating systems"
+items = "Linux (Debian, shell, SSH), Windows Server (Active Directory, DHCP, DNS)."
 
 [[skills.groups]]
-name = "Security"
-items = "An area of study, with practical application in an academic project: JWT authentication, TLS, role-based access, protection against SQL injection and XSS."
+name = "Applied AI and data"
+items = "Python (scikit-learn, pandas), LangGraph, RAG, ChromaDB; R, Tableau, Power BI."
+
+[[skills.groups]]
+name = "Security and networking"
+items = "An area of study, with practical application in an academic project: JWT authentication, TLS, role-based access, protection against SQL injection and XSS; networking: DNS and DHCP."
 
 [[skills.groups]]
 name = "Testing"
-items = "JUnit and xUnit; manual testing, with a plan and evidence, and automated tests."
+items = "JUnit, xUnit and Cucumber (BDD); manual testing, with a plan and evidence, and automated tests."
 
 [[skills.groups]]
-name = "Languages and databases"
-items = "Java, Python, C#, JavaScript, SQL, Oracle Database."
+name = "Programming languages"
+items = "Java, C#, Python, JavaScript, SQL, R."
+
+[[skills.groups]]
+name = "Databases"
+items = "SQL, MySQL, Oracle Database (relational modeling)."
 
 [languages]
 
@@ -191,15 +199,19 @@ level = "advanced"
 name = "Italian"
 level = "basic"
 
+[[languages.items]]
+name = "Latin"
+level = "basic"
+
 [[education]]
-title = "Software Engineering, FIAP (São Paulo)"
+title = "Bachelor’s degree in Software Engineering, FIAP (São Paulo)"
 meta = "February 2023 to December 2027 (expected)"
-text = "Coursework labs: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins and GitHub Actions, machine learning with Python and scikit-learn."
+text = "Faculdade de Informática e Administração Paulista. Coursework labs: Linux (Debian, SSH), Windows Server (Active Directory, DHCP, DNS), Jenkins and GitHub Actions, machine learning with Python and scikit-learn."
 
 [[education]]
 title = "DevOps internship, Vivo (Telefônica Brasil)"
 meta = "August 2024 to December 2025"
-text = "Under supervision, I observed, studied and contributed: I supported the maintenance of CI/CD pipelines in Azure DevOps and the analysis of bottlenecks, in environments built with Terraform, Docker, Kubernetes and Linux."
+text = "Under supervision, I observed, studied and contributed: I supported the maintenance and optimization of CI/CD pipelines in Azure DevOps and the analysis of bottlenecks, in environments built with Terraform, Docker, Kubernetes and Linux, and studied reliability concepts (SLI, SLO and SLA) in practice."
 
 [contact]
 reply = "I reply within two days."
