@@ -1,6 +1,6 @@
 # Dependências do pipeline, em versões exatas (o Dependabot propõe as atualizações)
 # Testes
-pypdf==7.1.0
+pypdf==7.1.1
 playwright==1.65.2
 # Build: modelo das páginas (Jinja2, que usa o MarkupSafe)
 Jinja2==3.1.6
