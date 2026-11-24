@@ -1,7 +1,8 @@
 """Validação estática do site montado por ci/build.py, executada pelo pipeline antes de publicar.
 
-Confere em todas as páginas (inicial, 404 e uma por idioma): hashes da CSP,
-aninhamento do HTML, ids únicos, ausência de estilos e manipuladores embutidos,
+Confere em todas as páginas (inicial, 404 e uma por idioma): a política de segurança
+(CSP) exatamente como definida, nenhum estilo ou script embutido (só os dados
+estruturados), aninhamento do HTML, ids únicos, ausência de atributos style e on...,
 links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos
 e existentes, e dados estruturados. Na página inicial, a paridade das quatro
 edições; nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e
@@ -11,8 +12,6 @@ ausência de telefone nas páginas e nos currículos.
 Uso: python ci/build.py && python ci/validate.py _site
 """
 import json
-import base64
-import hashlib
 import os
 import re
 import sys
@@ -34,6 +33,9 @@ ALLOWED_EXTERNAL = (
 )
 # telefone brasileiro: +55, (11) 9xxxx-xxxx ou 9xxxx-xxxx
 PHONE = re.compile(r'\+\s?55\b|\(\d{2}\)\s?9\d{4}-?\d{4}|\b9\d{4}-\d{4}\b')
+# Política de segurança de todas as páginas: estilos e scripts só de arquivos do próprio site.
+POLICY = ("default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; "
+          "connect-src 'self'; base-uri 'none'; form-action 'none'")
 VOID = {'meta', 'link', 'br', 'wbr', 'img', 'input', 'hr', 'source', 'area', 'base', 'col', 'embed', 'track', 'param'}
 
 failures = []
@@ -43,10 +45,6 @@ def check(ok, label, detail=''):
     print(('ok    ' if ok else 'FALHA ') + label + (' :: %s' % (detail,) if detail and not ok else ''))
     if not ok:
         failures.append(label)
-
-
-def sha256(text):
-    return 'sha256-' + base64.b64encode(hashlib.sha256(text.encode('utf-8')).digest()).decode()
 
 
 def local_file(url):
@@ -107,7 +105,7 @@ def check_page(name, edition=None):
     edition='pt-BR' (etc.) exige só aquela. Devolve (texto bruto, corpo sem comentários, analisador)."""
     where = ' [%s]' % name
     raw = open(os.path.join(ROOT, name), encoding='utf-8').read()
-    check('\r' not in raw, 'quebras de linha LF (os hashes da CSP dependem disso)' + where)
+    check('\r' not in raw, 'quebras de linha LF' + where)
     code = re.sub(r'<!--.*?-->', '', raw, flags=re.S)
 
     # ---------- CSP ----------
@@ -119,8 +117,7 @@ def check_page(name, edition=None):
     check(bool(meta), 'meta CSP presente' + where)
     if meta:
         csp = meta.group(1)
-        check("style-src 'self';" in csp, "estilos só do próprio site (style-src 'self')" + where)
-        check("script-src 'self';" in csp, "scripts só do próprio site (script-src 'self')" + where)
+        check(csp == POLICY, 'política de segurança exatamente como definida' + where, csp)
         check("default-src 'none'" in csp and 'unsafe-inline' not in csp and 'unsafe-eval' not in csp,
               "CSP restritiva (default-src 'none', sem unsafe-inline nem unsafe-eval)" + where)
 
@@ -147,7 +144,7 @@ def check_page(name, edition=None):
 
     body = code.split('<body>', 1)[1] if '<body>' in code else ''
     check(not re.search(r'\sstyle\s*=', code), 'nenhum atributo style embutido' + where)
-    check(not re.search(r'\son[a-z]+\s*=', body), 'nenhum manipulador de evento embutido' + where)
+    check(not re.search(r'\son[a-z]+\s*=', code), 'nenhum manipulador de evento embutido' + where)
 
     # ---------- links e recursos ----------
     for tag, a, line in p.tags:
