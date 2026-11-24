@@ -5,7 +5,6 @@
 PYTHON ?= python
 SITE := _site
 VNU := ci/node_modules/vnu-jar/build/dist/vnu.jar
-AXE := ci/node_modules/axe-core/axe.min.js
 
 .DEFAULT_GOAL := build
 .PHONY: setup build test serve
@@ -19,14 +18,15 @@ setup:
 build:
 	$(PYTHON) ci/build.py
 
-# Valida o site já montado: verificações próprias, validador do W3C, navegador e acessibilidade.
+# Valida o site já montado, na ordem do pipeline: textos completos e validação estática (pytest),
+# validador do W3C, teste no navegador (pytest) e acessibilidade (pytest). Os testes ficam em tests/.
 # O validador do W3C ignora só as duas mensagens sobre propriedades recentes do CSS, como no pipeline.
 # LC_ALL=C.UTF-8 garante que o Java leia as aspas curvas do filtro mesmo onde a máquina não tem locale UTF-8.
 test:
-	$(PYTHON) ci/validate.py $(SITE)
+	$(PYTHON) -m pytest tests/test_content.py tests/test_static.py
 	LC_ALL=C.UTF-8 java -jar $(VNU) --errors-only --format gnu --skip-non-html --filterpattern '.*(“interpolate-size”|“allow-discrete”).*' $(SITE)
-	$(PYTHON) ci/smoke.py $(SITE)
-	$(PYTHON) ci/a11y.py $(SITE) $(AXE)
+	$(PYTHON) -m pytest tests/test_browser.py
+	$(PYTHON) -m pytest tests/test_a11y.py
 
 # Serve o site montado em http://localhost:8000/
 serve:

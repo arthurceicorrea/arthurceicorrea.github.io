@@ -48,7 +48,7 @@ jobs:
         run: python ci/build.py
 
       - name: Validação estática (CSP, HTML, links, idiomas, dados estruturados, privacidade)
-        run: python ci/validate.py _site
+        run: python -m pytest tests/test_content.py tests/test_static.py
 
       - name: Validador oficial de HTML do W3C (Nu Html Checker)
         # O validador ainda não conhece interpolate-size e transition-behavior (allow-discrete), propriedades
@@ -56,10 +56,10 @@ jobs:
         run: java -jar ci/node_modules/vnu-jar/build/dist/vnu.jar --errors-only --format gnu --skip-non-html --filterpattern '.*(“interpolate-size”|“allow-discrete”).*' _site
 
       - name: Teste no navegador (idiomas, países, celular e tela larga, sem JavaScript)
-        run: python ci/smoke.py _site
+        run: python -m pytest tests/test_browser.py
 
       - name: Auditoria de acessibilidade (axe, WCAG 2.2 A e AA)
-        run: python ci/a11y.py _site ci/node_modules/axe-core/axe.min.js
+        run: python -m pytest tests/test_a11y.py
 
       - name: Lighthouse (desempenho, acessibilidade, boas práticas e SEO)
         run: ci/node_modules/.bin/lhci autorun --config=ci/lighthouserc.json
