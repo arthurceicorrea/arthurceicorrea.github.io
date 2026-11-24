@@ -4,9 +4,10 @@ Confere em todas as páginas (inicial, 404 e uma por idioma): a política de seg
 (CSP) exatamente como definida, nenhum estilo ou script embutido (só os dados
 estruturados), aninhamento do HTML, ids únicos, ausência de atributos style e on...,
 links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos
-e existentes, e dados estruturados. Na página inicial, a paridade das quatro
-edições; nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e
-prévia de compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml e a
+e existentes, e dados estruturados. Na página inicial, só a edição em inglês, marcada
+(data-home) para o script levar cada visitante à página do seu idioma; na 404, a
+paridade das quatro edições; nas páginas por idioma, uma só edição, idioma fixo,
+endereço canônico e prévia de compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml e a
 ausência de telefone nas páginas e nos currículos.
 
 Uso: python ci/build.py && python ci/validate.py _site
@@ -172,7 +173,8 @@ def check_page(name, edition=None):
 
 
 # ---------- página inicial ----------
-raw, body, parsed = check_page('index.html')
+raw, body, parsed = check_page('index.html', edition='en')
+check('<html lang="en" data-home>' in raw, 'página inicial em inglês, marcada para levar ao idioma do visitante')
 check('#conteudo' not in body or ' id="conteudo"' in body, 'âncora do link de pular existe')
 for code in CODES:
     check(('href="/cv/arthur-cei-correa-cv-%s.pdf"' % code) in body, 'botão do currículo %s presente' % code)
@@ -260,7 +262,7 @@ for name in ['index.html'] + ['%s/index.html' % c for c in CODES]:
     stamps[name] = (re.findall(r'<time datetime="([^"]+)">', text), re.findall(r'<span class="year">(\d{4})</span>', text))
 dates = {d for found, _ in stamps.values() for d in found}
 years = {y for _, found in stamps.values() for y in found}
-check(len(dates) == 1 and len(stamps['index.html'][0]) == 4, 'mesma data de atualização em todas as páginas', dates)
+check(len(dates) == 1 and len(stamps['index.html'][0]) == 1, 'mesma data de atualização em todas as páginas', dates)
 if len(dates) == 1:
     day = datetime.date.fromisoformat(dates.pop())
     check(day <= datetime.date.today() + datetime.timedelta(days=1), 'data de atualização não está no futuro', day)

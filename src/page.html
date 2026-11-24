@@ -1,7 +1,8 @@
 {#
   Modelo da página do portfólio (Jinja2). Escrito uma vez; ci/build.py o usa para montar:
   - /pt/, /en/, /es/, /it/: uma edição cada, com o idioma fixo;
-  - a página inicial: as quatro edições, e o script de idioma mostra a do visitante.
+  - a página inicial: a edição em inglês, marcada com data-home; o script de idioma
+    leva os outros visitantes à página do seu idioma.
   Os textos ficam em src/content/<idioma>.toml e são escapados. A exceção são os campos
   terminados em _html, que levam marcação (links) e entram como estão. Datas entram pelo
   marcador {date}, trocado por <time> no formato do idioma.
@@ -21,8 +22,8 @@
   pois injetam scripts embutidos, que a política bloqueia.
 
   Idiomas: cada edição é um elemento class="t" com o atributo lang; o CSS mostra só a
-  edição cujo lang coincide com o do elemento html; o script de idioma só o escolhe e
-  atualiza esse atributo. Sem JavaScript, a página inicial fica em inglês.
+  edição cujo lang coincide com o do elemento html. Sem JavaScript, a página inicial
+  fica em inglês.
 
   Se passar a usar domínio próprio, troque o endereço em ci/build.py (BASE) e em
   static/arthur-cei-correa.vcf.
@@ -33,7 +34,7 @@
 {% macro mail(e) %}<span class="mail"><a href="mailto:{{ email }}">{{ email }}</a><button class="copy" type="button" data-copy="{{ email }}" data-done="{{ e.ui.copied }}" data-said="{{ e.ui.copied_said }}" hidden><span class="idle">{{ e.ui.copy }}<span class="vh"> {{ e.ui.copy_what }}</span></span><span class="ok" aria-hidden="true">{{ e.ui.copied }}</span></button><span class="vh" role="status"></span></span>{% endmacro %}
 {% macro cv(code) %}/cv/arthur-cei-correa-cv-{{ code }}.pdf{% endmacro %}
 <!DOCTYPE html>
-<html lang="{{ page.html_lang }}"{% if page.data_lang is not none %} data-lang="{{ page.data_lang }}"{% endif %}>
+<html lang="{{ page.html_lang }}"{% if page.data_lang is not none %} data-lang="{{ page.data_lang }}"{% endif %}{% if page.home %} data-home{% endif %}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

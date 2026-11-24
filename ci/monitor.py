@@ -78,7 +78,7 @@ for path, tag in PAGES.items():
     if tag:
         check('<html lang="%s" data-lang="%s">' % (tag, path[:2]) in html, 'idioma certo (%s)' % where)
     else:
-        check('Sapientis est ordinare' in html and html.count('class="t" lang=') >= 8, 'página inicial com as quatro edições')
+        check('Sapientis est ordinare' in html and '<html lang="en" data-home>' in html, 'página inicial em inglês, marcada para levar ao idioma do visitante')
 
 status, kind, body = fetch('esta-pagina-nao-existe-' + uuid.uuid4().hex[:8])
 check(status == 404 and b'Page not found' in body, 'endereço inexistente mostra a página 404 do site', status)
