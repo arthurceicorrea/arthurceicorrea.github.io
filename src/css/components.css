@@ -103,14 +103,14 @@
     font-style: italic;
   }
 
-  .entry p:not(.meta),
-  .entry .facts {
-    margin-top: 0.8rem;
-  }
-
   .facts {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .entry p:not(.meta),
+  .entry .facts {
+    margin-top: 0.8rem;
   }
 
   .facts dt {

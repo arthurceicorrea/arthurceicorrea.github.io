@@ -13,7 +13,7 @@
     var code = String(value || "")
       .toLowerCase()
       .split(/[-_]/)[0];
-    return TAGS.hasOwnProperty(code) ? code : null;
+    return Object.prototype.hasOwnProperty.call(TAGS, code) ? code : null;
   }
 
   function fromUrl() {
@@ -45,9 +45,13 @@
     try {
       var zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
       for (var code in ZONES) {
-        if (ZONES.hasOwnProperty(code) && ZONES[code].test(zone)) return code;
+        if (
+          Object.prototype.hasOwnProperty.call(ZONES, code) &&
+          ZONES[code].test(zone)
+        )
+          return code;
       }
-    } catch (error) {
+    } catch {
       /* navegador sem Intl: segue para o idioma do navegador */
     }
     return null;

@@ -88,6 +88,8 @@
     display: none;
   }
 
+  /* stylelint-disable-next-line no-descending-specificity -- .jump a (sumário) e .langs a:hover (topo)
+     nunca atingem o mesmo link; qualquer ordem dos dois componentes faria a regra apontar um par. */
   .jump a {
     display: inline-flex;
     align-items: center;
@@ -122,10 +124,6 @@
   .jump .cv:hover {
     background: var(--gold);
     color: var(--bg);
-  }
-
-  .sec {
-    scroll-margin-top: 4.5rem;
   }
 
   /* celular: a borda direita da faixa esmaece, sinal de que há mais links ao rolar */
@@ -193,6 +191,7 @@
   .sec {
     max-width: var(--measure);
     margin-left: auto;
+    scroll-margin-top: 4.5rem; /* ao vir do sumário, o título da seção fica abaixo do sumário fixo */
   }
 
   .sec + .sec {
