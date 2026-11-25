@@ -13,5 +13,6 @@ Each record explains one decision about how this site is built and published: th
 | [7](0007-github-actions-pinned-by-commit-hash.md) | GitHub Actions pinned by commit hash | 2026-11-20 |
 | [8](0008-cvs-printed-by-the-build-in-a-legible-typeface.md) | CVs printed by the build, in a legible typeface | 2026-11-24 |
 | [9](0009-cinzel-only-where-the-page-is-an-inscription.md) | Cinzel only where the page is an inscription | 2026-11-25 |
+| [10](0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md) | Cloudflare in front of GitHub Pages, managed by Terraform | 2026-11-25 |
 
 A decision that changes gets a new record that supersedes the old one; the old one stays, marked as superseded, so the history of the reasoning is kept.

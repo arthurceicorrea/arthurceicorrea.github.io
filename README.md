@@ -55,12 +55,14 @@ ci/                     build and pipeline tools
   stylelint.config.js   Stylelint rules, with the two adjustments explained
   eslint.config.js      ESLint rules
 tests/                  pytest tests (see Tests)
+infra/                  Terraform for the domain at Cloudflare: DNS, redirect, security headers (see its README)
 docs/
   PLAN.md               the plan this structure came from, stage by stage
   adr/                  architecture decision records (see Decisions)
 .github/
   workflows/site.yml    the pipeline: check, publish, check the live site
   workflows/monitor.yml the weekly live check
+  workflows/infra.yml   the Terraform check and plan, on pull requests that touch infra/
   dependabot.yml        weekly updates of actions and tools
 Makefile                setup, lint, build, test, serve
 CLAUDE.md               instructions for the AI assistant used on this repository
@@ -94,6 +96,8 @@ Then, on `main` only:
 
 8. **Publicar**: `_site/` is published to GitHub Pages.
 9. **Conferir no ar** (`ci/monitor.py`): the live site must serve the commit just deployed (`version.txt`), with every page and file, the custom 404, the HTTP→HTTPS redirect and a valid certificate.
+
+**Infrastructure.** A pull request that touches `infra/` also runs [`.github/workflows/infra.yml`](.github/workflows/infra.yml): `terraform fmt`, `terraform validate` and `terraform plan` with read-only credentials, the plan shown in the run summary. Changes are applied by hand after the merge, as described in [`infra/README.md`](infra/README.md) ([ADR 10](docs/adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md)).
 
 **Monitoring.** [`.github/workflows/monitor.yml`](.github/workflows/monitor.yml) runs the same live check every Monday. If it fails, it opens an issue labelled `monitoramento`; when the site passes again, it closes the issue. GitHub disables scheduled workflows in repositories with no commits for 60 days.
 
@@ -140,6 +144,7 @@ The main decisions behind the site are recorded in [`docs/adr/`](docs/adr/), eac
 7. [GitHub Actions pinned by commit hash](docs/adr/0007-github-actions-pinned-by-commit-hash.md)
 8. [CVs printed by the build, in a legible typeface](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md)
 9. [Cinzel only where the page is an inscription](docs/adr/0009-cinzel-only-where-the-page-is-an-inscription.md)
+10. [Cloudflare in front of GitHub Pages, managed by Terraform](docs/adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md)
 
 ## License
 
