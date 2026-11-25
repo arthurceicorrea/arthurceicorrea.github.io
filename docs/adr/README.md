@@ -12,5 +12,6 @@ Each record explains one decision about how this site is built and published: th
 | [6](0006-one-pull-request-per-change-with-required-pipeline.md) | One pull request per change, with the pipeline required | 2026-11-23 |
 | [7](0007-github-actions-pinned-by-commit-hash.md) | GitHub Actions pinned by commit hash | 2026-11-20 |
 | [8](0008-cvs-printed-by-the-build-in-a-legible-typeface.md) | CVs printed by the build, in a legible typeface | 2026-11-24 |
+| [9](0009-cinzel-only-where-the-page-is-an-inscription.md) | Cinzel only where the page is an inscription | 2026-11-25 |
 
 A decision that changes gets a new record that supersedes the old one; the old one stays, marked as superseded, so the history of the reasoning is kept.

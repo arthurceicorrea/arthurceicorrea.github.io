@@ -16,19 +16,13 @@
 
   .langs ul {
     display: flex;
+    gap: 0.15rem;
     margin-right: -0.7rem;
   }
 
   .langs li {
     display: flex;
     align-items: center;
-  }
-
-  .langs li + li::before {
-    content: "\00B7";
-    content: "\00B7" / "";
-    color: var(--gold);
-    font: 500 0.8125rem/1 var(--cinzel);
   }
 
   .langs a {
@@ -39,8 +33,9 @@
     min-height: 2.75rem;
     padding-left: 0.16em;
     color: var(--muted);
-    font: 500 0.8125rem/1 var(--cinzel);
-    letter-spacing: 0.16em;
+    font: 400 1.125rem/1 var(--garamond);
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.06em;
     text-decoration: none;
   }
 
@@ -95,9 +90,7 @@
     align-items: center;
     min-height: 2.5rem;
     color: var(--muted);
-    font: 500 0.75rem/1 var(--cinzel);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font: 400 1.0625rem/1 var(--garamond);
     text-decoration: none;
     white-space: nowrap;
   }
@@ -116,7 +109,7 @@
   .jump .cv {
     flex: none;
     min-height: 2.25rem;
-    padding: 0 0.9rem 0 calc(0.9rem + 0.12em);
+    padding: 0 1rem;
     border: 1px solid var(--gold);
     color: var(--gold-hi);
   }
@@ -143,18 +136,18 @@
     }
   }
 
-  /* ---- Hero: o lema como epígrafe, alinhado à direita, como na capa ---- */
+  /* ---- Hero: o lema como inscrição, alinhado à direita, como na capa; é a única nota alta da página ---- */
   .hero {
-    padding-block: clamp(1.75rem, 6vh, 3.5rem) clamp(1.75rem, 5vh, 3rem);
+    padding-block: clamp(2.5rem, 9vh, 5.5rem) clamp(2rem, 6vh, 3.5rem);
     text-align: right;
   }
 
   /* margens negativas: anulam o espaço que o letter-spacing deixa depois da última letra */
   .motto blockquote p {
-    margin-right: -0.11em;
+    margin-right: -0.06em;
     color: var(--gold);
-    font: 400 clamp(1.25rem, 0.95rem + 1.2vw, 1.75rem)/1.2 var(--cinzel);
-    letter-spacing: 0.11em;
+    font: 400 clamp(2rem, 0.9rem + 4.6vw, 4.75rem)/1.05 var(--cinzel);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
@@ -162,9 +155,21 @@
     white-space: nowrap;
   }
 
+  /* duas linhas fixas, como numa lápide; o ponto romano (interpunct) separa as palavras
+     da primeira e não é lido pelos leitores de tela */
+  .motto blockquote span:first-child::after {
+    content: "\00B7";
+    content: "\00B7" / "";
+    margin-inline: 0.12em -0.2em;
+  }
+
+  .motto blockquote span:last-child {
+    display: block;
+  }
+
   .motto .tr {
-    margin-top: 0.45em;
-    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    margin-top: 0.8em;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.4rem);
     font-style: italic;
     line-height: 1.25;
     text-wrap: balance;
@@ -181,9 +186,9 @@
   .motto::after {
     content: "";
     display: block;
-    width: 3.5rem;
+    width: 5rem;
     height: 1px;
-    margin: 1.25rem 0 0 auto;
+    margin: 1.75rem 0 0 auto;
     background: var(--gold);
   }
 

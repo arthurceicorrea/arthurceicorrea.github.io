@@ -91,12 +91,10 @@
     white-space: nowrap;
   }
 
-  /* ---- Título principal ---- */
+  /* ---- Título principal: o nome, em letra de livro, como o autor sob a epígrafe ---- */
   h1 {
     color: var(--text);
-    font: 400 clamp(1.5rem, 1rem + 2.2vw, 2.25rem)/1.2 var(--cinzel);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font: 400 clamp(2rem, 1.2rem + 2.6vw, 3rem)/1.1 var(--garamond);
     text-wrap: balance;
   }
 
