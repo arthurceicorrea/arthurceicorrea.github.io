@@ -215,15 +215,31 @@ Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as
 
 ---
 
-## Etapa 9: domínio próprio (quando for comprado)
+## Etapa 9: domínio próprio
 
-**O que muda**
-- Arthur compra o domínio e cria um token de API da Cloudflare com permissão só para esse domínio. O token fica como segredo do repositório no GitHub, nunca num arquivo.
-- `infra/` com Terraform (provedor da Cloudflare):
-  - DNS apontando para o GitHub Pages e redirecionamento do `www`;
-  - cabeçalhos de segurança: política de segurança com `frame-ancestors 'none'`, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
-- `terraform plan` roda no pull request. `terraform apply` é feito por Arthur.
-- Troca do endereço do site em todo lugar: `ci/build.py`, `static/` (vCard, robots), sitemap, `canonical`, `CNAME`, README do perfil e LinkedIn.
+Domínio: `arthurceicorrea.dev`, comprado na Cloudflare em 25/11/2026. A etapa sai em dois pull requests: a troca do endereço só entra depois que o domínio responde com certificado.
+
+**Feito por Arthur, antes do código**
+- Compra do domínio e DNSSEC ligado.
+- Um bucket R2, `arthurceicorrea-tfstate`, para o estado do Terraform.
+- Duas credenciais de cada tipo, todas restritas a este domínio ou a este bucket: um token da Cloudflare e uma chave do R2 só de leitura, guardados como segredos do repositório para o `plan` do pipeline; um token e uma chave de escrita, só no gerenciador de senhas de Arthur, para o `apply`. Nunca num arquivo.
+
+**Pull request A: infraestrutura** (o site não muda)
+- `infra/` com Terraform (provedor da Cloudflare), versões exatas e estado no R2:
+  - DNS apontando para o GitHub Pages, `www` e o registro TXT que verifica o domínio no GitHub;
+  - registros que declaram que o domínio não tem e-mail (MX nulo, SPF e DMARC), contra e-mails falsos em nome dele;
+  - redirecionamento do `www` e cabeçalhos de segurança: política de segurança com `frame-ancestors 'none'`, HSTS, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`;
+  - SSL Full (strict), e desligado tudo o que reescreve o HTML ou injeta scripts.
+- O proxy da Cloudflare começa desligado, porque o GitHub só emite o certificado quando o DNS aponta direto para ele.
+- `terraform plan` roda no pull request (workflow `infra.yml`). `terraform apply` é feito por Arthur, conforme `infra/README.md`.
+- Depois do `apply`, Arthur verifica o domínio no GitHub, informa-o em Settings → Pages, espera o certificado e marca "Enforce HTTPS". O arquivo `CNAME` não é preciso: com a publicação pelo GitHub Actions, o GitHub o ignora e usa essa configuração.
+- Registro de decisão: ADR 10.
+
+**Pull request B: troca do endereço**
+- O proxy é ligado, e com ele os cabeçalhos e o redirecionamento.
+- Troca do endereço do site em todo lugar: `ci/build.py`, `static/` (vCard, robots), sitemap, `canonical`, testes, workflows e README. O endereço antigo `arthurceicorrea.github.io` passa a redirecionar sozinho.
+- O monitoramento passa a conferir também os cabeçalhos de segurança no ar.
+- Fora do repositório, feito por Arthur: README do perfil e LinkedIn.
 
 ---
 

@@ -1,0 +1,83 @@
+name: Infraestrutura
+
+# Confere o Terraform de infra/ e mostra, no resumo da execução, o que mudaria na Cloudflare.
+# Só planeja; quem aplica é Arthur, da própria máquina, com o token de edição (infra/README.md).
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      TF_IN_AUTOMATION: '1'
+      TF_INPUT: '0'
+      # Credenciais só de leitura: o token da Cloudflare e a chave do bucket R2 do estado.
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # Pull requests de forks e do Dependabot não recebem os segredos: nesses, o plano é pulado.
+      HAS_CREDENTIALS: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # A política do repositório só aceita ações do GitHub e do dono; em vez de abrir uma exceção para
+      # a ação da HashiCorp, o Terraform vem direto do site oficial, conferido pelo SHA-256 da versão
+      # (o mesmo publicado em terraform_1.17.2_SHA256SUMS). Arquivo diferente, execução interrompida.
+      - name: Instalar o Terraform 1.17.2 (conferido pelo SHA-256)
+        working-directory: ${{ runner.temp }}
+        env:
+          TF_VERSION: 1.17.2
+          TF_SHA256: e6f16b2f0b137ee5729caa8c4e79a3bae4ee261acd198a1fcfa8584a6296605b
+        run: |
+          curl -fsSLo terraform.zip "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+          echo "${TF_SHA256}  terraform.zip" | sha256sum -c -
+          unzip -q terraform.zip terraform
+          echo "$PWD" >> "$GITHUB_PATH"
+
+      - name: Formatação (terraform fmt)
+        run: terraform fmt -check -diff -recursive
+
+      - name: Iniciar com o estado no R2
+        if: env.HAS_CREDENTIALS == 'true'
+        run: terraform init -lockfile=readonly
+
+      - name: Iniciar sem o estado (sem credenciais)
+        if: env.HAS_CREDENTIALS != 'true'
+        run: terraform init -lockfile=readonly -backend=false
+
+      - name: Validação (terraform validate)
+        run: terraform validate
+
+      - name: Plano (o que mudaria na Cloudflare)
+        if: env.HAS_CREDENTIALS == 'true'
+        # -lock=false: a chave do pipeline só lê o bucket, e um plano não grava o estado.
+        run: |
+          terraform plan -lock=false -no-color -out=pr.tfplan
+          {
+            echo '## Plano do Terraform'
+            echo
+            echo '```'
+            terraform show -no-color pr.tfplan
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Aviso (plano pulado)
+        if: env.HAS_CREDENTIALS != 'true'
+        run: echo '::notice::Sem as credenciais de leitura, o plano foi pulado; formatação e validação rodaram.'

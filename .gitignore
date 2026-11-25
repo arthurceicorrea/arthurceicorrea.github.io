@@ -5,3 +5,10 @@ lighthouse-report/
 .lighthouseci/
 __pycache__/
 .pytest_cache/
+# Terraform: o provedor baixado, planos e estado nunca entram no repositório (o estado fica no R2).
+# O .terraform.lock.hcl entra: ele prende as versões e os hashes do provedor.
+infra/.terraform/
+*.tfplan
+*.tfstate
+*.tfstate.*
+crash.log
