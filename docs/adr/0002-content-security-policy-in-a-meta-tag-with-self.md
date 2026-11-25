@@ -29,7 +29,7 @@ connect-src 'self'; base-uri 'none'; form-action 'none'
 
 - An injected `<script>` or `style=""` is blocked, because it is neither a file from the site nor allowed by a hash. That makes `'self'` as strict as the hashes here, with no hash to recompute when the CSS or JavaScript changes.
 - The tests check the exact policy on every page, and that there is no inline style, script, `style=` or `on...=` attribute ([`tests/test_static.py`](../../tests/test_static.py)).
-- `frame-ancestors` cannot be set in a meta tag, so the site cannot forbid being embedded in another site's frame. That needs a header: stage 8 of the plan adds it, with HSTS and the other security headers, through Cloudflare in front of Pages once there is a custom domain.
+- `frame-ancestors` cannot be set in a meta tag, so the site cannot forbid being embedded in another site's frame. That needs a header: stage 9 of the plan adds it, with HSTS and the other security headers, through Cloudflare in front of Pages once there is a custom domain.
 - Any service that rewrites the HTML on the way (for example Cloudflare's Email Obfuscation or Rocket Loader) would inject inline scripts that the policy blocks, so it must stay off.
 
 ## Sources

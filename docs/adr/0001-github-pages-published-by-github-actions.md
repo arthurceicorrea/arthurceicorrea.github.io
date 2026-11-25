@@ -24,5 +24,5 @@ There is no `gh-pages` branch and no publishing from a folder: nothing reaches t
 - Hosting and HTTPS cost nothing, and the whole path from commit to live site is in the repository, readable and reviewable.
 - A broken change cannot be published: if any check fails, the deploy job does not run.
 - GitHub Pages serves files as they are. It does not let the site set its own HTTP response headers, so the security policy goes in a meta tag ([ADR 2](0002-content-security-policy-in-a-meta-tag-with-self.md)). It runs no server code, so the visitor's language is chosen in the browser ([ADR 3](0003-language-by-time-zone-not-ip-address.md)).
-- The site lives at `arthurceicorrea.github.io` until a custom domain is bought (stage 8 of [`docs/PLAN.md`](../PLAN.md)), which would also allow security headers through a proxy in front of Pages.
+- The site lives at `arthurceicorrea.github.io` until a custom domain is bought (stage 9 of [`docs/PLAN.md`](../PLAN.md)), which would also allow security headers through a proxy in front of Pages.
 - A weekly workflow ([`.github/workflows/monitor.yml`](../../.github/workflows/monitor.yml)) runs the same live check and opens an issue if it fails. GitHub disables scheduled workflows in repositories with no commits for 60 days.

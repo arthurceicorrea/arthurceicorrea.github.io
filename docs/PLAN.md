@@ -197,7 +197,24 @@ Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as
 
 ---
 
-## Etapa 8: domínio próprio (quando for comprado)
+## Etapa 8: refinamento tipográfico
+
+**Objetivo:** dar ao lema o lugar de única nota alta da página e tirar da interface os vícios de página gerada por máquina. É a única etapa que muda o visual de propósito; o conteúdo continua o mesmo.
+
+**O que muda**
+- O lema vira inscrição: o Cinzel em tamanho grande, em duas linhas fixas, com o ponto romano (interpunct) entre as palavras da primeira, decorativo e silencioso para leitores de tela.
+- O Cinzel fica só onde é inscrição: o lema, o nome, a atribuição e os títulos das seções. Menu, seletor de idioma, botões, "Ver detalhes", "Copiar" e o link de pular passam ao EB Garamond, em caixa normal; os idiomas em versaletes.
+- Saem os pontos médios do seletor de idioma e da linha dos ofícios, que passa a ser uma frase em itálico, com vírgulas.
+- Cores, contrastes, textos, a página 404 e os currículos não mudam.
+- Um registro de decisão (ADR 9) explica a escolha.
+
+**Pronto quando:** os testes e o `make lint` passam, o Lighthouse mantém as notas, a 404 fica igual pixel a pixel, e Arthur aprovou as capturas antes e depois das páginas de idioma e da raiz, em 390 px e 1440 px.
+
+**O que Arthur precisa entender:** por que gastar a ousadia num lugar só, e por que o ponto romano pertence ao lema e não ao menu.
+
+---
+
+## Etapa 9: domínio próprio (quando for comprado)
 
 **O que muda**
 - Arthur compra o domínio e cria um token de API da Cloudflare com permissão só para esse domínio. O token fica como segredo do repositório no GitHub, nunca num arquivo.
