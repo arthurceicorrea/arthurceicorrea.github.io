@@ -139,6 +139,7 @@ The main decisions behind the site are recorded in [`docs/adr/`](docs/adr/), eac
 6. [One pull request per change, with the pipeline required](docs/adr/0006-one-pull-request-per-change-with-required-pipeline.md)
 7. [GitHub Actions pinned by commit hash](docs/adr/0007-github-actions-pinned-by-commit-hash.md)
 8. [CVs printed by the build, in a legible typeface](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md)
+9. [Cinzel only where the page is an inscription](docs/adr/0009-cinzel-only-where-the-page-is-an-inscription.md)
 
 ## License
 
