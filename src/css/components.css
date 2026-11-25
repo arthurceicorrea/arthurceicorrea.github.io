@@ -268,13 +268,6 @@
     }
   }
 
-  /* telas largas: o espaçamento das letras do nome se fecha (no celular mudaria a quebra de linha) */
-  @media (prefers-reduced-motion: no-preference) and (min-width: 36rem) {
-    .intro h1 {
-      animation-name: settle;
-    }
-  }
-
   /* detalhes dos projetos abrem com movimento */
   @media (prefers-reduced-motion: no-preference) {
     .entry details[open] > .facts {
@@ -325,13 +318,6 @@
   @keyframes rise {
     from {
       opacity: 0.2;
-    }
-  }
-
-  @keyframes settle {
-    from {
-      opacity: 0.2;
-      letter-spacing: 0.16em;
     }
   }
 
