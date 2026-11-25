@@ -1,0 +1,75 @@
+name: Infraestrutura
+
+# Confere o Terraform de infra/ e mostra, no resumo da execução, o que mudaria na Cloudflare.
+# Só planeja; quem aplica é Arthur, da própria máquina, com o token de edição (infra/README.md).
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - '.github/workflows/infra.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Terraform
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: infra
+    env:
+      TF_IN_AUTOMATION: '1'
+      TF_INPUT: '0'
+      # Credenciais só de leitura: o token da Cloudflare e a chave do bucket R2 do estado.
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      # Pull requests de forks e do Dependabot não recebem os segredos: nesses, o plano é pulado.
+      HAS_CREDENTIALS: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && secrets.R2_SECRET_ACCESS_KEY != '' }}
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Preparar o Terraform
+        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.17.2
+          terraform_wrapper: false
+
+      - name: Formatação (terraform fmt)
+        run: terraform fmt -check -diff -recursive
+
+      - name: Iniciar com o estado no R2
+        if: env.HAS_CREDENTIALS == 'true'
+        run: terraform init -lockfile=readonly
+
+      - name: Iniciar sem o estado (sem credenciais)
+        if: env.HAS_CREDENTIALS != 'true'
+        run: terraform init -lockfile=readonly -backend=false
+
+      - name: Validação (terraform validate)
+        run: terraform validate
+
+      - name: Plano (o que mudaria na Cloudflare)
+        if: env.HAS_CREDENTIALS == 'true'
+        # -lock=false: a chave do pipeline só lê o bucket, e um plano não grava o estado.
+        run: |
+          terraform plan -lock=false -no-color -out=pr.tfplan
+          {
+            echo '## Plano do Terraform'
+            echo
+            echo '```'
+            terraform show -no-color pr.tfplan
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Aviso (plano pulado)
+        if: env.HAS_CREDENTIALS != 'true'
+        run: echo '::notice::Sem as credenciais de leitura, o plano foi pulado; formatação e validação rodaram.'
