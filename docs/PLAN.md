@@ -203,14 +203,15 @@ Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as
 
 **O que muda**
 - O lema vira inscrição: o Cinzel em tamanho grande, em duas linhas fixas, com o ponto romano (interpunct) entre as palavras da primeira, decorativo e silencioso para leitores de tela.
-- O Cinzel fica só onde é inscrição: o lema, o nome, a atribuição e os títulos das seções. Menu, seletor de idioma, botões, "Ver detalhes", "Copiar" e o link de pular passam ao EB Garamond, em caixa normal; os idiomas em versaletes.
+- O Cinzel fica só onde é inscrição: o lema, a atribuição e os títulos das seções. Menu, seletor de idioma, botões, "Ver detalhes", "Copiar" e o link de pular passam ao EB Garamond, em caixa normal; os idiomas em versaletes.
+- O nome passa ao EB Garamond, em caixa normal e um pouco maior, como o autor sob a epígrafe. A animação própria do nome, que fechava o espaçamento das letras, sai: ele surge como o resto da apresentação.
 - Saem os pontos médios do seletor de idioma e da linha dos ofícios, que passa a ser uma frase em itálico, com vírgulas.
-- Cores, contrastes, textos, a página 404 e os currículos não mudam.
+- Cores, contrastes, textos, a página 404 e os currículos não mudam. No currículo o nome fica em Cinzel: lá não há lema com que disputar, e o nome é o único título da página.
 - Um registro de decisão (ADR 9) explica a escolha.
 
 **Pronto quando:** os testes e o `make lint` passam, o Lighthouse mantém as notas, a 404 fica igual pixel a pixel, e Arthur aprovou as capturas antes e depois das páginas de idioma e da raiz, em 390 px e 1440 px.
 
-**O que Arthur precisa entender:** por que gastar a ousadia num lugar só, e por que o ponto romano pertence ao lema e não ao menu.
+**O que Arthur precisa entender:** por que gastar a ousadia num lugar só, por que o ponto romano pertence ao lema e não ao menu, e por que o nome muda no site e não no currículo.
 
 ---
 
