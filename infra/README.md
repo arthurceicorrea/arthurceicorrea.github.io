@@ -34,18 +34,23 @@ Changes reach Cloudflare in two moves: the pull request shows the plan (workflow
 
 Requires Terraform 1.17.2 exactly (`versions.tf` refuses any other version).
 
-PowerShell (`Read-Host -AsSecureString` hides what you type):
+PowerShell (`Read-Host -AsSecureString` hides what you type). Run the three `$env:` lines one at a time: paste the command alone, press Enter, and paste the value only when the prompt appears. A value pasted on the command line itself is not read, and it is shown on screen.
 
 ```powershell
 cd infra
 $env:CLOUDFLARE_API_TOKEN  = [Net.NetworkCredential]::new('', (Read-Host -AsSecureString 'terraform-arthur-edit')).Password
 $env:AWS_ACCESS_KEY_ID     = [Net.NetworkCredential]::new('', (Read-Host -AsSecureString 'tfstate-arthur-write: Access Key ID')).Password
 $env:AWS_SECRET_ACCESS_KEY = [Net.NetworkCredential]::new('', (Read-Host -AsSecureString 'tfstate-arthur-write: Secret Access Key')).Password
+# check without showing the values: last four characters of the token (as in the dashboard), 32, 64, active
+$t = $env:CLOUDFLARE_API_TOKEN; $t.Substring($t.Length - 4); $env:AWS_ACCESS_KEY_ID.Length; $env:AWS_SECRET_ACCESS_KEY.Length
+(Invoke-RestMethod https://api.cloudflare.com/client/v4/user/tokens/verify -Headers @{ Authorization = "Bearer $env:CLOUDFLARE_API_TOKEN" }).result.status
 terraform init
-terraform plan -out=apply.tfplan    # must show the same changes as the pull request
-terraform apply apply.tfplan
+terraform plan "-out=apply.tfplan"    # must show the same changes as the pull request; the quotes stop PowerShell splitting the argument at the dot
+terraform apply "apply.tfplan"
 Remove-Item Env:CLOUDFLARE_API_TOKEN, Env:AWS_ACCESS_KEY_ID, Env:AWS_SECRET_ACCESS_KEY, apply.tfplan
 ```
+
+Only three values go in: the `terraform-arthur-edit` token (starts with `cfut`), and the R2 key's Access Key ID (32 hexadecimal characters) and Secret Access Key (64). The R2 key's own token value, which also starts with `cfut`, is not used here.
 
 Bash (`read -s` hides what you type):
 
@@ -70,7 +75,9 @@ If the plan on your machine differs from the one in the pull request, stop: some
 4. Wait until GitHub has issued the certificate (the page shows it), then tick **Enforce HTTPS**.
 5. Check: `https://arthurceicorrea.dev/` opens the site, `https://www.arthurceicorrea.dev/` goes to it, and `https://arthurceicorrea.github.io/` now redirects to it.
 
-Then a second pull request turns on the proxy (`proxied = true` in `locals.tf`), so the headers and the Cloudflare redirect take effect, and changes the site's address everywhere in the repository.
+6. Turn on the proxy (`proxied = true` in `locals.tf`), so the headers and the Cloudflare redirect take effect. Before applying, check in the dashboard, **SSL/TLS → Edge Certificates**, that the **Universal** certificate is **Active**: it is the one visitors see once the proxy is on.
+
+Then a last pull request changes the site's address everywhere in the repository and makes the live check verify the headers.
 
 ## Renewing a token
 

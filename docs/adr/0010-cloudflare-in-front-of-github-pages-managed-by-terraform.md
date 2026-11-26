@@ -28,6 +28,7 @@ Three questions followed: who serves the site, who sets the headers, and how the
 - The domain, its records and its rules can be read, reviewed in a pull request and rebuilt from the repository.
 - The full header set exists only with the proxy on; until then the site has the same protection as on `github.io`, plus HTTPS enforced by the `.dev` top-level domain itself.
 - The `Content-Security-Policy` header carries only `frame-ancestors 'none'`; the rest of the policy stays in the pages' meta tag. Browsers enforce both, and neither weakens the other.
+- With the proxy on, Cloudflare caches the static files it caches by default (styles, scripts, fonts, images, PDFs) for as long as GitHub Pages allows, about ten minutes. After a deploy those files can take that long to update; the HTML pages and `version.txt` are not cached, so the live check still sees the new commit at once.
 - Applying is a manual step: the pipeline only shows the plan. A change made in the Cloudflare dashboard shows up as a difference in the next plan.
 - The read-only Cloudflare token expires after a year and the edit token after 90 days; renewing them is documented in `infra/README.md`.
 - Dependabot pull requests receive no secrets, so for them the job checks format and validity but skips the plan.
