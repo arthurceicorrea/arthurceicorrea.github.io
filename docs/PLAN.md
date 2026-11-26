@@ -217,7 +217,7 @@ Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as
 
 ## Etapa 9: domínio próprio
 
-Domínio: `arthurceicorrea.dev`, comprado na Cloudflare em 25/11/2026. A etapa sai em dois pull requests: a troca do endereço só entra depois que o domínio responde com certificado.
+Domínio: `arthurceicorrea.dev`, comprado na Cloudflare em 25/11/2026. A etapa sai em três pull requests, para que cada merge chegue ao `main` com o pipeline verde: a infraestrutura; depois de o domínio responder com certificado, o proxy; depois do proxy aplicado, a troca do endereço e a conferência dos cabeçalhos no ar.
 
 **Feito por Arthur, antes do código**
 - Compra do domínio e DNSSEC ligado.
@@ -235,8 +235,11 @@ Domínio: `arthurceicorrea.dev`, comprado na Cloudflare em 25/11/2026. A etapa s
 - Depois do `apply`, Arthur verifica o domínio no GitHub, informa-o em Settings → Pages, espera o certificado e marca "Enforce HTTPS". O arquivo `CNAME` não é preciso: com a publicação pelo GitHub Actions, o GitHub o ignora e usa essa configuração.
 - Registro de decisão: ADR 10.
 
-**Pull request B: troca do endereço**
-- O proxy é ligado, e com ele os cabeçalhos e o redirecionamento.
+**Pull request B1: proxy**
+- O proxy é ligado, e com ele os cabeçalhos e o redirecionamento. Antes do `apply`, o certificado Universal da Cloudflare precisa estar ativo.
+- Fica separado da troca do endereço porque o merge publica o site e confere o que está no ar na hora: os cabeçalhos só existem depois do `apply`, que vem depois do merge.
+
+**Pull request B2: troca do endereço**
 - Troca do endereço do site em todo lugar: `ci/build.py`, `static/` (vCard, robots), sitemap, `canonical`, testes, workflows e README. O endereço antigo `arthurceicorrea.github.io` passa a redirecionar sozinho.
 - O monitoramento passa a conferir também os cabeçalhos de segurança no ar.
 - Fora do repositório, feito por Arthur: README do perfil e LinkedIn.
