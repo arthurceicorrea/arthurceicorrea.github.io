@@ -13,6 +13,11 @@ Serve a pasta do site localmente e confere:
 - escolha do idioma pelo país (fuso horário simulado): a página inicial leva à página do idioma,
   e a 404 mostra a edição;
 - botão de voltar ao topo, seção atual no sumário, copiar o e-mail e detalhes dos projetos;
+- página de agradecimento (/pt/gratiarum-actio/ e as outras três), no celular e em tela larga:
+  edição certa, título em latim, seletor, fontes, nenhuma rolagem horizontal, nenhum erro no
+  console; idioma fixo mesmo com fuso de outro país e funcionamento sem JavaScript;
+- colofão do rodapé: da página inicial e de /pt/ leva ao agradecimento no idioma da página; ali,
+  o seletor leva à mesma página em outro idioma, e o link de volta, à página inicial do idioma;
 - página 404 no idioma do navegador.
 
 Cada cenário (página, largura, fuso, idioma do navegador) é aberto uma vez só; os testes
@@ -25,7 +30,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from helpers import CODES
+from helpers import CODES, GRATIARUM
 
 STATE = """() => ({
   lang: document.documentElement.lang,
@@ -389,6 +394,129 @@ def test_closed_details_say_see_details(once, browser, site_url):
 def test_open_details_say_hide_details(once, browser, site_url):
     got = once(copy_and_details, browser, site_url)['open']
     assert got.lower() == 'ocultar detalhes', 'detalhes abertos dizem %r; esperado "Ocultar detalhes"' % got
+
+
+# ---------- página de agradecimento (Gratiarum actio) ----------
+
+THANKSGIVING_TITLE = 'Gratiarum actio — Arthur Cei Corrêa'
+THANKS = [pytest.param(code, width, id='/%s/%s-%dpx' % (code, GRATIARUM.rstrip('/'), width)) for code in CODES for width in WIDTHS]
+on_thanksgiving_pages = pytest.mark.parametrize('code, width', THANKS)
+
+
+def thanksgiving(browser, site_url, code, width):
+    return visit(browser, site_url, code + '/' + GRATIARUM, width)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_shows_its_edition_only(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert s['lang'] == CODES[code] and s['editions'] == [CODES[code]] and s['visible'] == [CODES[code]], \
+        '/%s/%s: idioma %r, edições %s, visível %s' % (code, GRATIARUM, s['lang'], s['editions'], s['visible'])
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_title_is_the_latin_title(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert s['title'] == THANKSGIVING_TITLE, '/%s/%s: título %r; esperado %r' % (code, GRATIARUM, s['title'], THANKSGIVING_TITLE)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_switcher_is_visible_and_marks_active_language(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert s['current'] == [code] and s['navVisible'], '/%s/%s: seletor visível=%s, marcado %s' % (code, GRATIARUM, s['navVisible'], s['current'])
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_fonts_are_loaded(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert s['fonts'] and all(f == 'loaded' for f in s['fonts']), '/%s/%s: fontes não carregadas: %s' % (code, GRATIARUM, s['fonts'])
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_has_no_horizontal_scroll(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert s['overflow'] <= 0, '/%s/%s a %d px: a página rola %d px na horizontal' % (code, GRATIARUM, width, s['overflow'])
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_console_has_no_errors_or_csp_blocks(once, browser, site_url, code, width):
+    s, errors = once(thanksgiving, browser, site_url, code, width)
+    assert not errors, '/%s/%s: erros no console ou recursos que falharam: %s' % (code, GRATIARUM, errors[:3])
+
+
+def thanksgiving_fixed_language(browser, site_url, code):
+    ctx, page = open_page(browser, site_url, code + '/' + GRATIARUM, timezone_id='Europe/Rome' if code != 'it' else 'America/Sao_Paulo')
+    state = page.evaluate(STATE)
+    ctx.close()
+    return state
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_thanksgiving_language_is_fixed_with_time_zone_of_another_country(once, browser, site_url, code):
+    s = once(thanksgiving_fixed_language, browser, site_url, code)
+    assert s['lang'] == CODES[code] and s['path'] == '/%s/%s' % (code, GRATIARUM), \
+        '/%s/%s com fuso de outro país mostrou %r em %s' % (code, GRATIARUM, s['lang'], s['path'])
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_thanksgiving_works_without_javascript(once, browser, site_url, code):
+    s = once(without_javascript, browser, site_url, code + '/' + GRATIARUM)
+    tag = CODES[code]
+    assert s['lang'] == tag and s['visible'] == [tag] and s['current'] == [code] and s['navVisible'], \
+        '/%s/%s sem JavaScript: idioma %r, edição visível %s, seletor %s' % (code, GRATIARUM, s['lang'], s['visible'], s['current'])
+
+
+# ---------- colofão: leva ao agradecimento; dali, o seletor e o link de volta ----------
+
+def colophon_tour(browser, site_url):
+    """Da página inicial (em inglês) pelo colofão; dali ao italiano pelo seletor e de volta à página
+    inicial italiana pelo link de volta. Depois, de /pt/ pelo colofão."""
+    errors, steps = [], {}
+    ctx, page = open_page(browser, site_url, '', errors)
+    steps['home'] = page.evaluate(STATE)['path']
+    for name, selector in (('colophon', '.foot .colophon a'), ('switcher', '.langs a[data-lang="it"]'), ('back', 'main .back a')):
+        with page.expect_navigation():
+            page.click(selector)
+        page.wait_for_load_state('networkidle')
+        steps[name] = page.evaluate(STATE)
+    page.goto(site_url + 'pt/')
+    page.wait_for_load_state('networkidle')
+    with page.expect_navigation():
+        page.click('.foot .colophon a')
+    page.wait_for_load_state('networkidle')
+    steps['from_pt'] = page.evaluate(STATE)
+    ctx.close()
+    return steps, errors
+
+
+def test_colophon_on_home_leads_to_english_thanksgiving(once, browser, site_url):
+    steps, errors = once(colophon_tour, browser, site_url)
+    s = steps['colophon']
+    assert steps['home'] == '/' and s['path'] == '/en/' + GRATIARUM and s['lang'] == 'en', \
+        'o colofão da página inicial (%s) levou a %s (%r); esperado /en/%s' % (steps['home'], s['path'], s['lang'], GRATIARUM)
+
+
+def test_colophon_on_language_page_leads_to_its_thanksgiving(once, browser, site_url):
+    steps, errors = once(colophon_tour, browser, site_url)
+    s = steps['from_pt']
+    assert s['path'] == '/pt/' + GRATIARUM and s['lang'] == 'pt-BR', 'o colofão de /pt/ levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_thanksgiving_switcher_leads_to_the_same_page_in_another_language(once, browser, site_url):
+    steps, errors = once(colophon_tour, browser, site_url)
+    s = steps['switcher']
+    assert s['path'] == '/it/' + GRATIARUM and s['lang'] == 'it', 'o seletor IT levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_thanksgiving_back_link_leads_to_home_page_of_its_language(once, browser, site_url):
+    steps, errors = once(colophon_tour, browser, site_url)
+    s = steps['back']
+    assert s['path'] == '/it/' and s['lang'] == 'it', 'o link de volta levou a %s (%r); esperado /it/' % (s['path'], s['lang'])
+
+
+def test_console_has_no_errors_along_the_colophon(once, browser, site_url):
+    steps, errors = once(colophon_tour, browser, site_url)
+    assert not errors, 'erros no console no caminho pelo colofão: %s' % errors[:3]
 
 
 # ---------- página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console ----------

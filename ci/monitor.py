@@ -3,8 +3,8 @@
 Confere:
 - (com --expect-version) que o site no ar já serve o commit que acabou de ser publicado,
   tentando por até 10 minutos, enquanto a publicação se propaga;
-- página inicial e páginas /pt/, /en/, /es/, /it/: resposta 200, HTML, idioma certo e
-  política de segurança presente;
+- página inicial, páginas /pt/, /en/, /es/, /it/ e páginas de agradecimento (/pt/gratiarum-actio/
+  e as outras três): resposta 200, HTML, idioma certo e política de segurança presente;
 - página 404 personalizada para endereços inexistentes;
 - robots.txt, sitemap.xml, currículos em PDF, fontes, folhas de estilo e scripts de /assets/
   e imagens de prévia;
@@ -71,7 +71,8 @@ if EXPECT:
     check(served == EXPECT, 'o site no ar serve o commit publicado (%s)' % EXPECT[:7], 'serve: %s' % served[:40])
 
 # ---------- páginas ----------
-PAGES = {'': None, 'pt/': 'pt-BR', 'en/': 'en', 'es/': 'es', 'it/': 'it'}
+PAGES = {'': None, 'pt/': 'pt-BR', 'en/': 'en', 'es/': 'es', 'it/': 'it',
+         'pt/gratiarum-actio/': 'pt-BR', 'en/gratiarum-actio/': 'en', 'es/gratiarum-actio/': 'es', 'it/gratiarum-actio/': 'it'}
 for path, tag in PAGES.items():
     status, kind, body = fetch(path, fresh=True)
     html = body.decode('utf-8', 'replace')

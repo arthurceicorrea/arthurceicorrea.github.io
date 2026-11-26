@@ -2,11 +2,14 @@
 
 - Lê os textos de src/content/<idioma>.toml e para, com uma mensagem, se faltar um
   texto: cada chave de pt.toml precisa existir nos outros três idiomas.
-- Monta cada página a partir do modelo src/page.html (Jinja2):
-  - /pt/, /en/, /es/, /it/: só a edição daquele idioma, com o idioma fixo, e título,
-    descrição, endereço canônico e prévia de compartilhamento (Open Graph) no idioma;
-  - a página inicial: a edição em inglês, marcada com data-home; o script de idioma
-    leva os outros visitantes à página do seu idioma.
+- Monta cada página a partir de um modelo (Jinja2) que estende src/layout.html, onde ficam
+  o <head>, o seletor de idioma e o rodapé, comuns a todas:
+  - src/page.html, o portfólio: /pt/, /en/, /es/, /it/, só a edição daquele idioma, com o
+    idioma fixo, e título, descrição, endereço canônico e prévia de compartilhamento (Open
+    Graph) no idioma; e a página inicial, a edição em inglês, marcada com data-home: o script
+    de idioma leva os outros visitantes à página do seu idioma;
+  - src/gratiarum.html, o agradecimento: /pt/gratiarum-actio/ e as outras três, uma edição
+    cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês).
 - Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
   mostra a do visitante.
 - Copia, como estão, os arquivos de static/: fontes, imagens, vCard e arquivos de
@@ -16,8 +19,8 @@
   do currículo não é publicado, só o PDF.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
-- Gera sitemap.xml: a página inicial e as quatro páginas de idioma, cada uma com as
-  versões nos outros idiomas (hreflang).
+- Gera sitemap.xml: a página inicial, as quatro páginas de idioma e as quatro do
+  agradecimento, cada uma com as versões nos outros idiomas (hreflang).
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 
@@ -50,6 +53,8 @@ LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
 IMAGES = {'pt': 'og-pt.png', 'en': 'og.png', 'es': 'og-es.png', 'it': 'og-it.png'}
 NAMES = {'pt': 'Português', 'en': 'English', 'es': 'Español', 'it': 'Italiano'}
 DEFAULT = 'en'  # idioma da página inicial sem JavaScript e da 404
+# Página de agradecimento: o mesmo endereço nos quatro idiomas, porque é latim (/pt/gratiarum-actio/...).
+GRATIARUM = 'gratiarum-actio/'
 # Dados que não mudam com o idioma.
 EMAIL = 'arthurceicorrea@gmail.com'
 LINKEDIN = 'https://www.linkedin.com/in/arthurceicorrea/'
@@ -145,13 +150,19 @@ def render(env, template, path, folder=OUT, **context):
         f.write(text)
 
 
-def head(code, content, url, og_description=None, data_lang=None, home=False):
+def head(code, content, url, og_description=None, data_lang=None, home=False, path=''):
+    """Dados do <head> de uma página. path é o que vem depois de /<idioma>/ no endereço: vazio no
+    portfólio, cuja versão padrão (x-default) é a página inicial; GRATIARUM no agradecimento, cuja
+    versão padrão é a edição em inglês. O agradecimento tem descrição própria e o título escrito no
+    modelo, em latim; por isso, ali, page não tem title."""
     meta = content[code]['meta']
+    own = {'title': meta['title'], 'description': meta['description']} if not path else {'description': content[code]['gratiarum']['description']}
     return types.SimpleNamespace(
-        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code,
-        title=meta['title'], description=meta['description'], og_description=og_description or meta['description'],
+        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code, path=path,
+        x_default=BASE + (DEFAULT + '/' + path if path else ''),
+        og_description=og_description or own['description'],
         locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
-        url=url, image=IMAGES[code], image_alt=meta['image_alt'])
+        url=url, image=IMAGES[code], image_alt=meta['image_alt'], **own)
 
 
 def environment():
@@ -171,18 +182,29 @@ def pages(content, day):
     root_description = content[DEFAULT]['meta']['og_description_root']
     # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
     render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description, home=True),
-           editions=[edition(DEFAULT, content)], **shared)
+           editions=[edition(DEFAULT, content)], colophon_link=True, **shared)
     for code in TAGS:
         render(env, 'page.html', os.path.join(code, 'index.html'),
-               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)], **shared)
+               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)],
+               colophon_link=True, **shared)
+    # agradecimento: o colofão do rodapé aparece sem link, porque já se está na página a que ele leva
+    for code in TAGS:
+        render(env, 'gratiarum.html', os.path.join(code, GRATIARUM, 'index.html'),
+               page=head(code, content, BASE + code + '/' + GRATIARUM, data_lang=code, path=GRATIARUM),
+               editions=[edition(code, content)], colophon_link=False, **shared)
     render(env, '404.html', '404.html', editions=everyone, default=edition(DEFAULT, content), **shared)
 
 
 def sitemap():
-    """sitemap.xml: cada página publicada, com as versões por idioma e a padrão (x-default)."""
-    links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s/"/>\n' % (tag, BASE, code) for code, tag in TAGS.items())
-    links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % BASE
-    urls = ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in [BASE] + [BASE + code + '/' for code in TAGS])
+    """sitemap.xml: cada página publicada, com as versões por idioma e a padrão (x-default).
+    Duas famílias de páginas: o portfólio (a página inicial e /pt/ etc., cuja versão padrão é a
+    página inicial) e o agradecimento (/pt/gratiarum-actio/ etc., cuja padrão é a edição em inglês)."""
+    urls = ''
+    for path, default, locs in (('', BASE, [BASE] + [BASE + code + '/' for code in TAGS]),
+                                (GRATIARUM, BASE + DEFAULT + '/' + GRATIARUM, [BASE + code + '/' + GRATIARUM for code in TAGS])):
+        links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s/%s"/>\n' % (tag, BASE, code, path) for code, tag in TAGS.items())
+        links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % default
+        urls += ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in locs)
     with open(os.path.join(OUT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
@@ -288,8 +310,8 @@ def main():
     cvs(content)
     sitemap()
     count = sum(len(files) for _, _, files in os.walk(OUT))
-    print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
-        count, ', '.join('/%s/' % c for c in TAGS), version[:7], day.isoformat()))
+    print('Site montado em _site/: %d arquivos, com as páginas %s e %s; versão %s, atualizado em %s.' % (
+        count, ', '.join('/%s/' % c for c in TAGS), ', '.join('/%s/%s' % (c, GRATIARUM) for c in TAGS), version[:7], day.isoformat()))
 
 
 if __name__ == '__main__':

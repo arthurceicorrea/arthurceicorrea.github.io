@@ -1,0 +1,55 @@
+{#
+  Modelo da página de agradecimento, Gratiarum actio (Jinja2). ci/build.py o usa para montar
+  /pt/gratiarum-actio/, /en/gratiarum-actio/, /es/gratiarum-actio/ e /it/gratiarum-actio/, uma
+  edição cada, com o idioma fixo. O endereço é o mesmo nos quatro idiomas, porque é latim.
+  O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos do portfólio;
+  aqui fica só o conteúdo (o bloco main).
+
+  O latim fica escrito uma vez só, aqui, e é idêntico nos quatro idiomas por construção: o
+  título, a epígrafe, as citações no meio da prosa e o fecho. Cada trecho leva lang="la", para
+  leitores de tela e tradutores automáticos não o lerem como se fosse do idioma da página.
+  A prosa e as traduções ficam em src/content/<idioma>.toml, na tabela [gratiarum]. Onde a
+  prosa cita o latim, ela traz um marcador, que esta página troca pelo trecho:
+    {prayer}    o nome da oração da epígrafe
+    {uxor}      Provérbios 19, 14
+    {amicitia}  Suma contra os Gentios III, 123
+#}
+{% extends 'layout.html' %}
+{% set heading = 'Gratiarum actio' %}
+{% set title = heading ~ ' — Arthur Cei Corrêa' %}
+{% macro la(text) %}<i lang="la">{{ text }}</i>{% endmacro %}
+{% block main %}
+<main id="conteudo" class="wrap" tabindex="-1">
+{% for e in editions %}
+
+<div class="t" lang="{{ e.tag }}"
+     data-title="{{ title }}"
+     data-desc="{{ e.gratiarum.description }}">
+
+  <article class="thanks">
+    <header class="hero">
+      <h1 lang="la">{{ heading }}</h1>
+      <figure class="epigraph">
+        <blockquote lang="la"><p>Ingressum instruas, progressum dirigas, egressum compleas.</p></blockquote>
+        <p class="tr">{{ e.gratiarum.epigraph_translation }}</p>
+        <figcaption>{{ e.gratiarum.epigraph_source | replace('{prayer}', la('Creator ineffabilis')) }}</figcaption>
+      </figure>
+    </header>
+
+    <div class="sec">
+      <div class="body">
+        <p>{{ e.gratiarum.to_god }}</p>
+        <p>{{ e.gratiarum.to_wife | replace('{uxor}', la('Domus et divitiae dantur a parentibus; a Domino autem proprie uxor prudens')) | replace('{amicitia}', la('maxima amicitia esse videtur')) }}</p>
+        <p class="laus" lang="la">Laus Deo.</p>
+      </div>
+    </div>
+  </article>
+
+  <div class="sec back">
+    <p class="body"><a href="/{{ e.code }}/">{{ e.gratiarum.home }}</a></p>
+  </div>
+</div>
+{% endfor %}
+
+</main>
+{% endblock %}

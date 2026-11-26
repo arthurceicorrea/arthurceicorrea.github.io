@@ -4,12 +4,17 @@ Abre cada página num Chrome sem interface, no celular e em tela larga, e roda o
 regras WCAG 2.0, 2.1 e 2.2, níveis A e AA. Qualquer violação reprova o teste. As recomendações
 de boas práticas do axe não reprovam: aparecem num resumo no fim da execução.
 
+O axe audita a página em repouso: antes, espera as animações de entrada terminarem. No meio de
+um esmaecimento o texto ainda está semitransparente, e o contraste medido ali não é o que o
+visitante lê (a entrada da página de agradecimento leva pouco mais de 2 segundos).
+
 Uso: make build && python -m pytest tests/test_a11y.py
 (o axe.min.js vem do pacote npm axe-core, instalado por make setup; outro caminho: --axe ARQUIVO)
 """
 import pytest
 
-PAGES = ['?lang=pt', '?lang=en', '?lang=es', '?lang=it', 'pt/', 'en/', 'es/', 'it/', '404.html']
+PAGES = ['?lang=pt', '?lang=en', '?lang=es', '?lang=it', 'pt/', 'en/', 'es/', 'it/', '404.html',
+         'pt/gratiarum-actio/', 'en/gratiarum-actio/', 'es/gratiarum-actio/', 'it/gratiarum-actio/']
 WIDTHS = {360: 740, 1440: 900}
 WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
@@ -22,6 +27,7 @@ def test_no_wcag_a_or_aa_violation(browser, site_url, axe, axe_advice, path, wid
     page.goto(site_url + path)
     page.wait_for_load_state('networkidle')
     page.evaluate('document.fonts.ready')
+    page.evaluate('Promise.all(document.getAnimations().map(a => a.finished))')  # a página em repouso
     page.evaluate(axe)
     result = page.evaluate("""async () => {
       const run = await axe.run(document, { resultTypes: ['violations'] });

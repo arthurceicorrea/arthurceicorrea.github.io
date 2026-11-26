@@ -7,11 +7,15 @@ links externos seguros, nenhum recurso de terceiros, caminhos locais absolutos e
 e dados estruturados. Na página inicial, só a edição em inglês, marcada (data-home) para o
 script levar cada visitante à página do seu idioma; na 404, a paridade das quatro edições;
 nas páginas por idioma, uma só edição, idioma fixo, endereço canônico e prévia de
-compartilhamento no idioma certo. Por fim, robots.txt, sitemap.xml, versão publicada, a
-ausência de telefone nas páginas, nos currículos e no cartão de contato, e os currículos
-gerados: os quatro existem, trazem os textos da página no seu idioma (resumo, formação e
-experiência, projetos, competências, idiomas e artigo), cabem em duas páginas e numeram as
-páginas no idioma do currículo.
+compartilhamento no idioma certo. Na página de agradecimento (/pt/gratiarum-actio/ e as outras
+três), o mesmo, com endereços por idioma próprios, o seletor levando à mesma página nos outros
+idiomas e o link de volta à página inicial. O colofão do rodapé: link para o agradecimento no
+idioma da página (na página inicial, o inglês), sem link no próprio agradecimento, e ausente da
+404. O latim: todo trecho marcado com lang="la" e idêntico nos quatro idiomas. Por fim,
+robots.txt, sitemap.xml, versão publicada, a ausência de telefone nas páginas, nos currículos e no
+cartão de contato, e os currículos gerados: os quatro existem, trazem os textos da página no seu
+idioma (resumo, formação e experiência, projetos, competências, idiomas e artigo), cabem em duas
+páginas e numeram as páginas no idioma do currículo.
 
 Testes que valem para várias páginas, links ou arquivos rodam uma vez para cada um; o item
 aparece entre colchetes no nome do teste, por exemplo test_local_file_exists[pt/index.html:142:/cv/...].
@@ -23,11 +27,13 @@ import functools
 import os
 import re
 import xml.etree.ElementTree as ET
+from html.parser import HTMLParser
 
 import pytest
 
 import helpers
-from helpers import ALLOWED_EXTERNAL, CODES, LANGUAGE_PAGES, LANGS, LOCALES, PAGES, PHONE, POLICY, RESOURCE_TAGS, page
+from helpers import (ALLOWED_EXTERNAL, CODES, GRATIARUM, GRATIARUM_PAGES, LANGUAGE_PAGES, LANGS, LOCALES, PAGES, PHONE, POLICY,
+                     RESOURCE_TAGS, VOID, page)
 
 helpers.require_site()
 
@@ -405,9 +411,10 @@ def test_sitemap_is_well_formed():
         pytest.fail('sitemap.xml não é XML bem formado: %s' % error)
 
 
-def test_sitemap_lists_home_and_language_pages():
+def test_sitemap_lists_home_language_and_thanksgiving_pages():
     locs = [u.find('s:loc', SITEMAP).text for u in sitemap_urls()]
-    expected = [helpers.base()] + [helpers.base() + code + '/' for code in CODES]
+    expected = ([helpers.base()] + [helpers.base() + code + '/' for code in CODES]
+                + [helpers.base() + code + '/' + GRATIARUM for code in CODES])
     assert locs == expected, 'sitemap.xml lista %s; esperado %s' % (locs, expected)
 
 
@@ -418,6 +425,216 @@ def test_sitemap_declares_alternates(loc):
     assert found, 'sitemap.xml não lista %s' % url
     alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
     assert alternates == helpers.expected_alternates(), 'sitemap.xml: versões por idioma de %s diferentes do esperado: %s' % (url, alternates)
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_sitemap_declares_thanksgiving_alternates(code):
+    url = helpers.base() + code + '/' + GRATIARUM
+    found = [u for u in sitemap_urls() if u.find('s:loc', SITEMAP).text == url]
+    assert found, 'sitemap.xml não lista %s' % url
+    alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
+    assert alternates == helpers.expected_alternates(GRATIARUM), 'sitemap.xml: versões por idioma de %s diferentes do esperado: %s' % (url, alternates)
+
+
+# ---------- página de agradecimento (Gratiarum actio) ----------
+
+on_thanksgiving_pages = pytest.mark.parametrize('name', list(GRATIARUM_PAGES))
+# Título da página, igual nos quatro idiomas, porque é latim. Escrito aqui de novo, e não lido do modelo.
+THANKSGIVING_TITLE = 'Gratiarum actio — Arthur Cei Corrêa'
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_page_was_built(name):
+    assert os.path.isfile(helpers.path(name)), '%s não foi gerada pelo build' % name
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_page_has_fixed_language(name):
+    code, tag = GRATIARUM_PAGES[name]
+    assert ('<html lang="%s" data-lang="%s">' % (tag, code)) in page(name).raw, '%s: esperado <html lang="%s" data-lang="%s">' % (name, tag, code)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_title_is_the_latin_title(name):
+    title, desc = edition_attributes(name, GRATIARUM_PAGES[name][1])
+    found = re.search(r'<title>([^<]*)</title>', page(name).raw)
+    got = found.group(1) if found else None
+    assert got == title == THANKSGIVING_TITLE, '%s: <title> %r e título da edição %r; esperado %r' % (name, got, title, THANKSGIVING_TITLE)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_description_and_preview_are_in_page_language(name):
+    p = page(name)
+    title, desc = edition_attributes(name, GRATIARUM_PAGES[name][1])
+    got = (p.meta('description'), p.meta('og:description'), p.meta('og:title'))
+    assert desc and got == (desc, desc, title), '%s: descrição e prévia fora do idioma da página: %s' % (name, got)
+
+
+@pytest.mark.parametrize('field', ['description', 'og:description'])
+def test_thanksgiving_descriptions_differ_by_language(field):
+    found = {page(name).meta(field) for name in GRATIARUM_PAGES}
+    assert len(found) == 4, '%s das páginas de agradecimento deveria ter uma versão por idioma: %s' % (field, found)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_og_locale_matches_page(name):
+    code = GRATIARUM_PAGES[name][0]
+    assert page(name).meta('og:locale') == LOCALES[code], '%s: og:locale %r, esperado %r' % (name, page(name).meta('og:locale'), LOCALES[code])
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_canonical_url_is_the_page_itself(name):
+    url = helpers.base() + GRATIARUM_PAGES[name][0] + '/' + GRATIARUM
+    p = page(name)
+    assert p.canonical == url and p.meta('og:url') == url, '%s: canonical %r e og:url %r, esperado %r' % (name, p.canonical, p.meta('og:url'), url)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_alternates_point_to_the_same_page_in_each_language(name):
+    assert page(name).alternates == helpers.expected_alternates(GRATIARUM), \
+        '%s: versões por idioma (hreflang) diferentes: %s' % (name, page(name).alternates)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_switcher_leads_to_the_same_page_in_each_language(name):
+    code, tag = GRATIARUM_PAGES[name]
+    raw = page(name).raw
+    missing = [other for other in CODES if ('<a href="/%s/%s" data-lang="%s"' % (other, GRATIARUM, other)) not in raw]
+    current = '<a href="/%s/%s" data-lang="%s" lang="%s" hreflang="%s" aria-current="true">' % (code, GRATIARUM, code, tag, tag)
+    assert not missing and current in raw and raw.count('aria-current="true"') == 1, \
+        '%s: o seletor deveria levar a /<idioma>/%s nos quatro idiomas (faltam: %s) e marcar só %s' % (name, GRATIARUM, missing, code.upper())
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_links_back_to_the_home_page_of_its_language(name):
+    code = GRATIARUM_PAGES[name][0]
+    main = page(name).body.split('<main', 1)[1].split('</main>', 1)[0]
+    assert ('<a href="/%s/">' % code) in main, '%s: falta o link de volta a /%s/' % (name, code)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_has_no_unreplaced_marker(name):
+    text = re.sub(r'<[^>]+>', ' ', page(name).body)
+    found = re.search(r'\{[a-z_]+\}', text)
+    assert not found, '%s: marcador sem trocar no texto: %s' % (name, found.group(0) if found else '')
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_has_the_same_person_as_home(name):
+    assert page(name).person() == page('index.html').person(), '%s: dados estruturados da pessoa diferentes dos da página inicial' % name
+
+
+# ---------- colofão (primeira linha do rodapé) ----------
+
+COLOPHON = 'Non nisi te, Domine'
+# Páginas cujo colofão é link, e para onde: na página inicial, que é a edição em inglês, o agradecimento em inglês.
+COLOPHON_LINKS = {'index.html': '/en/' + GRATIARUM, **{name: '/%s/%s' % (code, GRATIARUM) for name, (code, tag) in LANGUAGE_PAGES.items()}}
+
+
+def colophon(name):
+    """O primeiro parágrafo do rodapé, se for o colofão; None se não for."""
+    raw = page(name).raw
+    footer = raw[raw.find('<footer'):] if '<footer' in raw else ''
+    found = re.search(r'<div class="foot">\s*<p class="colophon">(.*?)</p>', footer, flags=re.S)
+    return found.group(1) if found else None
+
+
+@pytest.mark.parametrize('name', list(COLOPHON_LINKS) + list(GRATIARUM_PAGES))
+def test_colophon_is_the_first_line_of_the_footer(name):
+    text = colophon(name)
+    assert text is not None and COLOPHON in text, '%s: o rodapé deveria começar pelo colofão (%s)' % (name, COLOPHON)
+
+
+@pytest.mark.parametrize('name', list(COLOPHON_LINKS))
+def test_colophon_links_to_the_thanksgiving_page_of_its_language(name):
+    links = re.findall(r'<a href="([^"]+)"', colophon(name) or '')
+    assert links == [COLOPHON_LINKS[name]], '%s: o colofão deveria ser um link para %s; links: %s' % (name, COLOPHON_LINKS[name], links)
+
+
+@pytest.mark.parametrize('name', list(COLOPHON_LINKS))
+def test_colophon_link_says_where_it_leads(name):
+    note = re.search(r'<span class="vh"> \(([^)]+)\)</span></a>', colophon(name) or '')
+    assert note, '%s: o link do colofão precisa dizer, para leitores de tela, aonde leva' % name
+
+
+@on_thanksgiving_pages
+def test_colophon_is_not_a_link_on_the_thanksgiving_page(name):
+    assert '<a ' not in (colophon(name) or '<a '), '%s: na própria página de agradecimento, o colofão não é link' % name
+
+
+def test_404_has_no_colophon():
+    assert COLOPHON not in page('404.html').raw, '404.html: a página de erro não tem rodapé nem colofão'
+
+
+# ---------- latim marcado com lang="la" e igual nos quatro idiomas ----------
+
+# Trechos em latim do site, escritos aqui de novo, e não lidos dos modelos.
+LATIN = ['Non nisi te, Domine', 'Gratiarum actio', 'Ingressum instruas, progressum dirigas, egressum compleas.',
+         'Creator ineffabilis', 'Domus et divitiae dantur a parentibus; a Domino autem proprie uxor prudens',
+         'maxima amicitia esse videtur', 'Laus Deo.']
+
+
+class LatinParser(HTMLParser):
+    """Textos do corpo da página, cada um com o idioma em vigor (o lang do elemento mais próximo),
+    e o texto de cada elemento marcado com lang="la"."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.texts, self.latin, self.open = [], [], [], []
+        self.in_body = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'body':
+            self.in_body = True
+        if tag in VOID:
+            return
+        lang = dict(attrs).get('lang') or (self.stack[-1][1] if self.stack else None)
+        self.stack.append((tag, lang))
+        if dict(attrs).get('lang') == 'la':
+            self.open.append([len(self.stack), ''])
+
+    def handle_endtag(self, tag):
+        if tag in VOID or not self.stack:
+            return
+        if self.open and self.open[-1][0] == len(self.stack):
+            self.latin.append(self.open.pop()[1])
+        self.stack.pop()
+
+    def handle_data(self, data):
+        if self.in_body and data.strip():
+            self.texts.append((data, self.stack[-1][1] if self.stack else None))
+        for item in self.open:
+            item[1] += data
+
+
+@functools.lru_cache(maxsize=None)
+def latin_of(name):
+    parser = LatinParser()
+    parser.feed(page(name).raw)
+    return parser
+
+
+@pytest.mark.parametrize('name', [n for n in PAGES if n != '404.html'])
+def test_latin_is_marked_as_latin(name):
+    unmarked = [(text.strip(), lang) for text, lang in latin_of(name).texts for phrase in LATIN if phrase in text and lang != 'la']
+    assert not unmarked, '%s: trecho em latim sem lang="la" (texto, idioma em vigor): %s' % (name, unmarked)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_page_has_all_its_latin(name):
+    found = ' '.join(text for text, lang in latin_of(name).texts if lang == 'la')
+    missing = [phrase for phrase in LATIN if phrase not in found]
+    assert not missing, '%s: faltam, marcados como latim, os trechos: %s' % (name, missing)
+
+
+@pytest.mark.parametrize('group', ['portfolio', 'gratiarum'])
+def test_latin_is_identical_in_the_four_languages(group):
+    names = list(LANGUAGE_PAGES) if group == 'portfolio' else list(GRATIARUM_PAGES)
+    found = {name: latin_of(name).latin for name in names}
+    first = found[names[0]]
+    different = {name: latin for name, latin in found.items() if latin != first}
+    assert first and not different, 'trechos em latim diferentes entre os idiomas (%s):\n  %s: %s\n  %s' % (
+        group, names[0], first, '\n  '.join('%s: %s' % item for item in different.items()))
 
 
 # ---------- currículos e cartão de contato ----------

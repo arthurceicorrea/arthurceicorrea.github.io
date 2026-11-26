@@ -1,0 +1,157 @@
+{#
+  Moldura comum das páginas com conteúdo (Jinja2): o <head>, o link de pular, o seletor de
+  idioma e o rodapé, escritos uma vez. As páginas a estendem ({% extends 'layout.html' %}) e
+  preenchem o bloco main:
+  - src/page.html: o portfólio (página inicial e /pt/, /en/, /es/, /it/);
+  - src/gratiarum.html: o agradecimento (/pt/gratiarum-actio/ e as outras três).
+  A 404 (src/404.html) não usa esta moldura: traz as quatro edições de uma vez e não tem rodapé.
+
+  Variáveis (preparadas por ci/build.py):
+    base       endereço do site, com barra final
+    page       head (título, descrição, Open Graph), html_lang, data_lang, current (idioma do
+               seletor), path (o que vem depois de /<idioma>/ no endereço: vazio no portfólio,
+               "gratiarum-actio/" no agradecimento) e x_default (endereço da versão padrão)
+    editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
+    languages  todos os idiomas, na ordem do seletor: code, tag e name
+    updated    data da última atualização (a do último commit)
+    colophon_link  se o colofão é link para a página de agradecimento (não é na própria página)
+  Uma página pode definir title antes do bloco main ({% set title = ... %}); sem isso, vale
+  page.title, que vem do arquivo do idioma.
+
+  Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
+  (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
+  além do bloco de dados estruturados (application/ld+json), que é dado e não é executado.
+  Estilos e scripts se editam em src/css/ e src/js/; a página e a política não mudam.
+  Se o domínio passar pela Cloudflare, desligue Email Obfuscation e Rocket Loader,
+  pois injetam scripts embutidos, que a política bloqueia.
+
+  Idiomas: cada edição é um elemento class="t" com o atributo lang; o CSS mostra só a
+  edição cujo lang coincide com o do elemento html. Trechos em latim levam lang="la".
+
+  O colofão, primeira linha do rodapé, é a fórmula latina Non nisi te, Domine, escrita só aqui
+  e igual nos quatro idiomas. Leva à página de agradecimento no idioma da edição.
+#}
+{% set title = title | default(page.title) %}
+{% set colophon %}<span lang="la">Non nisi te, Domine</span>{% endset %}
+<!DOCTYPE html>
+<html lang="{{ page.html_lang }}"{% if page.data_lang is not none %} data-lang="{{ page.data_lang }}"{% endif %}{% if page.home %} data-home{% endif %}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="{{ policy }}">
+<meta name="referrer" content="no-referrer">
+<title>{{ title }}</title>
+<meta name="description" content="{{ page.description }}">
+<meta name="author" content="Arthur Cei Corrêa">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14181E">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Arthur Cei Corrêa">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ page.og_description }}">
+<meta property="og:locale" content="{{ page.locale }}">
+{% for locale in page.locale_alternates %}
+<meta property="og:locale:alternate" content="{{ locale }}">
+{% endfor %}
+<meta property="profile:first_name" content="Arthur">
+<meta property="profile:last_name" content="Cei Corrêa">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="{{ page.url }}">
+<meta property="og:url" content="{{ page.url }}">
+<meta property="og:image" content="{{ base }}{{ page.image }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ page.image_alt }}">
+<meta name="twitter:image" content="{{ base }}{{ page.image }}">
+{% for l in languages %}
+<link rel="alternate" hreflang="{{ l.tag }}" href="{{ base }}{{ l.code }}/{{ page.path }}">
+{% endfor %}
+<link rel="alternate" hreflang="x-default" href="{{ page.x_default }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+  {
+  "@type": "Person",
+  "@id": "{{ base }}#arthur",
+  "name": "Arthur Cei Corrêa",
+  "url": "{{ base }}",
+  "jobTitle": "Software Engineering student",
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "FIAP" },
+  "address": { "@type": "PostalAddress", "addressLocality": "São Paulo", "addressCountry": "BR" },
+  "knowsAbout": ["DevOps", "Applied AI", "Security", "CI/CD", "Docker", "Kubernetes", "Terraform", "Azure DevOps", "Java", "Python", "C#"],
+  "knowsLanguage": [{% for l in languages %}"{{ l.code }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+  "sameAs": ["{{ linkedin }}", "{{ github }}"]
+  },
+  {
+  "@type": "Article",
+  "headline": "{{ article.headline }}",
+  "url": "{{ article.url }}",
+  "datePublished": "{{ article.date }}",
+  "inLanguage": "{{ article.lang }}",
+  "author": { "@id": "{{ base }}#arthur" }
+  }
+  ]
+}
+</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20fill='%2314181E'/%3E%3Cpath%20fill='%23B8935A'%20fill-rule='evenodd'%20d='M32%2012%2050%2052h-7l-3.6-9H24.6L21%2052h-7zM32%2024l-5%2013h10z'/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/cinzel-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/eb-garamond-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/language.js"></script>
+<script type="module" src="/assets/page.js"></script>
+</head>
+<body>
+
+<a class="skip" href="#conteudo">
+{% for e in editions %}
+  <span class="t" lang="{{ e.tag }}">{{ e.ui.skip }}</span>
+{% endfor %}
+</a>
+
+<header class="wrap top" id="topo">
+  <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
+    <ul>
+{% for l in languages %}
+      <li><a href="/{{ l.code }}/{{ page.path }}" data-lang="{{ l.code }}" lang="{{ l.tag }}" hreflang="{{ l.tag }}"{% if l.code == page.current %} aria-current="true"{% endif %}>{{ l.code | upper }}<span class="vh"> – {{ l.name }}</span></a></li>
+{% endfor %}
+    </ul>
+  </nav>
+</header>
+
+{% block main %}{% endblock %}
+
+<footer class="wrap">
+  <div class="foot">
+    <p class="colophon">
+{% for e in editions %}
+{% if colophon_link %}
+      <span class="t" lang="{{ e.tag }}"><a href="/{{ e.code }}/gratiarum-actio/">{{ colophon }}<span class="vh"> ({{ e.gratiarum.colophon_note }})</span></a></span>
+{% else %}
+      <span class="t" lang="{{ e.tag }}">{{ colophon }}</span>
+{% endif %}
+{% endfor %}
+    </p>
+    <p>
+{% for e in editions %}
+      <span class="t" lang="{{ e.tag }}">{{ e.footer.privacy }}</span>
+{% endfor %}
+    </p>
+    <p>
+{% for e in editions %}
+      <span class="t" lang="{{ e.tag }}">{{ e.footer.pipeline_html | safe }}</span>
+{% endfor %}
+    </p>
+    <p>
+{% for e in editions %}
+      <span class="t" lang="{{ e.tag }}">{{ e.footer.updated | replace('{date}', time_tag(updated, e)) }}</span>
+{% endfor %}
+      © <span class="year">{{ updated.year }}</span> Arthur Cei Corrêa
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
