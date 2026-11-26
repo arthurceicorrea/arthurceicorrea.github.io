@@ -2,7 +2,8 @@
 
 - Lê os textos de src/content/<idioma>.toml e para, com uma mensagem, se faltar um
   texto: cada chave de pt.toml precisa existir nos outros três idiomas.
-- Monta cada página a partir do modelo src/page.html (Jinja2):
+- Monta cada página a partir do modelo src/page.html (Jinja2), que estende src/layout.html,
+  onde ficam o <head>, o seletor de idioma e o rodapé:
   - /pt/, /en/, /es/, /it/: só a edição daquele idioma, com o idioma fixo, e título,
     descrição, endereço canônico e prévia de compartilhamento (Open Graph) no idioma;
   - a página inicial: a edição em inglês, marcada com data-home; o script de idioma
@@ -145,10 +146,13 @@ def render(env, template, path, folder=OUT, **context):
         f.write(text)
 
 
-def head(code, content, url, og_description=None, data_lang=None, home=False):
+def head(code, content, url, og_description=None, data_lang=None, home=False, path=''):
+    """Dados do <head> de uma página. path é o que vem depois de /<idioma>/ no endereço: vazio no
+    portfólio, cuja versão padrão (x-default) é a página inicial."""
     meta = content[code]['meta']
     return types.SimpleNamespace(
-        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code,
+        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code, path=path,
+        x_default=BASE + (DEFAULT + '/' + path if path else ''),
         title=meta['title'], description=meta['description'], og_description=og_description or meta['description'],
         locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
         url=url, image=IMAGES[code], image_alt=meta['image_alt'])
