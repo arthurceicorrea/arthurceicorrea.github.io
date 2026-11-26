@@ -513,6 +513,44 @@ def test_thanksgiving_links_back_to_the_home_page_of_its_language(name):
 
 
 @on_thanksgiving_pages
+def test_thanksgiving_is_shared_as_an_article(name):
+    p = page(name)
+    assert p.meta('og:type') == 'article' and p.meta('profile:first_name') is None, \
+        '%s: a prévia deveria ser de um artigo (og:type article, sem os dados de perfil): og:type %r' % (name, p.meta('og:type'))
+
+
+@pytest.mark.parametrize('name', ['index.html'] + list(LANGUAGE_PAGES))
+def test_portfolio_is_shared_as_a_profile(name):
+    p = page(name)
+    assert p.meta('og:type') == 'profile' and p.meta('profile:first_name') == 'Arthur', \
+        '%s: a prévia do portfólio deveria ser de um perfil: og:type %r' % (name, p.meta('og:type'))
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_has_its_own_share_image(name):
+    p = page(name)
+    image = p.meta('og:image')
+    assert image == helpers.base() + 'og-gratiarum.png' and image_exists(image) and p.meta('twitter:image') == image, \
+        '%s: a imagem de prévia deveria ser og-gratiarum.png, existir e ser a mesma em og:image e twitter:image: %s' % (name, image)
+
+
+def test_thanksgiving_share_image_alt_differs_by_language():
+    alts = {page(name).meta('og:image:alt') for name in GRATIARUM_PAGES}
+    portfolio = {page(name).meta('og:image:alt') for name in LANGUAGE_PAGES}
+    assert len(alts) == 4 and not alts & portfolio, \
+        'o texto alternativo da prévia do agradecimento deveria ter uma versão por idioma, diferente da do portfólio: %s' % alts
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_structured_data_describes_the_page(name):
+    p = page(name)
+    works = [n for n in p.structured_data() or [] if n.get('@type') == 'Article']
+    assert len(works) == 1 and works[0].get('url') == p.canonical and works[0].get('headline') == 'Gratiarum actio' \
+        and works[0].get('inLanguage') == GRATIARUM_PAGES[name][1], \
+        '%s: os dados estruturados deveriam descrever esta página (Article com url, título e idioma dela): %s' % (name, works)
+
+
+@on_thanksgiving_pages
 def test_thanksgiving_has_no_unreplaced_marker(name):
     text = re.sub(r'<[^>]+>', ' ', page(name).body)
     found = re.search(r'\{[a-z_]+\}', text)

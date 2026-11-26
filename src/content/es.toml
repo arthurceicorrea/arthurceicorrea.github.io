@@ -242,6 +242,7 @@ home = "Ir al inicio"
 # Página de agradecimento, Gratiarum actio (src/gratiarum.html), e colofão do rodapé (src/layout.html).
 # Veja a nota em pt.toml: o latim fica no modelo; {prayer}, {uxor} e {amicitia} o trazem para a prosa.
 description = "Acción de gracias de Arthur Cei Corrêa: primero a Dios, después a su esposa."
+image_alt = "Gratiarum actio — epígrafe en latín de santo Tomás de Aquino; Arthur Cei Corrêa"
 colophon_note = "página de acción de gracias"
 epigraph_translation = "«Instruid el comienzo, dirigid el progreso, completad el fin.»"
 epigraph_source = "— Santo Tomás de Aquino, oración {prayer}"

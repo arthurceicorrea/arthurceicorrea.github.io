@@ -3,7 +3,9 @@
   /pt/gratiarum-actio/, /en/gratiarum-actio/, /es/gratiarum-actio/ e /it/gratiarum-actio/, uma
   edição cada, com o idioma fixo. O endereço é o mesmo nos quatro idiomas, porque é latim.
   O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos do portfólio;
-  aqui fica só o conteúdo (o bloco main).
+  aqui ficam o conteúdo (o bloco main) e o que muda no <head>: a página é um texto do autor
+  (og_type article), e os dados estruturados a descrevem a ela, e não ao artigo do LinkedIn
+  (bloco work).
 
   O latim fica escrito uma vez só, aqui, e é idêntico nos quatro idiomas por construção: o
   título, a epígrafe, as citações no meio da prosa e o fecho. Cada trecho leva lang="la", para
@@ -17,7 +19,17 @@
 {% extends 'layout.html' %}
 {% set heading = 'Gratiarum actio' %}
 {% set title = heading ~ ' — Arthur Cei Corrêa' %}
+{% set og_type = 'article' %}
 {% macro la(text) %}<i lang="la">{{ text }}</i>{% endmacro %}
+{% block work %}
+  {
+  "@type": "Article",
+  "headline": "{{ heading }}",
+  "url": "{{ page.url }}",
+  "inLanguage": "{{ page.html_lang }}",
+  "author": { "@id": "{{ base }}#arthur" }
+  }
+{% endblock %}
 {% block main %}
 <main id="conteudo" class="wrap" tabindex="-1">
 {% for e in editions %}

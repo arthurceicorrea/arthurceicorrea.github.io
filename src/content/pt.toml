@@ -246,6 +246,8 @@ home = "Ir para o início"
 # o latim, um marcador o traz: {prayer} (nome da oração), {uxor} (Pr 19, 14) e {amicitia} (Suma
 # contra os Gentios III, 123). As aspas em volta das citações ficam aqui, no costume de cada idioma.
 description = "Agradecimento de Arthur Cei Corrêa: primeiro a Deus, depois à sua esposa."
+# Texto alternativo da imagem de prévia (Open Graph), a mesma nos quatro idiomas: é toda em latim.
+image_alt = "Gratiarum actio — epígrafe de Santo Tomás de Aquino em latim; Arthur Cei Corrêa"
 # Lido por leitores de tela depois do colofão, que é um link para esta página.
 colophon_note = "página de agradecimento"
 epigraph_translation = "«Instruí o começo, dirigi o progresso, completai o fim.»"
