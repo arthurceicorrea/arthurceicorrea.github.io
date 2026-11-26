@@ -3,13 +3,14 @@
   idioma e o rodapé, escritos uma vez. As páginas a estendem ({% extends 'layout.html' %}) e
   preenchem o bloco main:
   - src/page.html: o portfólio (página inicial e /pt/, /en/, /es/, /it/);
+  - src/gratiarum.html: o agradecimento (/pt/gratiarum-actio/ e as outras três).
   A 404 (src/404.html) não usa esta moldura: traz as quatro edições de uma vez e não tem rodapé.
 
   Variáveis (preparadas por ci/build.py):
     base       endereço do site, com barra final
     page       head (título, descrição, Open Graph), html_lang, data_lang, current (idioma do
-               seletor), path (o que vem depois de /<idioma>/ no endereço: vazio no portfólio)
-               e x_default (endereço da versão padrão, x-default)
+               seletor), path (o que vem depois de /<idioma>/ no endereço: vazio no portfólio,
+               "gratiarum-actio/" no agradecimento) e x_default (endereço da versão padrão)
     editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)

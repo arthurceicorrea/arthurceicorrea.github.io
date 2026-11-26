@@ -241,3 +241,13 @@ title = "Pagina non trovata — Arthur Cei Corrêa"
 heading = "Pagina non trovata"
 text = "L’indirizzo aperto non esiste in questo sito."
 home = "Vai alla pagina iniziale"
+
+[gratiarum]
+# Página de agradecimento, Gratiarum actio (src/gratiarum.html).
+# Veja a nota em pt.toml: o latim fica no modelo; {prayer}, {uxor} e {amicitia} o trazem para a prosa.
+description = "Ringraziamento di Arthur Cei Corrêa: prima a Dio, poi a sua moglie."
+epigraph_translation = "«Istruite l’inizio, dirigete il progresso, compite la fine.»"
+epigraph_source = "— San Tommaso d’Aquino, preghiera {prayer}"
+to_god = "A Dio, ottimo e massimo, principio e fine di tutte le cose, rendo grazie anzitutto, come vuole giustizia. Se al sapiente spetta ordinare, e se, come insegna san Tommaso, il nome di sapiente spetta propriamente a colui che considera il fine dell’universo, che è anche il suo principio (Somma contro i Gentili I, 1), allora ordinare il mio lavoro è ordinarlo a Lui. Tutto ciò che qui si mostra da Lui procede, poiché ogni dono perfetto discende dal Padre dei lumi (Gc 1, 17)."
+to_wife = "Poi, a mia moglie. «{uxor}»: la casa e le ricchezze vengono dai genitori, ma la moglie prudente viene propriamente dal Signore (Pr 19, 14). E tra marito e moglie, dice san Tommaso, «{amicitia}», sembra esserci la più grande delle amicizie (Somma contro i Gentili III, 123). Per lei, compagna delle fatiche e conforto della vita, rendo grazie a Dio, e lei ringrazio con tutto il cuore."
+home = "Torna alla pagina iniziale"

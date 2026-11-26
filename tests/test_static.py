@@ -405,9 +405,10 @@ def test_sitemap_is_well_formed():
         pytest.fail('sitemap.xml não é XML bem formado: %s' % error)
 
 
-def test_sitemap_lists_home_and_language_pages():
+def test_sitemap_lists_home_language_and_thanksgiving_pages():
     locs = [u.find('s:loc', SITEMAP).text for u in sitemap_urls()]
-    expected = [helpers.base()] + [helpers.base() + code + '/' for code in CODES]
+    expected = ([helpers.base()] + [helpers.base() + code + '/' for code in CODES]
+                + [helpers.base() + code + '/gratiarum-actio/' for code in CODES])
     assert locs == expected, 'sitemap.xml lista %s; esperado %s' % (locs, expected)
 
 
