@@ -324,6 +324,31 @@
     }
   }
 
+  /* página de agradecimento: a mesma entrada, mais lenta e em ordem de leitura, como uma procissão:
+     o título, a epígrafe, o filete que se desenha, a prosa e, por fim, Laus Deo. O topo, o link de
+     volta e o rodapé não se movem: o que se usa fica pronto desde o início */
+  @media (prefers-reduced-motion: no-preference) {
+    .thanks h1 {
+      animation: rise 1s ease-out both;
+    }
+
+    .epigraph {
+      animation: rise 1s ease-out 0.25s both;
+    }
+
+    .epigraph::after {
+      animation: draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s both;
+    }
+
+    .thanks .body > p {
+      animation: rise 1s ease-out 0.9s both;
+    }
+
+    .thanks .body > .laus {
+      animation-delay: 1.3s;
+    }
+  }
+
   /* detalhes dos projetos abrem com movimento */
   @media (prefers-reduced-motion: no-preference) {
     .entry details[open] > .facts {
