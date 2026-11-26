@@ -42,7 +42,7 @@ from markupsafe import Markup
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, '_site')
 SRC = os.path.join(ROOT, 'src')
-BASE = 'https://arthurceicorrea.github.io/'
+BASE = 'https://arthurceicorrea.dev/'
 # Idiomas, na ordem do seletor: código no endereço, etiqueta de idioma, região do Open Graph,
 # imagem de prévia e nome do idioma nele mesmo.
 TAGS = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}

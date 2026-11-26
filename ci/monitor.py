@@ -9,9 +9,12 @@ Confere:
 - robots.txt, sitemap.xml, currículos em PDF, fontes, folhas de estilo e scripts de /assets/
   e imagens de prévia;
 - redirecionamento de http para https;
-- certificado HTTPS válido por pelo menos 14 dias.
+- cabeçalhos de segurança postos pela Cloudflare (infra/rules.tf);
+- redirecionamento do www e do endereço antigo (arthurceicorrea.github.io) para o domínio;
+- certificado HTTPS válido por pelo menos 14 dias. Com o proxy, é o certificado da Cloudflare; se o do
+  GitHub Pages, por trás dela, vencer, a Cloudflare responde com erro e as páginas acima falham.
 
-Uso: python ci/monitor.py https://arthurceicorrea.github.io/ [--expect-version SHA]
+Uso: python ci/monitor.py https://arthurceicorrea.dev/ [--expect-version SHA]
 Só usa a biblioteca padrão do Python.
 """
 import datetime
@@ -117,6 +120,52 @@ try:
           '%s %s' % (response.status, location))
 except OSError as error:
     check(False, 'http redireciona para https', error)
+
+
+def raw(host, path):
+    """Uma requisição HTTPS que não segue redirecionamentos: devolve (status, cabeçalhos)."""
+    connection = http.client.HTTPSConnection(host, 443, timeout=20, context=ssl.create_default_context())
+    try:
+        connection.request('GET', path, headers={'User-Agent': AGENT})
+        response = connection.getresponse()
+        response.read()
+        return response.status, response.headers
+    finally:
+        connection.close()
+
+
+# ---------- cabeçalhos de segurança ----------
+# Postos pela Cloudflare (infra/rules.tf), porque o GitHub Pages não deixa o site defini-los.
+# Escritos aqui de novo, e não lidos do Terraform, para que a conferência não concorde por construção.
+SECURITY_HEADERS = {
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Content-Security-Policy': "frame-ancestors 'none'",
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'no-referrer',
+    'Permissions-Policy': ('camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), hid=(), '
+                           'midi=(), bluetooth=(), browsing-topics=()'),
+}
+for path in ('/', '/pt/'):
+    try:
+        status, headers = raw(HOST, path)
+        for name, expected in SECURITY_HEADERS.items():
+            check(headers.get(name) == expected, 'cabeçalho %s (%s)' % (name, path), headers.get(name))
+    except (OSError, ssl.SSLError) as error:
+        check(False, 'cabeçalhos de segurança (%s)' % path, error)
+
+# ---------- redirecionamentos para o domínio ----------
+OLD_HOST = 'arthurceicorrea.github.io'
+REDIRECTS = [] if HOST == OLD_HOST else [
+    ('www.' + HOST, '/en/?x=1', 'https://%s/en/?x=1' % HOST, 'www leva ao domínio, com caminho e parâmetros'),
+    (OLD_HOST, '/pt/', urljoin(BASE, 'pt/'), 'endereço antigo leva ao domínio'),
+]
+for host, path, target, label in REDIRECTS:
+    try:
+        status, headers = raw(host, path)
+        check(status in (301, 308) and headers.get('Location') == target, label,
+              '%s %s' % (status, headers.get('Location')))
+    except (OSError, ssl.SSLError) as error:
+        check(False, label, error)
 
 # ---------- certificado ----------
 try:

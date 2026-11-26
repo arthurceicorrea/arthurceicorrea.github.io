@@ -21,7 +21,7 @@ LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
 PAGES = {'index.html': 'en', **{'%s/index.html' % code: tag for code, tag in CODES.items()}, '404.html': None}
 LANGUAGE_PAGES = {'%s/index.html' % code: (code, tag) for code, tag in CODES.items()}
 ALLOWED_EXTERNAL = (
-    'https://arthurceicorrea.github.io/',
+    'https://arthurceicorrea.dev/',
     'https://github.com/arthurceicorrea',
     'https://www.linkedin.com/in/arthurceicorrea/',
     'https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution',

@@ -31,7 +31,7 @@ jobs:
           python-version: '3.12'
 
       - name: Verificar páginas, arquivos, HTTPS e certificado
-        run: python ci/monitor.py https://arthurceicorrea.github.io/
+        run: python ci/monitor.py https://arthurceicorrea.dev/
 
       - name: Abrir ou atualizar o aviso
         if: failure() && github.ref == 'refs/heads/main'
