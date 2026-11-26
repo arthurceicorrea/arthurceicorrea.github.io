@@ -243,9 +243,10 @@ text = "L’indirizzo aperto non esiste in questo sito."
 home = "Vai alla pagina iniziale"
 
 [gratiarum]
-# Página de agradecimento, Gratiarum actio (src/gratiarum.html).
+# Página de agradecimento, Gratiarum actio (src/gratiarum.html), e colofão do rodapé (src/layout.html).
 # Veja a nota em pt.toml: o latim fica no modelo; {prayer}, {uxor} e {amicitia} o trazem para a prosa.
 description = "Ringraziamento di Arthur Cei Corrêa: prima a Dio, poi a sua moglie."
+colophon_note = "pagina di ringraziamento"
 epigraph_translation = "«Istruite l’inizio, dirigete il progresso, compite la fine.»"
 epigraph_source = "— San Tommaso d’Aquino, preghiera {prayer}"
 to_god = "A Dio, ottimo e massimo, principio e fine di tutte le cose, rendo grazie anzitutto, come vuole giustizia. Se al sapiente spetta ordinare, e se, come insegna san Tommaso, il nome di sapiente spetta propriamente a colui che considera il fine dell’universo, che è anche il suo principio (Somma contro i Gentili I, 1), allora ordinare il mio lavoro è ordinarlo a Lui. Tutto ciò che qui si mostra da Lui procede, poiché ogni dono perfetto discende dal Padre dei lumi (Gc 1, 17)."

@@ -237,6 +237,13 @@
     text-align: right;
   }
 
+  /* colofão: a fórmula latina que fecha a página, como o lema a abre; discreto, em itálico */
+  .foot .colophon {
+    margin-bottom: 0.75rem;
+    font-size: 1.0625rem;
+    font-style: italic;
+  }
+
   /* telas largas: os títulos das seções pendem para a margem livre, alinhados à direita */
   @media (min-width: 62rem) {
     .sec {

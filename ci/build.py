@@ -182,15 +182,16 @@ def pages(content, day):
     root_description = content[DEFAULT]['meta']['og_description_root']
     # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
     render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description, home=True),
-           editions=[edition(DEFAULT, content)], **shared)
+           editions=[edition(DEFAULT, content)], colophon_link=True, **shared)
     for code in TAGS:
         render(env, 'page.html', os.path.join(code, 'index.html'),
-               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)], **shared)
-    # agradecimento: /<idioma>/gratiarum-actio/, o mesmo endereço nos quatro idiomas
+               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)],
+               colophon_link=True, **shared)
+    # agradecimento: o colofão do rodapé aparece sem link, porque já se está na página a que ele leva
     for code in TAGS:
         render(env, 'gratiarum.html', os.path.join(code, GRATIARUM, 'index.html'),
                page=head(code, content, BASE + code + '/' + GRATIARUM, data_lang=code, path=GRATIARUM),
-               editions=[edition(code, content)], **shared)
+               editions=[edition(code, content)], colophon_link=False, **shared)
     render(env, '404.html', '404.html', editions=everyone, default=edition(DEFAULT, content), **shared)
 
 

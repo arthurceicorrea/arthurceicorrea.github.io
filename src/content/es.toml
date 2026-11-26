@@ -239,9 +239,10 @@ text = "La dirección abierta no existe en este sitio."
 home = "Ir al inicio"
 
 [gratiarum]
-# Página de agradecimento, Gratiarum actio (src/gratiarum.html).
+# Página de agradecimento, Gratiarum actio (src/gratiarum.html), e colofão do rodapé (src/layout.html).
 # Veja a nota em pt.toml: o latim fica no modelo; {prayer}, {uxor} e {amicitia} o trazem para a prosa.
 description = "Acción de gracias de Arthur Cei Corrêa: primero a Dios, después a su esposa."
+colophon_note = "página de acción de gracias"
 epigraph_translation = "«Instruid el comienzo, dirigid el progreso, completad el fin.»"
 epigraph_source = "— Santo Tomás de Aquino, oración {prayer}"
 to_god = "A Dios, óptimo y máximo, principio y fin de todas las cosas, rindo gracias en primer lugar, como es de justicia. Si al sabio le corresponde ordenar, y si, como enseña santo Tomás, el nombre de sabio pertenece propiamente a aquel que considera el fin del universo, que es también su principio (Suma contra los gentiles I, 1), entonces ordenar mi trabajo es ordenarlo a Él. Todo lo que aquí se muestra de Él procede, pues toda dádiva perfecta desciende del Padre de las luces (St 1, 17)."

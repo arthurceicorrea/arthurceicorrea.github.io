@@ -14,6 +14,7 @@
     editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)
+    colophon_link  se o colofão é link para a página de agradecimento (não é na própria página)
   Uma página pode definir title antes do bloco main ({% set title = ... %}); sem isso, vale
   page.title, que vem do arquivo do idioma.
 
@@ -26,8 +27,12 @@
 
   Idiomas: cada edição é um elemento class="t" com o atributo lang; o CSS mostra só a
   edição cujo lang coincide com o do elemento html. Trechos em latim levam lang="la".
+
+  O colofão, primeira linha do rodapé, é a fórmula latina Non nisi te, Domine, escrita só aqui
+  e igual nos quatro idiomas. Leva à página de agradecimento no idioma da edição.
 #}
 {% set title = title | default(page.title) %}
+{% set colophon %}<span lang="la">Non nisi te, Domine</span>{% endset %}
 <!DOCTYPE html>
 <html lang="{{ page.html_lang }}"{% if page.data_lang is not none %} data-lang="{{ page.data_lang }}"{% endif %}{% if page.home %} data-home{% endif %}>
 <head>
@@ -120,6 +125,15 @@
 
 <footer class="wrap">
   <div class="foot">
+    <p class="colophon">
+{% for e in editions %}
+{% if colophon_link %}
+      <span class="t" lang="{{ e.tag }}"><a href="/{{ e.code }}/gratiarum-actio/">{{ colophon }}<span class="vh"> ({{ e.gratiarum.colophon_note }})</span></a></span>
+{% else %}
+      <span class="t" lang="{{ e.tag }}">{{ colophon }}</span>
+{% endif %}
+{% endfor %}
+    </p>
     <p>
 {% for e in editions %}
       <span class="t" lang="{{ e.tag }}">{{ e.footer.privacy }}</span>
