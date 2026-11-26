@@ -199,7 +199,7 @@ Se o pull request ficar grande demais para revisar, dividir em dois: primeiro as
 
 ## Etapa 8: refinamento tipográfico
 
-**Objetivo:** dar ao lema o lugar de única nota alta da página e tirar da interface os vícios de página gerada por máquina. É a única etapa que muda o visual de propósito; o conteúdo continua o mesmo.
+**Objetivo:** dar ao lema o lugar de única nota alta da página e tirar da interface os vícios de página gerada por máquina. É a única etapa da reformulação que muda o visual de propósito; o conteúdo continua o mesmo.
 
 **O que muda**
 - O lema vira inscrição: o Cinzel em tamanho grande, em duas linhas fixas, com o ponto romano (interpunct) entre as palavras da primeira, decorativo e silencioso para leitores de tela.
@@ -243,6 +243,59 @@ Domínio: `arthurceicorrea.dev`, comprado na Cloudflare em 25/11/2026. A etapa s
 - Troca do endereço do site em todo lugar: `ci/build.py`, `static/` (vCard, robots), sitemap, `canonical`, testes, workflows e README. O endereço antigo `arthurceicorrea.github.io` passa a redirecionar sozinho.
 - O monitoramento passa a conferir também os cabeçalhos de segurança no ar.
 - Fora do repositório, feito por Arthur: README do perfil e LinkedIn.
+
+---
+
+## Etapa 10: agradecimento (colofão e página Gratiarum actio)
+
+**Objetivo:** incluir no site um agradecimento católico, tomista, no tom visual do site (fundo escuro, dourado, Cinzel e EB Garamond, lema "Sapientis est ordinare"). O texto agradece primeiro a Deus e depois à esposa de Arthur, nessa ordem, de propósito: é a ordem da caridade em Santo Tomás e ecoa o lema. A esposa não é nomeada: o texto diz sempre "minha esposa". Esta etapa muda o conteúdo e o visual de propósito, só no que se descreve abaixo.
+
+**O que muda**
+- **Colofão.** Primeira linha do rodapé, discreta, com a fórmula latina *Non nisi te, Domine*, na raiz e nas páginas de idioma. O lema continua no alto, como única nota alta da página (Etapa 8): a página abre com o lema e fecha com o colofão. O latim é o mesmo nos quatro idiomas e não se traduz.
+  - É um link para a página Gratiarum actio no idioma atual. Na raiz, que é a edição em inglês, leva a `/en/gratiarum-actio/`.
+  - Na própria página Gratiarum actio, o colofão aparece sem link.
+  - A 404 não recebe colofão: não tem rodapé e mostra os quatro idiomas de uma vez.
+- **Página Gratiarum actio**, em `/pt/gratiarum-actio/`, `/en/gratiarum-actio/`, `/es/gratiarum-actio/` e `/it/gratiarum-actio/`. O endereço é o mesmo nos quatro idiomas, porque é latim.
+  - Modelo próprio em `src/` (por exemplo, `src/gratiarum.html`), com o mesmo `<head>`, a mesma política de segurança, as mesmas folhas de estilo e o mesmo rodapé da página principal.
+  - A prosa e as traduções das citações vão numa tabela nova, `[gratiarum]`, em cada `src/content/{pt,en,es,it}.toml`. O latim fica escrito uma vez só, no modelo, como hoje o lema em `src/page.html`: assim é idêntico nos quatro idiomas por construção.
+  - `ci/build.py` gera as quatro páginas, cada uma com título, descrição, Open Graph, `canonical` e `hreflang` próprios (o `x-default` aponta para a edição em inglês), e as acrescenta ao sitemap.
+  - O seletor de idioma leva à mesma página nos outros idiomas, e há um link de volta à página inicial do idioma.
+- **Latim marcado.** Todo trecho em latim, no colofão e na página, inclusive os que aparecem no meio da prosa, leva `lang="la"`, por acessibilidade.
+- **Testes**
+  - As quatro páginas novas entram em `PAGES`, em `tests/helpers.py` e em `ci/monitor.py`, e nas `url` de `ci/lighthouserc.json`, para que valham nelas as verificações que já existem: política de segurança, telefones, links, validador do W3C, axe e Lighthouse.
+  - Novos testes: cada página com colofão o tem como link para a página Gratiarum actio do próprio idioma (na raiz, a do inglês); na página Gratiarum actio, o colofão não é link; todo trecho em latim tem `lang="la"`; os trechos em latim são idênticos nas quatro edições.
+  - `tests/test_content.py` passa a cobrir a tabela `[gratiarum]` sem mudança: cada chave de `pt.toml` precisa existir nos outros três.
+
+**Texto da página**
+
+A versão em português está abaixo. As versões em inglês, espanhol e italiano são traduções fiéis dela, no mesmo registro elevado. O latim não muda: cada citação latina fica em latim nos quatro idiomas, seguida da tradução no idioma da página. Só a prosa e as traduções são traduzidas.
+
+- Título: *Gratiarum actio*
+- Epígrafe:
+  > *Ingressum instruas, progressum dirigas, egressum compleas.*
+  > Instruí o começo, dirigi o progresso, completai o fim.
+  > — Santo Tomás de Aquino, oração *Creator ineffabilis*
+- Parágrafo 1:
+  > A Deus, ótimo e máximo, princípio e fim de todas as coisas, rendo graças em primeiro lugar, como é de justiça. Se é próprio do sábio ordenar, e se, como ensina Santo Tomás, o nome de sábio pertence propriamente àquele que considera o fim do universo, que é também o seu princípio (Suma contra os Gentios I, 1), então ordenar o meu trabalho é ordená-lo a Ele. Tudo o que aqui se mostra d'Ele procede, pois toda dádiva perfeita desce do Pai das luzes (Tg 1, 17).
+- Parágrafo 2:
+  > Depois, à minha esposa. "*Domus et divitiae dantur a parentibus; a Domino autem proprie uxor prudens*": a casa e as riquezas vêm dos pais, mas a esposa prudente vem propriamente do Senhor (Pr 19, 14). E entre marido e mulher, diz Santo Tomás, "*maxima amicitia esse videtur*", parece haver a maior das amizades (Suma contra os Gentios III, 123). Por ela, companheira dos trabalhos e consolo da vida, rendo graças a Deus, e a ela agradeço de todo o coração.
+- Fecho, em latim e sem tradução: *Laus Deo.*
+
+Dedicatória curta em latim, guardada para usos futuros (por exemplo, nos currículos). Não entra na página nesta etapa: a epígrafe já abre a página, a dedicatória repetiria os dois parágrafos, e ainda não tem tradução aprovada por Arthur.
+
+> *Deo Optimo Maximo, principio et fini omnium, a quo omne datum optimum descendit, primas gratias ago; deinde uxori meae, praecipuo eius dono, laborum sociae et vitae solacio.*
+
+**Fora do escopo:** mudanças de estrutura alheias à etapa; a dedicatória na página; a 404 e os currículos.
+
+**Pronto quando:**
+- o colofão está visível e funcional na raiz e nas quatro páginas de idioma, levando à página Gratiarum actio no idioma certo;
+- a página existe nos quatro idiomas, com o latim idêntico em todos e marcado com `lang="la"`;
+- o nome da esposa não aparece em parte alguma: textos, metadados, commits e pull request;
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas, também nas páginas novas;
+- o pull request traz capturas antes e depois, em 390 px e 1440 px, do rodapé de `/pt/` e `/en/`, e capturas da página nova nos mesmos tamanhos (ela não tem "antes");
+- o relatório final explica cada mudança em português simples, como para uma entrevista.
+
+**O que Arthur precisa entender:** como uma página nova entra no build (modelo, tabela de textos, endereços, sitemap) sem copiar a estrutura da página principal; por que o latim fica escrito uma vez só no modelo e a prosa nos arquivos de idioma; e para que serve `lang="la"`: leitores de tela e tradutores automáticos sabem que o trecho é latim e não o leem como se fosse português ou inglês.
 
 ---
 
