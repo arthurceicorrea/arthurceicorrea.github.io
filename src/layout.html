@@ -19,8 +19,9 @@
     title    o título ({% set title = ... %}); sem isso, vale page.title, do arquivo do idioma;
     og_type  o tipo da página na prévia de compartilhamento: profile (o padrão, o portfólio, que
              descreve uma pessoa) ou article (o agradecimento, um texto do autor).
-  E pode preencher, além de main, o bloco work: a obra que os dados estruturados (JSON-LD)
-  listam além da pessoa (por padrão, o artigo do LinkedIn).
+  E pode preencher dois blocos além de main: work, a obra que os dados estruturados (JSON-LD)
+  listam além da pessoa (por padrão, o artigo do LinkedIn), e top, o que fica no topo, à
+  esquerda do seletor de idioma (por padrão, nada).
 
   Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
   (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
@@ -121,6 +122,7 @@
 </a>
 
 <header class="wrap top" id="topo">
+{% block top %}{% endblock %}
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
 {% for l in languages %}

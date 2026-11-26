@@ -3,9 +3,11 @@
   /pt/gratiarum-actio/, /en/gratiarum-actio/, /es/gratiarum-actio/ e /it/gratiarum-actio/, uma
   edição cada, com o idioma fixo. O endereço é o mesmo nos quatro idiomas, porque é latim.
   O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos do portfólio;
-  aqui ficam o conteúdo (o bloco main) e o que muda no <head>: a página é um texto do autor
-  (og_type article), e os dados estruturados a descrevem a ela, e não ao artigo do LinkedIn
-  (bloco work).
+  aqui ficam o conteúdo (o bloco main), o link de volta à página inicial, no topo (bloco top), e
+  o que muda no <head>: a página é um texto do autor (og_type article), e os dados estruturados
+  a descrevem a ela, e não ao artigo do LinkedIn (bloco work).
+
+  A epígrafe vai em três linhas fixas, uma por membro da oração: o começo, o progresso, o fim.
 
   O latim fica escrito uma vez só, aqui, e é idêntico nos quatro idiomas por construção: o
   título, a epígrafe, as citações no meio da prosa e o fecho. Cada trecho leva lang="la", para
@@ -30,6 +32,11 @@
   "author": { "@id": "{{ base }}#arthur" }
   }
 {% endblock %}
+{% block top %}
+{% for e in editions %}
+  <a class="home" href="/{{ e.code }}/">{{ e.gratiarum.home }}</a>
+{% endfor %}
+{% endblock %}
 {% block main %}
 <main id="conteudo" class="wrap" tabindex="-1">
 {% for e in editions %}
@@ -42,7 +49,7 @@
     <header class="hero">
       <h1 lang="la">{{ heading }}</h1>
       <figure class="epigraph">
-        <blockquote lang="la"><p>Ingressum instruas, progressum dirigas, egressum compleas.</p></blockquote>
+        <blockquote lang="la"><p><span>Ingressum instruas,</span> <span>progressum dirigas,</span> <span>egressum compleas.</span></p></blockquote>
         <p class="tr">{{ e.gratiarum.epigraph_translation }}</p>
         <figcaption>{{ e.gratiarum.epigraph_source | replace('{prayer}', la('Creator ineffabilis')) }}</figcaption>
       </figure>
@@ -56,10 +63,6 @@
       </div>
     </div>
   </article>
-
-  <div class="sec back">
-    <p class="body"><a href="/{{ e.code }}/">{{ e.gratiarum.home }}</a></p>
-  </div>
 </div>
 {% endfor %}
 

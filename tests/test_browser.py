@@ -474,7 +474,7 @@ def colophon_tour(browser, site_url):
     errors, steps = [], {}
     ctx, page = open_page(browser, site_url, '', errors)
     steps['home'] = page.evaluate(STATE)['path']
-    for name, selector in (('colophon', '.foot .colophon a'), ('switcher', '.langs a[data-lang="it"]'), ('back', 'main .back a')):
+    for name, selector in (('colophon', '.foot .colophon a'), ('switcher', '.langs a[data-lang="it"]'), ('back', '.top .home')):
         with page.expect_navigation():
             page.click(selector)
         page.wait_for_load_state('networkidle')

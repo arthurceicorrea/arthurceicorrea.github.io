@@ -508,8 +508,8 @@ def test_thanksgiving_switcher_leads_to_the_same_page_in_each_language(name):
 @on_thanksgiving_pages
 def test_thanksgiving_links_back_to_the_home_page_of_its_language(name):
     code = GRATIARUM_PAGES[name][0]
-    main = page(name).body.split('<main', 1)[1].split('</main>', 1)[0]
-    assert ('<a href="/%s/">' % code) in main, '%s: falta o link de volta a /%s/' % (name, code)
+    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+    assert ('<a class="home" href="/%s/">' % code) in top, '%s: falta, no topo, o link de volta a /%s/' % (name, code)
 
 
 @on_thanksgiving_pages
@@ -607,7 +607,8 @@ def test_404_has_no_colophon():
 # ---------- latim marcado com lang="la" e igual nos quatro idiomas ----------
 
 # Trechos em latim do site, escritos aqui de novo, e não lidos dos modelos.
-LATIN = ['Non nisi te, Domine', 'Gratiarum actio', 'Ingressum instruas, progressum dirigas, egressum compleas.',
+# A epígrafe vai em três linhas fixas, uma por membro; cada membro é um trecho.
+LATIN = ['Non nisi te, Domine', 'Gratiarum actio', 'Ingressum instruas,', 'progressum dirigas,', 'egressum compleas.',
          'Creator ineffabilis', 'Domus et divitiae dantur a parentibus; a Domino autem proprie uxor prudens',
          'maxima amicitia esse videtur', 'Laus Deo.']
 
