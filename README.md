@@ -3,13 +3,14 @@
 [![Site](https://github.com/arthurceicorrea/arthurceicorrea.github.io/actions/workflows/site.yml/badge.svg)](https://github.com/arthurceicorrea/arthurceicorrea.github.io/actions/workflows/site.yml)
 
 Personal portfolio of Arthur Cei Corrêa — DevOps, applied AI and security.
-One static page in Portuguese, English, Spanish and Italian, published at <https://arthurceicorrea.github.io/>, with a page per language at `/pt/`, `/en/`, `/es/` and `/it/`. It is only published after a pipeline of checks passes.
+One static page in Portuguese, English, Spanish and Italian, published at <https://arthurceicorrea.dev/>, with a page per language at `/pt/`, `/en/`, `/es/` and `/it/`. It is only published after a pipeline of checks passes.
 
 ## What the site does
 
 - **Four languages.** The home page is the English edition. It sends other visitors to their language page, choosing with `?lang=pt`, `?lang=en`, `?lang=es` or `?lang=it`; otherwise the visitor's country, inferred from the device time zone with no external lookup (Brazil and Portugal: PT; Italy: IT; Spain and Spanish-speaking America: ES), then the browser language, then English. Without JavaScript, it stays in English. ([ADR 3](docs/adr/0003-language-by-time-zone-not-ip-address.md))
 - **Nothing from third parties.** No frameworks, no third-party scripts, fonts or images, no analytics, no cookies. The fonts, Cinzel and EB Garamond, are self-hosted as WOFF2 under the SIL Open Font License. ([ADR 4](docs/adr/0004-no-third-party-resources-and-no-analytics.md))
 - **A restrictive Content Security Policy**, in a meta tag: `style-src 'self'; script-src 'self'`, so no inline styles or scripts run, only files served by the site. ([ADR 2](docs/adr/0002-content-security-policy-in-a-meta-tag-with-self.md))
+- **Security headers from Cloudflare**, which sits in front of GitHub Pages: `frame-ancestors 'none'` (which a meta tag cannot carry), HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy`. The domain, its records and these rules are Terraform in [`infra/`](infra/). ([ADR 10](docs/adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md))
 - **Accessible**: WCAG 2.2 AA, checked on every page by axe and Lighthouse.
 - **CVs from the same content.** The four PDF CVs are printed by the build from the same texts as the page, so the site and the CVs always say the same.
 - **No phone number, address or health data** in the pages or the CVs; the tests look for phone numbers.
@@ -95,7 +96,7 @@ The **Validar** job:
 Then, on `main` only:
 
 8. **Publicar**: `_site/` is published to GitHub Pages.
-9. **Conferir no ar** (`ci/monitor.py`): the live site must serve the commit just deployed (`version.txt`), with every page and file, the custom 404, the HTTP→HTTPS redirect and a valid certificate.
+9. **Conferir no ar** (`ci/monitor.py`): the live site must serve the commit just deployed (`version.txt`), with every page and file, the custom 404, the HTTP→HTTPS redirect, the security headers, the redirects from `www` and from the old `arthurceicorrea.github.io`, and a valid certificate.
 
 **Infrastructure.** A pull request that touches `infra/` also runs [`.github/workflows/infra.yml`](.github/workflows/infra.yml): `terraform fmt`, `terraform validate` and `terraform plan` with read-only credentials, the plan shown in the run summary. Changes are applied by hand after the merge, as described in [`infra/README.md`](infra/README.md) ([ADR 10](docs/adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md)).
 
