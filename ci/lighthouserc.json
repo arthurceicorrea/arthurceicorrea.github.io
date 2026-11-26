@@ -8,7 +8,11 @@
         "http://127.0.0.1:8080/pt/",
         "http://127.0.0.1:8080/en/",
         "http://127.0.0.1:8080/es/",
-        "http://127.0.0.1:8080/it/"
+        "http://127.0.0.1:8080/it/",
+        "http://127.0.0.1:8080/pt/gratiarum-actio/",
+        "http://127.0.0.1:8080/en/gratiarum-actio/",
+        "http://127.0.0.1:8080/es/gratiarum-actio/",
+        "http://127.0.0.1:8080/it/gratiarum-actio/"
       ],
       "numberOfRuns": 1,
       "settings": {

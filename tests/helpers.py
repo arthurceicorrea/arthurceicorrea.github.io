@@ -17,9 +17,13 @@ ROOT = os.path.join(REPO, '_site')  # trocada por tests/conftest.py conforme --s
 CODES = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}
 LANGS = tuple(CODES.values())
 LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
-# Páginas do site e a edição que cada uma deve ter: a 404 traz as quatro (None).
-PAGES = {'index.html': 'en', **{'%s/index.html' % code: tag for code, tag in CODES.items()}, '404.html': None}
+# Página de agradecimento: o mesmo endereço nos quatro idiomas (/pt/gratiarum-actio/...).
+GRATIARUM = 'gratiarum-actio/'
 LANGUAGE_PAGES = {'%s/index.html' % code: (code, tag) for code, tag in CODES.items()}
+GRATIARUM_PAGES = {'%s/%sindex.html' % (code, GRATIARUM): (code, tag) for code, tag in CODES.items()}
+# Páginas do site e a edição que cada uma deve ter: a 404 traz as quatro (None).
+PAGES = {'index.html': 'en', **{name: tag for name, (code, tag) in LANGUAGE_PAGES.items()},
+         **{name: tag for name, (code, tag) in GRATIARUM_PAGES.items()}, '404.html': None}
 ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.dev/',
     'https://github.com/arthurceicorrea',
@@ -163,10 +167,12 @@ def base():
     return page('index.html').canonical or ''
 
 
-def expected_alternates():
-    """Versões por idioma que toda página e o sitemap devem declarar."""
-    found = {tag: base() + code + '/' for code, tag in CODES.items()}
-    found['x-default'] = base()
+def expected_alternates(path=''):
+    """Versões por idioma que cada página e o sitemap devem declarar. path vazio: o portfólio, cuja
+    versão padrão (x-default) é a página inicial; GRATIARUM: o agradecimento, cuja padrão é a edição
+    em inglês."""
+    found = {tag: base() + code + '/' + path for code, tag in CODES.items()}
+    found['x-default'] = base() + ('en/' + path if path else '')
     return found
 
 
