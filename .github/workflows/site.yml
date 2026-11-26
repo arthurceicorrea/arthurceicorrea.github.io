@@ -126,4 +126,4 @@ jobs:
           python-version: '3.12'
 
       - name: Conferir que o site no ar serve esta versão, com todas as páginas e arquivos
-        run: python ci/monitor.py https://arthurceicorrea.github.io/ --expect-version "${{ github.sha }}"
+        run: python ci/monitor.py https://arthurceicorrea.dev/ --expect-version "${{ github.sha }}"
