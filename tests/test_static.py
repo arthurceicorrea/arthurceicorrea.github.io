@@ -913,8 +913,32 @@ def test_latin_is_identical_in_the_four_languages(group):
 # ---------- currículos e cartão de contato ----------
 
 CV_NAMES = ['arthur-cei-correa-cv-%s.pdf' % code for code in CODES]
-# Artigo do currículo: o ensaio, até a Etapa 13 de docs/PLAN.md deixar a escolha no cabeçalho de cada artigo.
-CV_ESSAY = 'from-purism-to-prudence'
+# Lista dos artigos de cada idioma, como o currículo a escreve (sem https:// e sem a barra final).
+CV_LIST = {code: 'arthurceicorrea.dev/%s/%s' % (code, ARTICLE_LISTS[code].rstrip('/')) for code in CODES}
+
+
+def cv_articles():
+    """Os artigos que o currículo leva: os marcados com cv = true no cabeçalho."""
+    return {slug: h for slug, h in helpers.article_headers().items() if h.get('cv') is True}
+
+
+def test_at_most_two_articles_go_in_the_cv():
+    assert len(cv_articles()) <= 2, 'cv = true em %d artigos (%s); o currículo leva no máximo dois' % (len(cv_articles()), sorted(cv_articles()))
+
+
+@pytest.mark.parametrize('slug', [s for s in helpers.article_headers() if s not in cv_articles()])
+def test_cv_leaves_out_unmarked_articles(slug):
+    summaries = helpers.article_headers()[slug]['summary']
+    found = [code for code in CODES if squeezed(summaries[code]) in squeezed(cv_text('arthur-cei-correa-cv-%s.pdf' % code))]
+    assert not found, 'o artigo %s não tem cv = true, mas o resumo dele está no currículo em %s' % (slug, found)
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_cv_ends_its_articles_with_the_list_of_its_language(code):
+    if not cv_articles():
+        pytest.skip('nenhum artigo com cv = true')
+    assert CV_LIST[code] in cv_text('arthur-cei-correa-cv-%s.pdf' % code), \
+        'arthur-cei-correa-cv-%s.pdf: falta o endereço da lista de artigos, %s' % (code, CV_LIST[code])
 # Rodapé da primeira página de cada currículo, escrito aqui e não lido do conteúdo.
 CV_FOOTERS = {'pt': 'Página 1 de 2', 'en': 'Page 1 of 2', 'es': 'Página 1 de 2', 'it': 'Pagina 1 di 2'}
 
@@ -953,7 +977,7 @@ def site_texts():
         for i, g in enumerate(c['skills']['groups'], 1):
             found += [(code, 'skills.groups[%d].%s' % (i, k), g[k]) for k in ('name', 'items')]
         found += [(code, 'languages.items[%d]' % i, '%s (%s)' % (l['name'], l['level'])) for i, l in enumerate(c['languages']['items'], 1)]
-        found.append((code, 'ensaio: summary.%s' % code, helpers.article_headers()[CV_ESSAY]['summary'][code]))
+        found += [(code, 'artigo %s: summary.%s' % (slug, code), header['summary'][code]) for slug, header in cv_articles().items()]
     return [pytest.param(code, where, text, id='%s:%s' % (code, where)) for code, where, text in found]
 
 
@@ -969,7 +993,7 @@ def test_cv_has_the_site_text(code, where, text):
         # quando o resumo do projeto já diz o papel (SellOut EasyTrack), o currículo não o repete:
         # basta estar no resumo, que pode começar com minúscula e não terminar ali
         expected, found = expected.rstrip('.').lower(), found.lower()
-    source = 'src/articles/%s.md' % CV_ESSAY if where.startswith('ensaio') else 'src/content/%s.toml' % code
+    source = 'src/articles/%s.md' % where.split()[1].rstrip(':') if where.startswith('artigo ') else 'src/content/%s.toml' % code
     assert expected in found, '%s: falta o texto de %s em %s: %r' % (name, where, source, text)
 
 
@@ -1320,14 +1344,82 @@ def test_feed_updated_is_the_newest_change():
     assert feed_day(feed().find('a:updated', ATOM).text) == newest, 'feed.xml: updated deveria ser %s' % newest
 
 
-# ---------- página inicial: o artigo mais recente ----------
+# ---------- página inicial: a seção de artigos ----------
 
-@on_language_pages
-def test_home_section_shows_the_newest_article(name):
-    code = LANGUAGE_PAGES[name][0]
+# Âncora da seção em cada idioma, escrita aqui de novo; e a do singular, que deixou de existir na Etapa 13.
+ARTICLES_ANCHOR = {'pt': 'artigos', 'en': 'articles', 'es': 'articulos', 'it': 'articoli'}
+OLD_ANCHOR = {'pt': 'artigo', 'en': 'article', 'es': 'articulo', 'it': 'articolo'}
+HOME_MAX = 3
+
+
+def newest_first():
     headers = helpers.article_headers()
-    slug = max(headers, key=lambda s: (headers[s]['date'], s))
-    main = page(name).body.split('<main', 1)[1]
-    link = '<a href="/en/articles/%s/" hreflang="en">' % slug
-    summary = '<p>%s</p>' % headers[slug]['summary'][code]
-    assert link in main and summary in main, '%s: a seção de artigo deveria mostrar o mais recente (%s), com o resumo em %s e o link para a página dele' % (name, slug, code)
+    return sorted(headers, key=lambda s: (headers[s]['date'], s), reverse=True)
+
+
+def articles_section(name):
+    """O HTML da seção de artigos de uma página do portfólio ('' se não houver)."""
+    code = TAG_CODES[PAGES[name]]
+    found = re.search(r'<section class="sec" id="%s">(.*?)</section>' % ARTICLES_ANCHOR[code], page(name).body, flags=re.S)
+    return found.group(1) if found else ''
+
+
+on_portfolio_pages = pytest.mark.parametrize('name', ['index.html'] + list(LANGUAGE_PAGES))
+
+
+@on_portfolio_pages
+def test_home_articles_section_has_the_new_anchor(name):
+    code = TAG_CODES[PAGES[name]]
+    body = page(name).body
+    assert articles_section(name) and ('href="#%s"' % ARTICLES_ANCHOR[code]) in body and ('id="%s"' % OLD_ANCHOR[code]) not in body, \
+        '%s: a seção deveria ter a âncora #%s, citada no sumário, e não mais #%s' % (name, ARTICLES_ANCHOR[code], OLD_ANCHOR[code])
+
+
+@on_portfolio_pages
+def test_home_shows_at_most_three_articles_newest_first(name):
+    slugs = re.findall(r'<a href="/en/articles/([^/]+)/"', articles_section(name))
+    expected = newest_first()[:HOME_MAX]
+    assert slugs == expected, '%s: a seção mostra %s; esperado os %d mais recentes, do mais recente ao mais antigo: %s' % (name, slugs, HOME_MAX, expected)
+
+
+@on_portfolio_pages
+def test_home_features_the_newest_article_with_its_summary(name):
+    code = TAG_CODES[PAGES[name]]
+    slug = newest_first()[0]
+    header = helpers.article_headers()[slug]
+    section = articles_section(name)
+    featured = section.split('<article class="entry">', 1)[1].split('</article>', 1)[0] if '<article class="entry">' in section else ''
+    day = header['date'].isoformat()
+    assert ('<a href="/en/articles/%s/" hreflang="en">' % slug) in featured and ('<time datetime="%s">' % day) in featured \
+        and ('<p>%s</p>' % header['summary'][code]) in featured, \
+        '%s: o destaque deveria ser o artigo mais recente (%s), com a data e o resumo em %s' % (name, slug, code)
+
+
+@on_portfolio_pages
+def test_home_earlier_articles_have_title_and_date_only(name):
+    section = articles_section(name)
+    lines = re.findall(r'<li>(.*?)</li>', section, flags=re.S)
+    headers = helpers.article_headers()
+    earlier = newest_first()[1:HOME_MAX]
+    problems = [slug for slug, line in zip(earlier, lines)
+                if ('<a href="/en/articles/%s/"' % slug) not in line or ('<time datetime="%s">' % headers[slug]['date'].isoformat()) not in line
+                or any(summary in line for summary in headers[slug]['summary'].values())]
+    assert len(lines) == len(earlier) and not problems, \
+        '%s: os anteriores ao destaque deveriam vir numa linha cada, só com título e data (%d linhas; com problema: %s)' % (name, len(lines), problems)
+
+
+@on_portfolio_pages
+def test_home_section_links_to_the_list_of_its_language(name):
+    code = TAG_CODES[PAGES[name]]
+    assert ('<p class="all"><a href="/%s/%s">' % (code, ARTICLE_LISTS[code])) in articles_section(name), \
+        '%s: falta, no fim da seção, o link para /%s/%s' % (name, code, ARTICLE_LISTS[code])
+
+
+@on_portfolio_pages
+def test_home_section_says_articles_are_in_english(name):
+    code = TAG_CODES[PAGES[name]]
+    text = re.sub(r'<[^>]+>', ' ', articles_section(name))
+    if code == 'en':
+        assert not any(sentence in text for sentence in WRITTEN_IN.values()), '%s: a seção em inglês não diz que os artigos são em inglês' % name
+    else:
+        assert WRITTEN_IN[code] in text, '%s: falta, na seção, a frase "%s"' % (name, WRITTEN_IN[code])
