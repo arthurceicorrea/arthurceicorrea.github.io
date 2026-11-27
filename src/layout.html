@@ -4,18 +4,25 @@
   preenchem o bloco main:
   - src/page.html: o portfólio (página inicial e /pt/, /en/, /es/, /it/);
   - src/gratiarum.html: o agradecimento (/pt/gratiarum-actio/ e as outras três);
-  - src/privacy.html: a privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/).
+  - src/privacy.html: a privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/);
+  - src/articles.html: as listas de artigos (/pt/artigos/, /en/articles/, /es/articulos/, /it/articoli/);
+  - src/article.html: cada artigo (/en/articles/<slug>/), só em inglês.
   A 404 (src/404.html) não usa esta moldura: traz as quatro edições de uma vez e não tem rodapé.
 
   Variáveis (preparadas por ci/build.py):
     base       endereço do site, com barra final
     page       head (título, descrição, Open Graph), html_lang, data_lang, current (idioma do
-               seletor), paths (o endereço desta página em cada idioma, depois do domínio, por
-               exemplo "pt/gratiarum-actio/") e x_default (endereço da versão padrão)
+               seletor), paths (aonde o seletor leva em cada idioma, depois do domínio, por
+               exemplo "pt/gratiarum-actio/"), alternates (as versões por idioma, (etiqueta,
+               endereço), que o <head> declara; vazia num artigo, que só existe em inglês) e
+               x_default (endereço da versão padrão; None num artigo)
     editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)
     addresses  o endereço de cada página da tabela de ci/build.py, por idioma: addresses.gratiarum.pt
+    article    o artigo da página inicial, o mais recente de src/articles/ (ci/articles.py)
+    posts      todos os artigos, do mais recente ao mais antigo; post, o da página que se monta
+    feed_title o título do feed, em inglês
     current_page  o nome, na tabela, da página que se monta: no agradecimento ("gratiarum"), o
                colofão não é link, porque já se está na página a que ele leva; na página de
                privacidade ("privacy"), a frase de privacidade continua link, marcada como a
@@ -23,11 +30,15 @@
   Uma página pode definir, fora dos blocos:
     title    o título ({% set title = ... %}); sem isso, vale page.title, do arquivo do idioma;
     og_type  o tipo da página na prévia de compartilhamento: profile (o padrão, o portfólio, que
-             descreve uma pessoa), article (o agradecimento, um texto do autor) ou website (a
-             privacidade, um aviso sobre o site).
+             descreve uma pessoa), article (o agradecimento e os artigos, textos do autor) ou
+             website (a privacidade e as listas de artigos, páginas sobre o site);
+    published, modified  num artigo, as datas de publicação e da última mudança, que a prévia
+             declara (article:published_time e article:modified_time).
   E pode preencher dois blocos além de main: work, a obra ou página que os dados estruturados
-  (JSON-LD) listam além da pessoa (por padrão, o artigo do LinkedIn), e top, o que fica no topo, à
-  esquerda do seletor de idioma (por padrão, nada).
+  (JSON-LD) listam além da pessoa (por padrão, o artigo da página inicial), e top, o que fica no
+  topo, à esquerda do seletor de idioma (por padrão, nada).
+
+  O feed dos artigos (/feed.xml) é anunciado no <head> de todas as páginas que usam esta moldura.
 
   Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
   (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
@@ -72,6 +83,10 @@
 <meta property="profile:first_name" content="Arthur">
 <meta property="profile:last_name" content="Cei Corrêa">
 {% endif %}
+{% if published is defined %}
+<meta property="article:published_time" content="{{ published }}">
+<meta property="article:modified_time" content="{{ modified }}">
+{% endif %}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="{{ page.url }}">
 <meta property="og:url" content="{{ page.url }}">
@@ -80,10 +95,13 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="{{ page.image_alt }}">
 <meta name="twitter:image" content="{{ base }}{{ page.image }}">
-{% for l in languages %}
-<link rel="alternate" hreflang="{{ l.tag }}" href="{{ base }}{{ page.paths[l.code] }}">
+{% for tag, url in page.alternates %}
+<link rel="alternate" hreflang="{{ tag }}" href="{{ url }}">
 {% endfor %}
+{% if page.x_default %}
 <link rel="alternate" hreflang="x-default" href="{{ page.x_default }}">
+{% endif %}
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="{{ feed_title }}">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -103,8 +121,8 @@
 {% block work %}
   {
   "@type": "Article",
-  "headline": "{{ article.headline }}",
-  "url": "{{ article.url }}",
+  "headline": {{ article.title | tojson }},
+  "url": "{{ base }}{{ article.path }}",
   "datePublished": "{{ article.date }}",
   "inLanguage": "{{ article.lang }}",
   "author": { "@id": "{{ base }}#arthur" }

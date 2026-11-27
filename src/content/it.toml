@@ -146,11 +146,10 @@ problem = "Un portfolio in quattro lingue, accessibile e senza risorse di terze 
 role = "Ho ideato e guidato il progetto: ho definito i requisiti, i controlli della pipeline e le priorità di ogni miglioramento. Ho usato l’IA come strumento per scrivere il codice."
 
 [article]
-# O título, o endereço e a data do artigo ficam em ci/build.py (ARTICLE).
-meta = "LinkedIn, {date}, in inglese"
-summary = "Un saggio sull’uso dell’IA nel lavoro, alla luce della tradizione aristotelico-tomista: lo strumento serve l’intelletto, ma non si delega ciò che non si è ancora imparato, e il codice, le configurazioni e le pipeline suggeriti dall’IA vanno letti, testati e compresi prima di arrivare in produzione."
-link = "Leggi l’articolo su LinkedIn"
-link_note = "in inglese; si apre in una nuova scheda"
+# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
+# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
+meta = "{date}, in inglese"
+link = "Leggi l’articolo"
 
 [skills]
 intro = "Tecnologie con cui ho avuto un contatto pratico: nel tirocinio, nei progetti e nei laboratori dell’università."
@@ -272,3 +271,16 @@ cloudflare_policy = "informativa sulla privacy di Cloudflare"
 github = "GitHub Pages, che ospita il sito, registra l’indirizzo IP di chi lo visita, per sicurezza, e lo riceve da Cloudflare a ogni pagina richiesta ({policy}, in inglese)."
 github_policy = "dichiarazione sulla privacy di GitHub"
 closing = "Nessuna delle due informative fissa un periodo di conservazione di questi registri. Seguendo un link a LinkedIn o a GitHub, si passa alle regole di quei siti. Domande: {email}."
+
+[articles]
+# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
+# Endereço da lista neste idioma: /it/<path>/. Uma vez publicado, não mude.
+path = "articoli"
+title = "Articoli — Arthur Cei Corrêa"
+heading = "Articoli"
+description = "Articoli di Arthur Cei Corrêa, scritti in inglese, con il riassunto di ciascuno in italiano."
+# Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
+written_in = "Gli articoli sono scritti in inglese."
+# Link para o feed Atom, no fim da lista.
+feed = "Feed degli articoli (Atom)"

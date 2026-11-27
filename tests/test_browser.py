@@ -22,6 +22,10 @@ Serve a pasta do site localmente e confere:
   celular e em tela larga: edição certa, seletor, fontes, nenhuma rolagem horizontal, nenhum erro
   no console; idioma fixo mesmo com fuso de outro país e funcionamento sem JavaScript; a frase de
   privacidade do rodapé leva a ela no idioma da página, e o seletor, ao endereço traduzido;
+- listas de artigos (/pt/artigos/ e as outras três) e páginas dos artigos, no celular e em tela
+  larga: edição certa, seletor, fontes, nenhuma rolagem horizontal, nenhum erro no console; o artigo
+  continua em inglês com o fuso do Brasil e sem JavaScript; o seletor do artigo leva às listas, a
+  lista leva ao artigo, e a página inicial, ao artigo mais recente;
 - depois de visitar todas as páginas, o navegador não tem cookie nenhum do site, e o localStorage
   está vazio: o que a página de privacidade afirma;
 - página 404 no idioma do navegador.
@@ -36,7 +40,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from helpers import CODES, GRATIARUM, PRIVACY
+from helpers import ARTICLE_LISTS, CODES, GRATIARUM, PRIVACY, published
 
 STATE = """() => ({
   lang: document.documentElement.lang,
@@ -637,6 +641,119 @@ def test_console_has_no_errors_along_the_privacy_link(once, browser, site_url):
     assert not errors, 'erros no console no caminho pela frase de privacidade: %s' % errors[:3]
 
 
+# ---------- artigos: as listas e a página de cada artigo ----------
+
+ARTICLE_VIEWS = ([pytest.param(code, '%s/%s' % (code, ARTICLE_LISTS[code]), width, id='/%s/%s-%dpx' % (code, ARTICLE_LISTS[code].rstrip('/'), width))
+                  for code in CODES for width in WIDTHS]
+                 + [pytest.param('en', address.lstrip('/'), width, id='%s-%dpx' % (address.rstrip('/'), width))
+                    for address in published() for width in WIDTHS])
+on_article_views = pytest.mark.parametrize('code, path, width', ARTICLE_VIEWS)
+
+
+@on_article_views
+def test_article_view_shows_its_edition_only(once, browser, site_url, code, path, width):
+    s, errors = once(visit, browser, site_url, path, width)
+    assert s['lang'] == CODES[code] and s['editions'] == [CODES[code]] and s['visible'] == [CODES[code]], \
+        '/%s: idioma %r, edições %s, visível %s' % (path, s['lang'], s['editions'], s['visible'])
+
+
+@on_article_views
+def test_article_view_switcher_is_visible_and_marks_active_language(once, browser, site_url, code, path, width):
+    s, errors = once(visit, browser, site_url, path, width)
+    assert s['current'] == [code] and s['navVisible'], '/%s: seletor visível=%s, marcado %s' % (path, s['navVisible'], s['current'])
+
+
+@on_article_views
+def test_article_view_fonts_are_loaded(once, browser, site_url, code, path, width):
+    s, errors = once(visit, browser, site_url, path, width)
+    assert s['fonts'] and all(f == 'loaded' for f in s['fonts']), '/%s: fontes não carregadas: %s' % (path, s['fonts'])
+
+
+@on_article_views
+def test_article_view_has_no_horizontal_scroll(once, browser, site_url, code, path, width):
+    s, errors = once(visit, browser, site_url, path, width)
+    assert s['overflow'] <= 0, '/%s a %d px: a página rola %d px na horizontal' % (path, width, s['overflow'])
+
+
+@on_article_views
+def test_article_view_console_has_no_errors_or_csp_blocks(once, browser, site_url, code, path, width):
+    s, errors = once(visit, browser, site_url, path, width)
+    assert not errors, '/%s: erros no console ou recursos que falharam: %s' % (path, errors[:3])
+
+
+def article_in_brazil(browser, site_url, address):
+    ctx, page = open_page(browser, site_url, address.lstrip('/'), timezone_id='America/Sao_Paulo', locale='pt-BR')
+    state = page.evaluate(STATE)
+    ctx.close()
+    return state
+
+
+@pytest.mark.parametrize('address', published())
+def test_article_stays_in_english_with_the_time_zone_of_brazil(once, browser, site_url, address):
+    s = once(article_in_brazil, browser, site_url, address)
+    assert s['lang'] == 'en' and s['path'] == address and s['visible'] == ['en'], \
+        '%s com o fuso e o navegador do Brasil mostrou %r em %s' % (address, s['lang'], s['path'])
+
+
+@pytest.mark.parametrize('address', published())
+def test_article_works_without_javascript(once, browser, site_url, address):
+    s = once(without_javascript, browser, site_url, address.lstrip('/'))
+    assert s['lang'] == 'en' and s['visible'] == ['en'] and s['current'] == ['en'] and s['navVisible'], \
+        '%s sem JavaScript: idioma %r, edição visível %s, seletor %s' % (address, s['lang'], s['visible'], s['current'])
+
+
+def article_tour(browser, site_url):
+    """Da página inicial em português ao artigo mais recente; dali, pelo seletor, à lista em espanhol; da
+    lista, pelo título, ao primeiro artigo; e, pelo link do topo, à lista em inglês."""
+    errors, steps = [], {}
+    ctx, page = open_page(browser, site_url, 'pt/', errors)
+    for name, selector in (('home', 'main .t[lang="pt-BR"] a[href^="/en/articles/"]'), ('switcher', '.langs a[data-lang="es"]'),
+                           ('list', 'main .entry h2 a'), ('back', '.top .home')):
+        with page.expect_navigation():
+            page.click(selector)
+        page.wait_for_load_state('networkidle')
+        steps[name] = page.evaluate(STATE)
+    ctx.close()
+    return steps, errors
+
+
+def test_home_leads_to_the_newest_article(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['home']
+    assert s['path'] == published_newest() and s['lang'] == 'en', 'o link da seção de artigo de /pt/ levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_article_switcher_leads_to_the_list(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['switcher']
+    assert s['path'] == '/es/' + ARTICLE_LISTS['es'] and s['lang'] == 'es', 'o seletor ES do artigo levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_list_leads_to_the_article(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['list']
+    assert s['path'] == published_newest() and s['lang'] == 'en', 'o título na lista levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_article_back_link_leads_to_the_english_list(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['back']
+    assert s['path'] == '/en/' + ARTICLE_LISTS['en'] and s['lang'] == 'en', 'o link do topo levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_console_has_no_errors_along_the_articles(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    assert not errors, 'erros no console no caminho pelos artigos: %s' % errors[:3]
+
+
+def published_newest():
+    """Endereço do artigo mais recente, pela data do cabeçalho."""
+    from helpers import article_headers
+    headers = article_headers()
+    slug = max(headers, key=lambda s: (headers[s]['date'], s))
+    return '/en/articles/%s/' % slug
+
+
 # ---------- nada guardado no navegador: nenhum cookie e localStorage vazio ----------
 
 def storage_after_visiting_every_page(browser, site_url):
@@ -646,7 +763,8 @@ def storage_after_visiting_every_page(browser, site_url):
     ctx = browser.new_context(timezone_id='America/Sao_Paulo', locale='pt-BR')
     page = ctx.new_page()
     paths = ['', '404.html'] + ['%s/' % code for code in CODES] + ['%s/%s' % (code, GRATIARUM) for code in CODES] \
-        + ['%s/%s' % (code, PRIVACY[code]) for code in CODES]
+        + ['%s/%s' % (code, PRIVACY[code]) for code in CODES] + ['%s/%s' % (code, ARTICLE_LISTS[code]) for code in CODES] \
+        + [address.lstrip('/') for address in published()]
     stored = 0
     for path in paths:
         page.goto(site_url + path)

@@ -11,3 +11,8 @@ Pygments==2.21.0
 # Build: modelo das páginas (Jinja2, que usa o MarkupSafe)
 Jinja2==3.1.6
 MarkupSafe==3.0.4
+# Build: corpo dos artigos em Markdown (CommonMark, com o mdurl, de que depende) e, do mdit-py-plugins,
+# só o plugin attrs, para marcar a língua de um trecho
+markdown-it-py==4.3.0
+mdurl==0.1.2
+mdit-py-plugins==0.7.0

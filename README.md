@@ -3,7 +3,7 @@
 [![Site](https://github.com/arthurceicorrea/arthurceicorrea.github.io/actions/workflows/site.yml/badge.svg)](https://github.com/arthurceicorrea/arthurceicorrea.github.io/actions/workflows/site.yml)
 
 Personal portfolio of Arthur Cei Corrêa — DevOps, applied AI and security.
-One static page in Portuguese, English, Spanish and Italian, published at <https://arthurceicorrea.dev/>, with a page per language at `/pt/`, `/en/`, `/es/` and `/it/`. It is only published after a pipeline of checks passes.
+One static page in Portuguese, English, Spanish and Italian, published at <https://arthurceicorrea.dev/>, with a page per language at `/pt/`, `/en/`, `/es/` and `/it/`, and articles, written in English and presented in the four languages. It is only published after a pipeline of checks passes.
 
 ## What the site does
 
@@ -12,6 +12,7 @@ One static page in Portuguese, English, Spanish and Italian, published at <https
 - **A restrictive Content Security Policy**, in a meta tag: `style-src 'self'; script-src 'self'`, so no inline styles or scripts run, only files served by the site. ([ADR 2](docs/adr/0002-content-security-policy-in-a-meta-tag-with-self.md))
 - **Security headers from Cloudflare**, which sits in front of GitHub Pages: `frame-ancestors 'none'` (which a meta tag cannot carry), HSTS, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy`. The domain, its records and these rules are Terraform in [`infra/`](infra/). ([ADR 10](docs/adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md))
 - **Accessible**: WCAG 2.2 AA, checked on every page by axe and Lighthouse.
+- **Articles** in Markdown, one file each in `src/articles/`, built by the same script into a page at `/en/articles/<slug>/`, four lists (`/pt/artigos/`, `/en/articles/`, `/es/articulos/`, `/it/articoli/`) and an Atom feed, `/feed.xml` ([ADR 11](docs/adr/0011-articles-in-markdown-in-english-built-by-the-same-script.md)).
 - **CVs from the same content.** The four PDF CVs are printed by the build from the same texts as the page, so the site and the CVs always say the same.
 - **No phone number, address or health data** in the pages or the CVs; the tests look for phone numbers.
 
@@ -42,6 +43,9 @@ src/                    source of the pages
   page.html             the portfolio page, written once (extends layout.html)
   gratiarum.html        the thanksgiving page, Gratiarum actio, linked from the footer's colophon (extends layout.html)
   privacy.html          the privacy page, linked from the footer's "no cookies" sentence (extends layout.html)
+  articles.html         the article lists, one per language (extends layout.html)
+  article.html          the page of each article, in English (extends layout.html)
+  articles/             the articles, one Markdown file each, named by the article's address (see Publishing an article)
   cv.html               the CV, printed to PDF in each language (Jinja2 template; not published)
   404.html              the error page (Jinja2 template)
   content/              every text, one file per language: pt.toml, en.toml, es.toml, it.toml
@@ -51,6 +55,7 @@ src/                    source of the pages
 static/                 files served as they are: fonts/, images, vCard, robots.txt
 ci/                     build and pipeline tools
   build.py              builds _site/ from src/ and static/
+  articles.py           reads and checks the articles, renders their Markdown and writes the feed (used by build.py)
   monitor.py            checks the live site (after each deploy and weekly)
   compare_screens.py    compares two builds pixel by pixel
   lighthouserc.json     Lighthouse settings; lighthouse_summary.py writes the scores to the run summary
@@ -58,7 +63,7 @@ ci/                     build and pipeline tools
   package.json          Node tools, exact versions; package-lock.json pins every npm package
   stylelint.config.js   Stylelint rules, with the two adjustments explained
   eslint.config.js      ESLint rules
-tests/                  pytest tests (see Tests)
+tests/                  pytest tests (see Tests); published.txt lists the address of every published article
 infra/                  Terraform for the domain at Cloudflare: DNS, redirect, security headers (see its README)
 docs/
   PLAN.md               the plan this structure came from, stage by stage
@@ -82,12 +87,12 @@ The **Validar** job:
 
 1. **Code style** (`make lint`): Stylelint (standard config) on `src/css/`, ESLint (recommended rules) on `src/js/` and Prettier on both. The two adjusted Stylelint rules are explained in `ci/stylelint.config.js`.
 2. **Build** (`ci/build.py`):
-   - stops if a text of `pt.toml` is missing from another language;
-   - renders the templates into `_site/` from a single page table: the home page in English, one page per language, the thanksgiving page in each language (`/pt/gratiarum-actio/` and so on) and the privacy page, whose address is translated (`/pt/privacidade/`, `/en/privacy/`, `/es/privacidad/`, `/it/privacy/`); each with only its own edition and with title, description, canonical URL, language alternates and sharing preview in that language;
+   - stops if a text of `pt.toml` is missing from another language, or if an article has a problem (its file name, a header field, a date, a heading, an image, a link or markup it may not have), naming the file and the field;
+   - renders the templates into `_site/` from a single page table: the home page in English, one page per language, the thanksgiving page in each language (`/pt/gratiarum-actio/` and so on) the privacy page and the article lists, whose addresses are translated (`/pt/privacidade/`, `/en/privacy/`, `/es/privacidad/`, `/it/privacy/`; `/pt/artigos/` and so on), and each article, in English only and with no language alternates; each with only its own edition and with title, description, canonical URL, language alternates and sharing preview in that language;
    - copies `static/`;
    - joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`;
    - prints the four CVs from `src/cv.html` to `/cv/`, with Playwright in Chrome: A4, tagged PDF with an outline, the page texts in each language, and the page numbers in the CV's language; the CV text uses Atkinson Hyperlegible Next, a typeface made for legibility ([ADR 8](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md));
-   - writes `sitemap.xml` from the same page table, and `version.txt`, and fills in the footer date and year from the last commit.
+   - writes `sitemap.xml` from the same page table, the Atom feed `feed.xml`, and `version.txt`, and fills in the footer date and year from the last commit.
 3. **Static validation** (`tests/test_content.py` and `tests/test_static.py`): every text in all four languages, the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, no phone number in the pages, the CVs or the vCard, and the CVs themselves: all four built, each with its page's texts, at most two pages, page numbers in its language.
 4. **W3C HTML validation**: the official Nu Html Checker on every generated page.
 5. **Browser test** (`tests/test_browser.py`): headless Chrome on mobile and desktop widths. Checks the right language shown, the home page sending each visitor to their language page, fonts loaded, no console errors or CSP violations, the language switch, pages without JavaScript, the language chosen by country (simulated time zones), the buttons and the 404 page.
@@ -117,7 +122,7 @@ The tests are in `tests/` and run with [pytest](https://docs.pytest.org/). Each 
 
 | File | What it checks | Needs |
 |---|---|---|
-| `tests/test_content.py` | every key of `pt.toml` exists in the other three languages | nothing |
+| `tests/test_content.py` | every key of `pt.toml` exists in the other three languages; every article header is complete; the build refuses bad articles | nothing |
 | `tests/test_static.py` | the built HTML and CVs, without a browser: security policy, links, languages, structured data, sitemap, CVs matching the page | `make build` |
 | `tests/test_browser.py` | the site in headless Chrome: languages, redirects, switcher, buttons, 404 | `make build` |
 | `tests/test_a11y.py` | axe-core accessibility audit, WCAG 2.2 A and AA | `make build`, `make setup` |
@@ -133,7 +138,14 @@ python -m pytest --site OTHER_FOLDER              # test another build instead o
 
 When a test fails, pytest prints a block per failure, starting with the test name, and at the end a `short test summary info` with one line per failure: `FAILED <file>::<test>[<item>] - <message>`. The message, in Portuguese, says what is wrong and where, for example `pt/index.html, linha 130: link externo precisa de target="_blank" rel="noopener noreferrer" (...)`. To run only that test again, copy its name after `python -m pytest`.
 
-External links must be in `ALLOWED_EXTERNAL`, in `tests/helpers.py`.
+External links in the pages and templates must be in `ALLOWED_EXTERNAL`, in `tests/helpers.py`. Links in the body of an article may lead anywhere over `https`, open in the same tab and load nothing.
+
+## Publishing an article
+
+1. Add `src/articles/<slug>.md`. The file name is the article's address, `/en/articles/<slug>/`: lowercase letters without accents, digits and hyphens. Once published, the slug never changes; the title may.
+2. Start the file with the header, in TOML between two `+++` lines: `title`, `date` (the day of publication, without quotes), optionally `updated` and `linkedin`, and the summary in `[summary]`, in `en`, `pt`, `es` and `it`. Then the text, in Markdown (CommonMark), with typographic quotes and dashes written as they are.
+3. Mark a passage in another language as `[Sapientis est ordinare]{lang=la}` (inside the asterisks if it is italic). It is the only markup beyond CommonMark; HTML written in the text comes out escaped, and images are not accepted yet.
+4. Add the address to `tests/published.txt`, run `make build` and `make test`, and open a pull request.
 
 ## Decisions
 

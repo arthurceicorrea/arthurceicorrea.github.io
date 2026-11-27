@@ -1,0 +1,72 @@
+{#
+  Modelo da página de cada artigo (Jinja2). ci/build.py o usa para montar /en/articles/<slug>/,
+  uma página por arquivo de src/articles/ (lido e conferido por ci/articles.py).
+  O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos das outras páginas.
+
+  A página é inteira em inglês, inclusive o topo, o rodapé e as datas: os artigos só existem em
+  inglês. Com o idioma fixo (data-lang="en"), o script de idioma não leva ninguém a outra página,
+  qualquer que seja o fuso. O endereço canônico é a própria página, e não há hreflang, porque não
+  há versão em outra língua; o seletor marca EN, e PT, ES e IT levam à lista de artigos naquela
+  língua (paths, na tabela de páginas).
+
+  Variáveis, além das de layout.html: post, o artigo, com title, date, updated (ou None), modified
+  (updated ou date), linkedin (ou None), summary (por idioma), path e html, o corpo já transformado
+  e escapado por ci/articles.py, que entra como está.
+
+  Os textos da interface ficam em [articles] de src/content/en.toml: back (o link do topo, para a
+  lista), updated e linkedin.
+#}
+{% extends 'layout.html' %}
+{% set og_type = 'article' %}
+{% set published = post.date.isoformat() %}
+{% set modified = post.modified.isoformat() %}
+{# o LinkedIn, quando o texto também saiu lá: link externo, como os outros da interface #}
+{% macro linkedin_link(e) %}<a href="{{ post.linkedin }}" target="_blank" rel="noopener noreferrer">LinkedIn<span class="vh"> ({{ e.ui.new_tab }})</span></a>{% endmacro %}
+{% block work %}
+  {
+  "@type": "Article",
+  "headline": {{ post.title | tojson }},
+  "description": {{ post.summary.en | tojson }},
+  "url": "{{ page.url }}",
+  "inLanguage": "{{ post.lang }}",
+  "datePublished": "{{ post.date }}",
+  "dateModified": "{{ post.modified }}",
+{% if post.linkedin %}
+  "sameAs": {{ post.linkedin | tojson }},
+{% endif %}
+  "author": { "@id": "{{ base }}#arthur" }
+  }
+{% endblock %}
+{% block top %}
+{% for e in editions %}
+  <a class="home" href="/{{ addresses.articles[e.code] }}">{{ e.articles.back }}</a>
+{% endfor %}
+{% endblock %}
+{% block main %}
+<main id="conteudo" class="wrap" tabindex="-1">
+{% for e in editions %}
+
+<div class="t" lang="{{ e.tag }}"
+     data-title="{{ page.title }}"
+     data-desc="{{ page.description }}">
+
+  <article class="post">
+    <header class="hero">
+      <h1>{{ post.title_html }}</h1>
+      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}</p>
+{% if post.linkedin %}
+      <p class="meta">{{ e.articles.linkedin | replace('{linkedin}', linkedin_link(e)) | replace('{date}', time_tag(post.date, e)) }}</p>
+{% endif %}
+    </header>
+
+    <div class="sec">
+      <div class="body prose">
+{{ post.html }}
+      </div>
+    </div>
+  </article>
+</div>
+{% endfor %}
+
+</main>
+{% endblock %}

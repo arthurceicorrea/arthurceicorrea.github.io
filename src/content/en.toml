@@ -146,11 +146,10 @@ problem = "A portfolio in four languages, accessible and free of third-party res
 role = "I conceived and led the project: I set the requirements, the pipeline checks and the priorities for each improvement. I used AI as a tool to write the code."
 
 [article]
-# O título, o endereço e a data do artigo ficam em ci/build.py (ARTICLE).
-meta = "LinkedIn, {date}"
-summary = "An essay on using AI at work, in the light of the Aristotelian-Thomistic tradition: the instrument serves the intellect, but one should not delegate what one has not yet learned, and AI-suggested code, configurations and pipelines must be read, tested and understood before they reach production."
-link = "Read the article on LinkedIn"
-link_note = "opens in a new tab"
+# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
+# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
+meta = "{date}"
+link = "Read the article"
 
 [skills]
 intro = "Technologies I have had hands-on contact with: in my internship, in projects and in coursework labs."
@@ -271,3 +270,26 @@ cloudflare_policy = "Cloudflare’s privacy policy"
 github = "GitHub Pages, which hosts the site, logs the IP address of visitors, for security, and receives it from Cloudflare with every page requested ({policy})."
 github_policy = "GitHub’s privacy statement"
 closing = "Neither policy sets a period for keeping these records. When you follow a link to LinkedIn or GitHub, the rules of those sites apply. Questions: {email}."
+
+[articles]
+# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
+# Endereço da lista neste idioma: /en/<path>/. Uma vez publicado, não mude.
+path = "articles"
+title = "Articles — Arthur Cei Corrêa"
+heading = "Articles"
+description = "Articles by Arthur Cei Corrêa, with a summary of each."
+# Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
+written_in = ""
+# Link para o feed Atom, no fim da lista.
+feed = "Articles feed (Atom)"
+# Só em inglês: a página de cada artigo e o feed são inteiros em inglês, e estas chaves não existem
+# nos outros idiomas.
+# Link no topo da página de um artigo, para a lista em inglês.
+back = "All articles"
+# Título do feed Atom (/feed.xml).
+feed_title = "Arthur Cei Corrêa — Articles"
+# Data de revisão, depois da data de publicação, na página de um artigo que tenha updated.
+updated = "updated {date}"
+# Na página de um artigo que também saiu no LinkedIn (campo linkedin): {linkedin} é o link e {date}, a data.
+linkedin = "Originally published on {linkedin} on {date}."

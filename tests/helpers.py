@@ -25,17 +25,35 @@ GRATIARUM_PAGES = {'%s/%sindex.html' % (code, GRATIARUM): (code, tag) for code, 
 # idioma, para que os testes não concordem com o build por construção.
 PRIVACY = {'pt': 'privacidade/', 'en': 'privacy/', 'es': 'privacidad/', 'it': 'privacy/'}
 PRIVACY_PAGES = {'%s/%sindex.html' % (code, PRIVACY[code]): (code, tag) for code, tag in CODES.items()}
+# Listas de artigos: o endereço é traduzido; escrito aqui de novo, como o da privacidade.
+ARTICLE_LISTS = {'pt': 'artigos/', 'en': 'articles/', 'es': 'articulos/', 'it': 'articoli/'}
+LIST_PAGES = {'%s/%sindex.html' % (code, ARTICLE_LISTS[code]): (code, tag) for code, tag in CODES.items()}
+# Endereços dos artigos publicados (tests/published.txt), que nunca somem. Cada artigo é uma página
+# só em inglês.
+PUBLISHED_FILE = os.path.join(REPO, 'tests', 'published.txt')
+
+
+def published():
+    with open(PUBLISHED_FILE, encoding='utf-8') as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+
+
+ARTICLE_PAGES = {address.lstrip('/') + 'index.html': 'en' for address in published()}
 # Páginas do site e a edição que cada uma deve ter: a 404 traz as quatro (None).
 # tests/test_static.py confere que toda página do sitemap.xml está aqui: página nova sem teste reprova.
 PAGES = {'index.html': 'en', **{name: tag for name, (code, tag) in LANGUAGE_PAGES.items()},
          **{name: tag for name, (code, tag) in GRATIARUM_PAGES.items()},
-         **{name: tag for name, (code, tag) in PRIVACY_PAGES.items()}, '404.html': None}
+         **{name: tag for name, (code, tag) in PRIVACY_PAGES.items()},
+         **{name: tag for name, (code, tag) in LIST_PAGES.items()}, **ARTICLE_PAGES, '404.html': None}
+# Endereços externos que a interface e os modelos podem citar. Não vale para os links no corpo dos
+# artigos, que podem levar a qualquer endereço https (tests/test_static.py, links no corpo).
 ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.dev/',
     'https://github.com/arthurceicorrea',
     'https://www.linkedin.com/in/arthurceicorrea/',
     'https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution',
-    'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
+    # artigos que também saíram no LinkedIn (campo linkedin do cabeçalho de um artigo)
+    'https://www.linkedin.com/pulse/',
     # as duas políticas citadas na página de privacidade
     'https://www.cloudflare.com/privacypolicy/',
     'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement',
@@ -82,11 +100,17 @@ class Parser(HTMLParser):
         self.stack, self.errors, self.ids, self.tags = [], [], [], []
         self.edition = None  # idioma da edição em que estamos
         self.counts = {lang: {} for lang in LANGS}
+        # o corpo de um artigo (class="... prose"): as etiquetas de dentro, para os testes dos links
+        self.prose_depth, self.prose = None, []
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         line = self.getpos()[0]
         self.tags.append((tag, a, line))
+        if self.prose_depth is not None:
+            self.prose.append(self.tags[-1])
+        elif 'prose' in a.get('class', '').split() and tag not in VOID:
+            self.prose_depth = len(self.stack)
         if 'id' in a:
             self.ids.append(a['id'])
         if tag == 'div' and a.get('class') == 't' and a.get('lang') in LANGS and self.stack and self.stack[-1][0] == 'main':
@@ -108,6 +132,8 @@ class Parser(HTMLParser):
         self.stack.pop()
         if self.edition and len(self.stack) == self.edition[1]:
             self.edition = None
+        if self.prose_depth is not None and len(self.stack) == self.prose_depth:
+            self.prose_depth = None
 
 
 class Page:
@@ -161,9 +187,16 @@ class Page:
         people = [n for n in nodes if n.get('@type') == 'Person']
         return people[0] if people else {}
 
-    def links(self):
-        """Cada endereço citado em href ou src: (etiqueta, atributos, linha, endereço)."""
-        return [(tag, a, line, a.get(attr)) for tag, a, line in self.tags for attr in ('href', 'src') if a.get(attr)]
+    def links(self, prose=False):
+        """Cada endereço citado em href ou src: (etiqueta, atributos, linha, endereço). prose=False:
+        os da página, fora do corpo de um artigo; prose=True: só os do corpo de um artigo."""
+        inside = {id(t) for t in self.parsed.prose}
+        return [(tag, a, line, a.get(attr)) for t in self.tags for tag, a, line in [t]
+                if (id(t) in inside) == prose for attr in ('href', 'src') if a.get(attr)]
+
+    def prose_tags(self):
+        """As etiquetas do corpo de um artigo."""
+        return self.parsed.prose
 
 
 @functools.lru_cache(maxsize=None)
@@ -185,6 +218,25 @@ def expected_alternates(path=''):
     found = {tag: base() + code + '/' + paths[code] for code, tag in CODES.items()}
     found['x-default'] = base() + ('en/' + paths['en'] if paths['en'] else '')
     return found
+
+
+def article_headers():
+    """Cabeçalho de cada artigo de src/articles/, por slug, lido aqui de novo, e não pelo build: o
+    TOML entre as duas primeiras linhas +++."""
+    import tomllib
+    folder = os.path.join(REPO, 'src', 'articles')
+    found = {}
+    for name in sorted(os.listdir(folder)):
+        with open(os.path.join(folder, name), encoding='utf-8') as f:
+            lines = f.read().split('\n')
+        end = lines.index('+++', 1) if lines and lines[0] == '+++' and '+++' in lines[1:] else 0
+        found[name[:-3] if name.endswith('.md') else name] = tomllib.loads('\n'.join(lines[1:end])) if end else {}
+    return found
+
+
+def plain_title(title):
+    """O título sem a marcação da língua dos trechos: [Sapientis est ordinare]{lang=la} vira o texto."""
+    return re.sub(r'\[([^\]]*)\]\{lang=[^}]*\}', r'\1', title)
 
 
 def cv_files():
