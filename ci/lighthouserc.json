@@ -12,7 +12,11 @@
         "http://127.0.0.1:8080/pt/gratiarum-actio/",
         "http://127.0.0.1:8080/en/gratiarum-actio/",
         "http://127.0.0.1:8080/es/gratiarum-actio/",
-        "http://127.0.0.1:8080/it/gratiarum-actio/"
+        "http://127.0.0.1:8080/it/gratiarum-actio/",
+        "http://127.0.0.1:8080/pt/privacidade/",
+        "http://127.0.0.1:8080/en/privacy/",
+        "http://127.0.0.1:8080/es/privacidad/",
+        "http://127.0.0.1:8080/it/privacy/"
       ],
       "numberOfRuns": 1,
       "settings": {

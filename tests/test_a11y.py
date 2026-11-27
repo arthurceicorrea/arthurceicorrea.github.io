@@ -14,7 +14,8 @@ Uso: make build && python -m pytest tests/test_a11y.py
 import pytest
 
 PAGES = ['?lang=pt', '?lang=en', '?lang=es', '?lang=it', 'pt/', 'en/', 'es/', 'it/', '404.html',
-         'pt/gratiarum-actio/', 'en/gratiarum-actio/', 'es/gratiarum-actio/', 'it/gratiarum-actio/']
+         'pt/gratiarum-actio/', 'en/gratiarum-actio/', 'es/gratiarum-actio/', 'it/gratiarum-actio/',
+         'pt/privacidade/', 'en/privacy/', 'es/privacidad/', 'it/privacy/']
 WIDTHS = {360: 740, 1440: 900}
 WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 

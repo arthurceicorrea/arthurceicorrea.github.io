@@ -21,15 +21,24 @@ LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
 GRATIARUM = 'gratiarum-actio/'
 LANGUAGE_PAGES = {'%s/index.html' % code: (code, tag) for code, tag in CODES.items()}
 GRATIARUM_PAGES = {'%s/%sindex.html' % (code, GRATIARUM): (code, tag) for code, tag in CODES.items()}
+# Página de privacidade: o endereço é traduzido. Escrito aqui de novo, e não lido dos arquivos de
+# idioma, para que os testes não concordem com o build por construção.
+PRIVACY = {'pt': 'privacidade/', 'en': 'privacy/', 'es': 'privacidad/', 'it': 'privacy/'}
+PRIVACY_PAGES = {'%s/%sindex.html' % (code, PRIVACY[code]): (code, tag) for code, tag in CODES.items()}
 # Páginas do site e a edição que cada uma deve ter: a 404 traz as quatro (None).
+# tests/test_static.py confere que toda página do sitemap.xml está aqui: página nova sem teste reprova.
 PAGES = {'index.html': 'en', **{name: tag for name, (code, tag) in LANGUAGE_PAGES.items()},
-         **{name: tag for name, (code, tag) in GRATIARUM_PAGES.items()}, '404.html': None}
+         **{name: tag for name, (code, tag) in GRATIARUM_PAGES.items()},
+         **{name: tag for name, (code, tag) in PRIVACY_PAGES.items()}, '404.html': None}
 ALLOWED_EXTERNAL = (
     'https://arthurceicorrea.dev/',
     'https://github.com/arthurceicorrea',
     'https://www.linkedin.com/in/arthurceicorrea/',
     'https://github.com/CodeSquad-FIAP/Frio-Solidario-Global-Solution',
     'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
+    # as duas políticas citadas na página de privacidade
+    'https://www.cloudflare.com/privacypolicy/',
+    'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement',
 )
 # telefone brasileiro: +55, (11) 9xxxx-xxxx ou 9xxxx-xxxx
 PHONE = re.compile(r'\+\s?55\b|\(\d{2}\)\s?9\d{4}-?\d{4}|\b9\d{4}-\d{4}\b')
@@ -170,9 +179,11 @@ def base():
 def expected_alternates(path=''):
     """Versões por idioma que cada página e o sitemap devem declarar. path vazio: o portfólio, cuja
     versão padrão (x-default) é a página inicial; GRATIARUM: o agradecimento, cuja padrão é a edição
-    em inglês."""
-    found = {tag: base() + code + '/' + path for code, tag in CODES.items()}
-    found['x-default'] = base() + ('en/' + path if path else '')
+    em inglês; um dicionário por idioma, como PRIVACY: uma página de endereço traduzido, cuja padrão
+    também é a edição em inglês."""
+    paths = path if isinstance(path, dict) else {code: path for code in CODES}
+    found = {tag: base() + code + '/' + paths[code] for code, tag in CODES.items()}
+    found['x-default'] = base() + ('en/' + paths['en'] if paths['en'] else '')
     return found
 
 

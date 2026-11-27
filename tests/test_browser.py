@@ -18,6 +18,12 @@ Serve a pasta do site localmente e confere:
   console; idioma fixo mesmo com fuso de outro país e funcionamento sem JavaScript;
 - colofão do rodapé: da página inicial e de /pt/ leva ao agradecimento no idioma da página; ali,
   o seletor leva à mesma página em outro idioma, e o link de volta, à página inicial do idioma;
+- página de privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/), no
+  celular e em tela larga: edição certa, seletor, fontes, nenhuma rolagem horizontal, nenhum erro
+  no console; idioma fixo mesmo com fuso de outro país e funcionamento sem JavaScript; a frase de
+  privacidade do rodapé leva a ela no idioma da página, e o seletor, ao endereço traduzido;
+- depois de visitar todas as páginas, o navegador não tem cookie nenhum do site, e o localStorage
+  está vazio: o que a página de privacidade afirma;
 - página 404 no idioma do navegador.
 
 Cada cenário (página, largura, fuso, idioma do navegador) é aberto uma vez só; os testes
@@ -30,7 +36,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from helpers import CODES, GRATIARUM
+from helpers import CODES, GRATIARUM, PRIVACY
 
 STATE = """() => ({
   lang: document.documentElement.lang,
@@ -517,6 +523,148 @@ def test_thanksgiving_back_link_leads_to_home_page_of_its_language(once, browser
 def test_console_has_no_errors_along_the_colophon(once, browser, site_url):
     steps, errors = once(colophon_tour, browser, site_url)
     assert not errors, 'erros no console no caminho pelo colofão: %s' % errors[:3]
+
+
+# ---------- página de privacidade ----------
+
+PRIVATE = [pytest.param(code, width, id='/%s/%s-%dpx' % (code, PRIVACY[code].rstrip('/'), width)) for code in CODES for width in WIDTHS]
+on_privacy_pages = pytest.mark.parametrize('code, width', PRIVATE)
+
+
+def privacy(browser, site_url, code, width):
+    return visit(browser, site_url, code + '/' + PRIVACY[code], width)
+
+
+@on_privacy_pages
+def test_privacy_shows_its_edition_only(once, browser, site_url, code, width):
+    s, errors = once(privacy, browser, site_url, code, width)
+    assert s['lang'] == CODES[code] and s['editions'] == [CODES[code]] and s['visible'] == [CODES[code]], \
+        '/%s/%s: idioma %r, edições %s, visível %s' % (code, PRIVACY[code], s['lang'], s['editions'], s['visible'])
+
+
+@on_privacy_pages
+def test_privacy_switcher_is_visible_and_marks_active_language(once, browser, site_url, code, width):
+    s, errors = once(privacy, browser, site_url, code, width)
+    assert s['current'] == [code] and s['navVisible'], '/%s/%s: seletor visível=%s, marcado %s' % (code, PRIVACY[code], s['navVisible'], s['current'])
+
+
+@on_privacy_pages
+def test_privacy_fonts_are_loaded(once, browser, site_url, code, width):
+    s, errors = once(privacy, browser, site_url, code, width)
+    assert s['fonts'] and all(f == 'loaded' for f in s['fonts']), '/%s/%s: fontes não carregadas: %s' % (code, PRIVACY[code], s['fonts'])
+
+
+@on_privacy_pages
+def test_privacy_has_no_horizontal_scroll(once, browser, site_url, code, width):
+    s, errors = once(privacy, browser, site_url, code, width)
+    assert s['overflow'] <= 0, '/%s/%s a %d px: a página rola %d px na horizontal' % (code, PRIVACY[code], width, s['overflow'])
+
+
+@on_privacy_pages
+def test_privacy_console_has_no_errors_or_csp_blocks(once, browser, site_url, code, width):
+    s, errors = once(privacy, browser, site_url, code, width)
+    assert not errors, '/%s/%s: erros no console ou recursos que falharam: %s' % (code, PRIVACY[code], errors[:3])
+
+
+def privacy_fixed_language(browser, site_url, code):
+    ctx, page = open_page(browser, site_url, code + '/' + PRIVACY[code], timezone_id='Europe/Rome' if code != 'it' else 'America/Sao_Paulo')
+    state = page.evaluate(STATE)
+    ctx.close()
+    return state
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_privacy_language_is_fixed_with_time_zone_of_another_country(once, browser, site_url, code):
+    s = once(privacy_fixed_language, browser, site_url, code)
+    assert s['lang'] == CODES[code] and s['path'] == '/%s/%s' % (code, PRIVACY[code]), \
+        '/%s/%s com fuso de outro país mostrou %r em %s' % (code, PRIVACY[code], s['lang'], s['path'])
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_privacy_works_without_javascript(once, browser, site_url, code):
+    s = once(without_javascript, browser, site_url, code + '/' + PRIVACY[code])
+    tag = CODES[code]
+    assert s['lang'] == tag and s['visible'] == [tag] and s['current'] == [code] and s['navVisible'], \
+        '/%s/%s sem JavaScript: idioma %r, edição visível %s, seletor %s' % (code, PRIVACY[code], s['lang'], s['visible'], s['current'])
+
+
+def privacy_tour(browser, site_url):
+    """Da página inicial (em inglês) pela frase de privacidade do rodapé; dali ao espanhol pelo seletor
+    e de volta à página inicial espanhola pelo link de volta. Depois, de /pt/ pela mesma frase."""
+    errors, steps = [], {}
+    ctx, page = open_page(browser, site_url, '', errors)
+    for name, selector in (('footer', '.foot p:nth-child(2) a'), ('switcher', '.langs a[data-lang="es"]'), ('back', '.top .home')):
+        with page.expect_navigation():
+            page.click(selector)
+        page.wait_for_load_state('networkidle')
+        steps[name] = page.evaluate(STATE)
+    page.goto(site_url + 'pt/')
+    page.wait_for_load_state('networkidle')
+    with page.expect_navigation():
+        page.click('.foot p:nth-child(2) a')
+    page.wait_for_load_state('networkidle')
+    steps['from_pt'] = page.evaluate(STATE)
+    ctx.close()
+    return steps, errors
+
+
+def test_footer_on_home_leads_to_english_privacy(once, browser, site_url):
+    steps, errors = once(privacy_tour, browser, site_url)
+    s = steps['footer']
+    assert s['path'] == '/en/' + PRIVACY['en'] and s['lang'] == 'en', 'a frase de privacidade da página inicial levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_footer_on_language_page_leads_to_its_privacy(once, browser, site_url):
+    steps, errors = once(privacy_tour, browser, site_url)
+    s = steps['from_pt']
+    assert s['path'] == '/pt/' + PRIVACY['pt'] and s['lang'] == 'pt-BR', 'a frase de privacidade de /pt/ levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_privacy_switcher_leads_to_the_translated_address(once, browser, site_url):
+    steps, errors = once(privacy_tour, browser, site_url)
+    s = steps['switcher']
+    assert s['path'] == '/es/' + PRIVACY['es'] and s['lang'] == 'es', 'o seletor ES levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_privacy_back_link_leads_to_home_page_of_its_language(once, browser, site_url):
+    steps, errors = once(privacy_tour, browser, site_url)
+    s = steps['back']
+    assert s['path'] == '/es/' and s['lang'] == 'es', 'o link de volta levou a %s (%r); esperado /es/' % (s['path'], s['lang'])
+
+
+def test_console_has_no_errors_along_the_privacy_link(once, browser, site_url):
+    steps, errors = once(privacy_tour, browser, site_url)
+    assert not errors, 'erros no console no caminho pela frase de privacidade: %s' % errors[:3]
+
+
+# ---------- nada guardado no navegador: nenhum cookie e localStorage vazio ----------
+
+def storage_after_visiting_every_page(browser, site_url):
+    """Visita, no mesmo navegador, todas as páginas, com JavaScript e com o fuso do Brasil (a página
+    inicial leva a /pt/), e devolve os cookies que o navegador guardou e o maior tamanho que o
+    localStorage teve."""
+    ctx = browser.new_context(timezone_id='America/Sao_Paulo', locale='pt-BR')
+    page = ctx.new_page()
+    paths = ['', '404.html'] + ['%s/' % code for code in CODES] + ['%s/%s' % (code, GRATIARUM) for code in CODES] \
+        + ['%s/%s' % (code, PRIVACY[code]) for code in CODES]
+    stored = 0
+    for path in paths:
+        page.goto(site_url + path)
+        page.wait_for_load_state('networkidle')
+        stored = max(stored, page.evaluate('localStorage.length'))
+    cookies = ctx.cookies()
+    ctx.close()
+    return cookies, stored
+
+
+def test_no_cookie_is_set(once, browser, site_url):
+    cookies, stored = once(storage_after_visiting_every_page, browser, site_url)
+    assert not cookies, 'o site pôs cookies no navegador, mas a página de privacidade diz que não usa cookies: %s' % [c['name'] for c in cookies]
+
+
+def test_local_storage_stays_empty(once, browser, site_url):
+    cookies, stored = once(storage_after_visiting_every_page, browser, site_url)
+    assert stored == 0, 'o site guardou %d itens no localStorage, mas a página de privacidade diz que não guarda nada' % stored
 
 
 # ---------- página de erro: idioma do navegador, fontes por caminho absoluto, sem erros no console ----------
