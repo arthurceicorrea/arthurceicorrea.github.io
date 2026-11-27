@@ -1,0 +1,71 @@
+{#
+  Modelo da página de privacidade (Jinja2). ci/build.py o usa para montar /pt/privacidade/,
+  /en/privacy/, /es/privacidad/ e /it/privacy/, uma edição cada, com o idioma fixo. O endereço é
+  traduzido: cada idioma o define em src/content/<idioma>.toml, na tabela [privacy] (path).
+  O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos das outras páginas;
+  aqui ficam o conteúdo (o bloco main), o link de volta à página inicial, no topo (bloco top), e
+  o que muda no <head>: a página não é um perfil nem um artigo (og_type website), e os dados
+  estruturados a descrevem a ela, e não ao artigo do LinkedIn (bloco work).
+
+  A página só descreve fatos verificáveis, sem alegar conformidade com lei alguma. O rodapé diz
+  "sem cookies"; esta página diz o que isso significa e o que acontece fora do site.
+
+  Os textos ficam na tabela [privacy]. Onde a prosa cita algo escrito aqui, ela traz um marcador:
+    {domain}  o domínio do site, tirado de base
+    {policy}  o link para a política de privacidade do serviço, que é em inglês (hreflang="en") e
+              abre em nova aba, como os outros links externos do site
+    {email}   o e-mail, como link
+#}
+{% extends 'layout.html' %}
+{% set title = editions[0].privacy.title %}
+{% set og_type = 'website' %}
+{% set domain = base | replace('https://', '') | trim('/') %}
+{# as duas políticas, em inglês; também em ALLOWED_EXTERNAL, em tests/helpers.py #}
+{% set cloudflare_url = 'https://www.cloudflare.com/privacypolicy/' %}
+{% set github_url = 'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement' %}
+{% macro policy_link(url, text, e) %}<a href="{{ url }}" hreflang="en" target="_blank" rel="noopener noreferrer">{{ text }}<span class="vh"> ({{ e.ui.new_tab }})</span></a>{% endmacro %}
+{% macro mail_link() %}<a href="mailto:{{ email }}">{{ email }}</a>{% endmacro %}
+{% block work %}
+  {
+  "@type": "WebPage",
+  "name": "{{ editions[0].privacy.heading }}",
+  "url": "{{ page.url }}",
+  "inLanguage": "{{ page.html_lang }}",
+  "author": { "@id": "{{ base }}#arthur" }
+  }
+{% endblock %}
+{% block top %}
+{% for e in editions %}
+  <a class="home" href="/{{ addresses.portfolio[e.code] }}">{{ e.ui.home }}</a>
+{% endfor %}
+{% endblock %}
+{% block main %}
+<main id="conteudo" class="wrap" tabindex="-1">
+{% for e in editions %}
+
+<div class="t" lang="{{ e.tag }}"
+     data-title="{{ e.privacy.title }}"
+     data-desc="{{ e.privacy.description }}">
+
+  <article class="notice">
+    <header class="hero">
+      <h1>{{ e.privacy.heading }}</h1>
+    </header>
+
+    <div class="sec">
+      <div class="body">
+        <p>{{ e.privacy.intro }}</p>
+        <p>{{ e.privacy.services }}</p>
+        <ul>
+          <li>{{ e.privacy.cloudflare | replace('{domain}', domain) | replace('{policy}', policy_link(cloudflare_url, e.privacy.cloudflare_policy, e)) }}</li>
+          <li>{{ e.privacy.github | replace('{policy}', policy_link(github_url, e.privacy.github_policy, e)) }}</li>
+        </ul>
+        <p>{{ e.privacy.closing | replace('{email}', mail_link()) }}</p>
+      </div>
+    </div>
+  </article>
+</div>
+{% endfor %}
+
+</main>
+{% endblock %}

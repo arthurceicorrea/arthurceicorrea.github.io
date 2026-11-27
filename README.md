@@ -41,6 +41,7 @@ src/                    source of the pages
   layout.html           what every page with content shares: <head>, language switcher, footer (Jinja2 template)
   page.html             the portfolio page, written once (extends layout.html)
   gratiarum.html        the thanksgiving page, Gratiarum actio, linked from the footer's colophon (extends layout.html)
+  privacy.html          the privacy page, linked from the footer's "no cookies" sentence (extends layout.html)
   cv.html               the CV, printed to PDF in each language (Jinja2 template; not published)
   404.html              the error page (Jinja2 template)
   content/              every text, one file per language: pt.toml, en.toml, es.toml, it.toml
@@ -82,11 +83,11 @@ The **Validar** job:
 1. **Code style** (`make lint`): Stylelint (standard config) on `src/css/`, ESLint (recommended rules) on `src/js/` and Prettier on both. The two adjusted Stylelint rules are explained in `ci/stylelint.config.js`.
 2. **Build** (`ci/build.py`):
    - stops if a text of `pt.toml` is missing from another language;
-   - renders the templates into `_site/`: the home page in English, one page per language, and the thanksgiving page in each language (`/pt/gratiarum-actio/` and so on), each with only its own edition and with title, description, canonical URL and sharing preview in that language;
+   - renders the templates into `_site/` from a single page table: the home page in English, one page per language, the thanksgiving page in each language (`/pt/gratiarum-actio/` and so on) and the privacy page, whose address is translated (`/pt/privacidade/`, `/en/privacy/`, `/es/privacidad/`, `/it/privacy/`); each with only its own edition and with title, description, canonical URL, language alternates and sharing preview in that language;
    - copies `static/`;
    - joins the styles of `src/css/` into `/assets/site.css` (one `@layer` per file) and copies the scripts of `src/js/` to `/assets/`;
    - prints the four CVs from `src/cv.html` to `/cv/`, with Playwright in Chrome: A4, tagged PDF with an outline, the page texts in each language, and the page numbers in the CV's language; the CV text uses Atkinson Hyperlegible Next, a typeface made for legibility ([ADR 8](docs/adr/0008-cvs-printed-by-the-build-in-a-legible-typeface.md));
-   - writes `sitemap.xml` and `version.txt`, and fills in the footer date and year from the last commit.
+   - writes `sitemap.xml` from the same page table, and `version.txt`, and fills in the footer date and year from the last commit.
 3. **Static validation** (`tests/test_content.py` and `tests/test_static.py`): every text in all four languages, the exact Content Security Policy, no inline styles or scripts, HTML nesting, unique ids, absolute local paths, safe external links, no third-party resources, structured data, language pages, `robots.txt`, `sitemap.xml`, no phone number in the pages, the CVs or the vCard, and the CVs themselves: all four built, each with its page's texts, at most two pages, page numbers in its language.
 4. **W3C HTML validation**: the official Nu Html Checker on every generated page.
 5. **Browser test** (`tests/test_browser.py`): headless Chrome on mobile and desktop widths. Checks the right language shown, the home page sending each visitor to their language page, fonts loaded, no console errors or CSP violations, the language switch, pages without JavaScript, the language chosen by country (simulated time zones), the buttons and the 404 page.

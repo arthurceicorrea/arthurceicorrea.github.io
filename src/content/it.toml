@@ -34,6 +34,8 @@ problem = "Problema"
 role = "Il mio ruolo"
 see_details = "Vedi i dettagli"
 hide_details = "Nascondi i dettagli"
+# Link de volta à página inicial do idioma, no topo das páginas que não são a inicial.
+home = "Pagina iniziale"
 to_top = "Torna su"
 
 # Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
@@ -252,4 +254,21 @@ epigraph_translation = "«Istruite l’inizio, dirigete il progresso, compite la
 epigraph_source = "— San Tommaso d’Aquino, preghiera {prayer}"
 to_god = "A Dio, ottimo e massimo, principio e fine di tutte le cose, rendo grazie anzitutto, come vuole giustizia. Se al sapiente spetta ordinare, e se, come insegna san Tommaso, il nome di sapiente spetta propriamente a colui che considera il fine dell’universo, che è anche il suo principio (Somma contro i Gentili I, 1), allora ordinare il mio lavoro è ordinarlo a Lui. Tutto ciò che qui si mostra da Lui procede, poiché ogni dono perfetto discende dal Padre dei lumi (Gc 1, 17)."
 to_wife = "Poi, a mia moglie. «{uxor}»: la casa e le ricchezze vengono dai genitori, ma la moglie prudente viene propriamente dal Signore (Pr 19, 14). E tra marito e moglie, dice san Tommaso, «{amicitia}», sembra esserci la più grande delle amicizie (Somma contro i Gentili III, 123). Per lei, compagna delle fatiche e conforto della vita, rendo grazie a Dio, e lei ringrazio con tutto il cuore."
-home = "Pagina iniziale"
+
+[privacy]
+# Pagina sulla privacy (src/privacy.html) e link della frase sulla privacy del piè di pagina (src/layout.html).
+# Traduzione fedele di pt.toml; vedere lì i commenti.
+# Indirizzo della pagina in questa lingua: /it/<path>/. Una volta pubblicato, non cambiarlo.
+path = "privacy"
+title = "Privacy — Arthur Cei Corrêa"
+heading = "Privacy"
+description = "Nota sulla privacy del sito di Arthur Cei Corrêa: senza cookie, senza tracciamento e senza risorse di terze parti, e che cosa ricevono dalla visita Cloudflare e GitHub Pages."
+# Letto dai lettori di schermo dopo la frase del piè di pagina, che è un link a questa pagina.
+footer_note = "nota sulla privacy"
+intro = "Questo sito non usa cookie, non salva nulla nel suo browser, non misura le visite e non carica nulla da altri siti: caratteri, stili, script e immagini provengono dal sito stesso. La lingua viene scelta sul suo dispositivo, in base al fuso orario, senza consultare alcun servizio, e l’indirizzo di questa pagina non viene inviato ai siti a cui portano i link."
+services = "Fuori dal sito, due servizi ricevono la sua visita, come accade con qualsiasi sito pubblicato su di essi:"
+cloudflare = "Cloudflare, che risponde per il dominio {domain} e consegna le pagine, tratta il suo indirizzo IP e i dati della connessione ({policy}, in inglese);"
+cloudflare_policy = "informativa sulla privacy di Cloudflare"
+github = "GitHub Pages, che ospita il sito, registra l’indirizzo IP di chi lo visita, per sicurezza, e lo riceve da Cloudflare a ogni pagina richiesta ({policy}, in inglese)."
+github_policy = "dichiarazione sulla privacy di GitHub"
+closing = "Nessuna delle due informative fissa un periodo di conservazione di questi registri. Seguendo un link a LinkedIn o a GitHub, si passa alle regole di quei siti. Domande: {email}."

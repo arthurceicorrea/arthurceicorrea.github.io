@@ -11,7 +11,11 @@ compartilhamento no idioma certo. Na página de agradecimento (/pt/gratiarum-act
 três), o mesmo, com endereços por idioma próprios, o seletor levando à mesma página nos outros
 idiomas e o link de volta à página inicial. O colofão do rodapé: link para o agradecimento no
 idioma da página (na página inicial, o inglês), sem link no próprio agradecimento, e ausente da
-404. O latim: todo trecho marcado com lang="la" e idêntico nos quatro idiomas. Por fim,
+404. A página de privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/): o
+mesmo, com o endereço traduzido, os links das duas políticas e o e-mail; a frase de privacidade
+do rodapé, link para ela no idioma da página; e nenhum script do site que guarde algo no navegador
+ou envie algo a outro lugar. O latim: todo trecho marcado com lang="la" e idêntico nos quatro
+idiomas. Toda página do sitemap.xml está na lista dos testes (PAGES). Por fim,
 robots.txt, sitemap.xml, versão publicada, a ausência de telefone nas páginas, nos currículos e no
 cartão de contato, e os currículos gerados: os quatro existem, trazem os textos da página no seu
 idioma (resumo, formação e experiência, projetos, competências, idiomas e artigo), cabem em duas
@@ -33,7 +37,7 @@ import pytest
 
 import helpers
 from helpers import (ALLOWED_EXTERNAL, CODES, GRATIARUM, GRATIARUM_PAGES, LANGUAGE_PAGES, LANGS, LOCALES, PAGES, PHONE, POLICY,
-                     RESOURCE_TAGS, VOID, page)
+                     PRIVACY, PRIVACY_PAGES, RESOURCE_TAGS, VOID, page)
 
 helpers.require_site()
 
@@ -411,11 +415,20 @@ def test_sitemap_is_well_formed():
         pytest.fail('sitemap.xml não é XML bem formado: %s' % error)
 
 
-def test_sitemap_lists_home_language_and_thanksgiving_pages():
+def test_sitemap_lists_home_language_thanksgiving_and_privacy_pages():
     locs = [u.find('s:loc', SITEMAP).text for u in sitemap_urls()]
     expected = ([helpers.base()] + [helpers.base() + code + '/' for code in CODES]
-                + [helpers.base() + code + '/' + GRATIARUM for code in CODES])
+                + [helpers.base() + code + '/' + GRATIARUM for code in CODES]
+                + [helpers.base() + code + '/' + PRIVACY[code] for code in CODES])
     assert locs == expected, 'sitemap.xml lista %s; esperado %s' % (locs, expected)
+
+
+def test_every_page_in_the_sitemap_is_tested():
+    """Toda página publicada no sitemap está em PAGES (tests/helpers.py), a lista em que valem as
+    verificações de todas as páginas. Página nova sem teste reprova aqui."""
+    untested = [loc for loc in (u.find('s:loc', SITEMAP).text for u in sitemap_urls())
+                if not loc.startswith(helpers.base()) or os.path.relpath(helpers.local_file(loc[len(helpers.base()) - 1:]), helpers.ROOT) not in PAGES]
+    assert not untested, 'páginas do sitemap.xml fora de PAGES, em tests/helpers.py (acrescente-as lá): %s' % untested
 
 
 @pytest.mark.parametrize('loc', [''] + ['%s/' % code for code in CODES], ids=lambda loc: '/' + loc)
@@ -434,6 +447,15 @@ def test_sitemap_declares_thanksgiving_alternates(code):
     assert found, 'sitemap.xml não lista %s' % url
     alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
     assert alternates == helpers.expected_alternates(GRATIARUM), 'sitemap.xml: versões por idioma de %s diferentes do esperado: %s' % (url, alternates)
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_sitemap_declares_privacy_alternates(code):
+    url = helpers.base() + code + '/' + PRIVACY[code]
+    found = [u for u in sitemap_urls() if u.find('s:loc', SITEMAP).text == url]
+    assert found, 'sitemap.xml não lista %s' % url
+    alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
+    assert alternates == helpers.expected_alternates(PRIVACY), 'sitemap.xml: versões por idioma de %s diferentes do esperado: %s' % (url, alternates)
 
 
 # ---------- página de agradecimento (Gratiarum actio) ----------
@@ -560,6 +582,181 @@ def test_thanksgiving_has_no_unreplaced_marker(name):
 @on_thanksgiving_pages
 def test_thanksgiving_has_the_same_person_as_home(name):
     assert page(name).person() == page('index.html').person(), '%s: dados estruturados da pessoa diferentes dos da página inicial' % name
+
+
+# ---------- página de privacidade ----------
+
+on_privacy_pages = pytest.mark.parametrize('name', list(PRIVACY_PAGES))
+# Os links que a página precisa ter, em todas as edições: as duas políticas, em inglês, e o e-mail.
+# Escritos aqui de novo, e não lidos do modelo.
+PRIVACY_LINKS = {
+    'Cloudflare': 'https://www.cloudflare.com/privacypolicy/',
+    'GitHub': 'https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement',
+    'e-mail': 'mailto:arthurceicorrea@gmail.com',
+}
+
+
+@on_privacy_pages
+def test_privacy_page_was_built(name):
+    assert os.path.isfile(helpers.path(name)), '%s não foi gerada pelo build' % name
+
+
+@on_privacy_pages
+def test_privacy_page_has_fixed_language(name):
+    code, tag = PRIVACY_PAGES[name]
+    assert ('<html lang="%s" data-lang="%s">' % (tag, code)) in page(name).raw, '%s: esperado <html lang="%s" data-lang="%s">' % (name, tag, code)
+
+
+@on_privacy_pages
+def test_privacy_title_is_in_page_language(name):
+    title, desc = edition_attributes(name, PRIVACY_PAGES[name][1])
+    found = re.search(r'<title>([^<]*)</title>', page(name).raw)
+    got = found.group(1) if found else None
+    assert title and got == title, '%s: <title> %r difere do título da edição %r' % (name, got, title)
+
+
+@on_privacy_pages
+def test_privacy_description_and_preview_are_in_page_language(name):
+    p = page(name)
+    title, desc = edition_attributes(name, PRIVACY_PAGES[name][1])
+    got = (p.meta('description'), p.meta('og:description'), p.meta('og:title'))
+    assert desc and got == (desc, desc, title), '%s: descrição e prévia fora do idioma da página: %s' % (name, got)
+
+
+@pytest.mark.parametrize('field', ['description', 'og:description'])
+def test_privacy_descriptions_differ_by_language(field):
+    # o título não entra: "Privacy" é a mesma palavra em inglês e em italiano
+    found = {page(name).meta(field) for name in PRIVACY_PAGES}
+    assert len(found) == 4, '%s da página de privacidade deveria ter uma versão por idioma: %s' % (field, found)
+
+
+@on_privacy_pages
+def test_privacy_og_locale_matches_page(name):
+    code = PRIVACY_PAGES[name][0]
+    assert page(name).meta('og:locale') == LOCALES[code], '%s: og:locale %r, esperado %r' % (name, page(name).meta('og:locale'), LOCALES[code])
+
+
+@on_privacy_pages
+def test_privacy_canonical_url_is_the_page_itself(name):
+    code = PRIVACY_PAGES[name][0]
+    url = helpers.base() + code + '/' + PRIVACY[code]
+    p = page(name)
+    assert p.canonical == url and p.meta('og:url') == url, '%s: canonical %r e og:url %r, esperado %r' % (name, p.canonical, p.meta('og:url'), url)
+
+
+@on_privacy_pages
+def test_privacy_alternates_point_to_the_translated_addresses(name):
+    assert page(name).alternates == helpers.expected_alternates(PRIVACY), \
+        '%s: versões por idioma (hreflang) diferentes: %s' % (name, page(name).alternates)
+
+
+@on_privacy_pages
+def test_privacy_switcher_leads_to_the_same_page_in_each_language(name):
+    code, tag = PRIVACY_PAGES[name]
+    raw = page(name).raw
+    missing = [other for other in CODES if ('<a href="/%s/%s" data-lang="%s"' % (other, PRIVACY[other], other)) not in raw]
+    current = '<a href="/%s/%s" data-lang="%s" lang="%s" hreflang="%s" aria-current="true">' % (code, PRIVACY[code], code, tag, tag)
+    assert not missing and current in raw and raw.count('aria-current="true"') == 1, \
+        '%s: o seletor deveria levar à privacidade nos quatro idiomas (faltam: %s) e marcar só %s' % (name, missing, code.upper())
+
+
+@on_privacy_pages
+def test_privacy_links_back_to_the_home_page_of_its_language(name):
+    code = PRIVACY_PAGES[name][0]
+    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+    assert ('<a class="home" href="/%s/">' % code) in top, '%s: falta, no topo, o link de volta a /%s/' % (name, code)
+
+
+@on_privacy_pages
+def test_privacy_share_image_is_the_one_of_its_language(name):
+    p = page(name)
+    home = page('%s/index.html' % PRIVACY_PAGES[name][0])
+    assert image_exists(p.meta('og:image')) and p.meta('og:image') == home.meta('og:image') == p.meta('twitter:image') \
+        and p.meta('og:image:alt') == home.meta('og:image:alt'), \
+        '%s: a prévia deveria ser a da página inicial do idioma: %s' % (name, p.meta('og:image'))
+
+
+@on_privacy_pages
+def test_privacy_is_shared_as_a_website(name):
+    p = page(name)
+    assert p.meta('og:type') == 'website' and p.meta('profile:first_name') is None, \
+        '%s: a prévia deveria ser de um site (og:type website, sem os dados de perfil): og:type %r' % (name, p.meta('og:type'))
+
+
+@on_privacy_pages
+def test_privacy_structured_data_describes_the_page(name):
+    p = page(name)
+    nodes = [n for n in p.structured_data() or [] if n.get('@type') != 'Person']
+    assert len(nodes) == 1 and nodes[0].get('@type') == 'WebPage' and nodes[0].get('url') == p.canonical \
+        and nodes[0].get('inLanguage') == PRIVACY_PAGES[name][1], \
+        '%s: os dados estruturados deveriam descrever esta página (WebPage com url e idioma dela): %s' % (name, nodes)
+
+
+@on_privacy_pages
+def test_privacy_has_the_same_person_as_home(name):
+    assert page(name).person() == page('index.html').person(), '%s: dados estruturados da pessoa diferentes dos da página inicial' % name
+
+
+@on_privacy_pages
+def test_privacy_has_no_unreplaced_marker(name):
+    text = re.sub(r'<[^>]+>', ' ', page(name).body)
+    found = re.search(r'\{[a-z_]+\}', text)
+    assert not found, '%s: marcador sem trocar no texto: %s' % (name, found.group(0) if found else '')
+
+
+@pytest.mark.parametrize('name, what', [(n, w) for n in PRIVACY_PAGES for w in PRIVACY_LINKS])
+def test_privacy_page_links_to_the_policies_and_the_email(name, what):
+    main = page(name).body.split('<main', 1)[1].split('</main>', 1)[0]
+    assert ('<a href="%s"' % PRIVACY_LINKS[what]) in main, '%s: falta, no texto, o link %s (%s)' % (name, what, PRIVACY_LINKS[what])
+
+
+@pytest.mark.parametrize('name, what', [(n, w) for n in PRIVACY_PAGES for w in ('Cloudflare', 'GitHub')])
+def test_privacy_policy_links_say_they_are_in_english(name, what):
+    found = [a for tag, a, line in page(name).tags if tag == 'a' and a.get('href') == PRIVACY_LINKS[what]]
+    assert found and all(a.get('hreflang') == 'en' for a in found), '%s: o link da política (%s) deveria levar hreflang="en"' % (name, what)
+
+
+# ---------- frase de privacidade do rodapé: link para a página de privacidade do idioma ----------
+
+# Páginas com rodapé e para onde a frase leva: na página inicial, que é a edição em inglês, a privacidade em inglês.
+FOOTER_PAGES = {name: lang for name, lang in PAGES.items() if lang}
+TAG_CODES = {tag: code for code, tag in CODES.items()}
+
+
+def privacy_line(name):
+    """O segundo parágrafo do rodapé, o da frase de privacidade."""
+    raw = page(name).raw
+    footer = raw[raw.find('<footer'):] if '<footer' in raw else ''
+    found = re.search(r'<p class="colophon">.*?</p>\s*<p>(.*?)</p>', footer, flags=re.S)
+    return found.group(1) if found else ''
+
+
+@pytest.mark.parametrize('name', list(FOOTER_PAGES))
+def test_footer_privacy_sentence_links_to_the_privacy_page_of_its_language(name):
+    code = TAG_CODES[FOOTER_PAGES[name]]
+    links = re.findall(r'<a href="([^"]+)"', privacy_line(name))
+    assert links == ['/%s/%s' % (code, PRIVACY[code])], '%s: a frase de privacidade deveria ser link para /%s/%s; links: %s' % (
+        name, code, PRIVACY[code], links)
+
+
+@pytest.mark.parametrize('name', list(FOOTER_PAGES))
+def test_footer_privacy_link_is_marked_current_only_on_the_privacy_page(name):
+    marked = 'aria-current="page"' in privacy_line(name)
+    assert marked == (name in PRIVACY_PAGES), '%s: aria-current="page" no link de privacidade do rodapé só na própria página de privacidade' % name
+
+
+# ---------- scripts do site: nada guardado no navegador, nada enviado ----------
+
+STORAGE_OR_NETWORK = re.compile(r'\b(document\.cookie|localStorage|sessionStorage|indexedDB|fetch|XMLHttpRequest|sendBeacon)\b')
+SCRIPTS = os.path.join(helpers.REPO, 'src', 'js')
+
+
+@pytest.mark.parametrize('script', sorted(n for n in os.listdir(SCRIPTS) if n.endswith('.js')))
+def test_script_stores_and_sends_nothing(script):
+    """É o que sustenta, na página de privacidade, "não guarda nada no seu navegador" e o envio de nada."""
+    text = open(os.path.join(SCRIPTS, script), encoding='utf-8').read()
+    found = sorted(set(STORAGE_OR_NETWORK.findall(text)))
+    assert not found, 'src/js/%s usa %s; a página de privacidade diz que o site não guarda nem envia nada' % (script, found)
 
 
 # ---------- colofão (primeira linha do rodapé) ----------

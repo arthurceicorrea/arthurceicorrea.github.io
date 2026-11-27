@@ -32,6 +32,8 @@ problem = "Problema"
 role = "Meu papel"
 see_details = "Ver detalhes"
 hide_details = "Ocultar detalhes"
+# Link de volta à página inicial do idioma, no topo das páginas que não são a inicial.
+home = "Página inicial"
 to_top = "Voltar ao topo"
 
 # Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
@@ -254,4 +256,24 @@ epigraph_translation = "«Instruí o começo, dirigi o progresso, completai o fi
 epigraph_source = "— Santo Tomás de Aquino, oração {prayer}"
 to_god = "A Deus, ótimo e máximo, princípio e fim de todas as coisas, rendo graças em primeiro lugar, como é de justiça. Se é próprio do sábio ordenar, e se, como ensina Santo Tomás, o nome de sábio pertence propriamente àquele que considera o fim do universo, que é também o seu princípio (Suma contra os Gentios I, 1), então ordenar o meu trabalho é ordená-lo a Ele. Tudo o que aqui se mostra d’Ele procede, pois toda dádiva perfeita desce do Pai das luzes (Tg 1, 17)."
 to_wife = "Depois, à minha esposa. «{uxor}»: a casa e as riquezas vêm dos pais, mas a esposa prudente vem propriamente do Senhor (Pr 19, 14). E entre marido e mulher, diz Santo Tomás, «{amicitia}», parece haver a maior das amizades (Suma contra os Gentios III, 123). Por ela, companheira dos trabalhos e consolo da vida, rendo graças a Deus, e a ela agradeço de todo o coração."
-home = "Página inicial"
+
+[privacy]
+# Página de privacidade (src/privacy.html) e link da frase de privacidade do rodapé (src/layout.html).
+# A página só descreve fatos verificáveis; não alega conformidade com lei alguma. Os fatos e as fontes
+# estão em docs/PLAN.md, Etapa 11. Onde o texto cita algo que o modelo escreve, um marcador o traz:
+# {domain} (o domínio do site), {policy} (o link para a política do serviço, que abre em nova aba)
+# e {email} (o e-mail, como link).
+# Endereço da página neste idioma: /pt/<path>/. Uma vez publicado, não mude.
+path = "privacidade"
+title = "Privacidade — Arthur Cei Corrêa"
+heading = "Privacidade"
+description = "Aviso de privacidade do site de Arthur Cei Corrêa: sem cookies, sem rastreadores e sem recursos de terceiros, e o que a Cloudflare e o GitHub Pages recebem da visita."
+# Lido por leitores de tela depois da frase do rodapé, que é um link para esta página.
+footer_note = "aviso de privacidade"
+intro = "Este site não usa cookies, não guarda nada no seu navegador, não mede visitas e não carrega nada de outros sites: fontes, estilos, scripts e imagens vêm dele mesmo. O idioma é escolhido no seu aparelho, pelo fuso horário, sem consultar serviço algum, e o endereço desta página não é enviado aos sites para onde os links levam."
+services = "Fora do site, dois serviços recebem a sua visita, como acontece com qualquer site publicado neles:"
+cloudflare = "a Cloudflare, que responde pelo domínio {domain} e entrega as páginas, processa o seu endereço IP e dados da conexão ({policy}, em inglês);"
+cloudflare_policy = "política de privacidade da Cloudflare"
+github = "o GitHub Pages, que hospeda o site, registra o endereço IP de quem visita, por segurança, e o recebe da Cloudflare a cada página buscada ({policy}, em inglês)."
+github_policy = "declaração de privacidade do GitHub"
+closing = "Nenhuma das duas políticas fixa um prazo de guarda desses registros. Ao seguir um link para o LinkedIn ou o GitHub, você passa às regras desses sites. Dúvidas: {email}."

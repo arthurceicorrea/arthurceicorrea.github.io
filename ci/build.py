@@ -3,13 +3,17 @@
 - Lê os textos de src/content/<idioma>.toml e para, com uma mensagem, se faltar um
   texto: cada chave de pt.toml precisa existir nos outros três idiomas.
 - Monta cada página a partir de um modelo (Jinja2) que estende src/layout.html, onde ficam
-  o <head>, o seletor de idioma e o rodapé, comuns a todas:
+  o <head>, o seletor de idioma e o rodapé, comuns a todas. As páginas estão numa tabela única,
+  PAGES: cada entrada diz o modelo e o endereço de cada idioma, e dela saem a montagem, o
+  endereço canônico, as versões por idioma (hreflang) e o sitemap:
   - src/page.html, o portfólio: /pt/, /en/, /es/, /it/, só a edição daquele idioma, com o
     idioma fixo, e título, descrição, endereço canônico e prévia de compartilhamento (Open
     Graph) no idioma; e a página inicial, a edição em inglês, marcada com data-home: o script
     de idioma leva os outros visitantes à página do seu idioma;
   - src/gratiarum.html, o agradecimento: /pt/gratiarum-actio/ e as outras três, uma edição
-    cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês).
+    cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês);
+  - src/privacy.html, a privacidade: /pt/privacidade/, /en/privacy/, /es/privacidad/ e
+    /it/privacy/, com o endereço traduzido em cada arquivo de idioma.
 - Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
   mostra a do visitante.
 - Copia, como estão, os arquivos de static/: fontes, imagens, vCard e arquivos de
@@ -19,8 +23,8 @@
   do currículo não é publicado, só o PDF.
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
-- Gera sitemap.xml: a página inicial, as quatro páginas de idioma e as quatro do
-  agradecimento, cada uma com as versões nos outros idiomas (hreflang).
+- Gera sitemap.xml a partir da mesma tabela: cada página, com as versões nos outros idiomas
+  (hreflang) e a padrão (x-default).
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 
@@ -151,23 +155,70 @@ def render(env, template, path, folder=OUT, **context):
         f.write(text)
 
 
-def head(code, content, url, og_description=None, data_lang=None, home=False, path=''):
-    """Dados do <head> de uma página. path é o que vem depois de /<idioma>/ no endereço: vazio no
-    portfólio, cuja versão padrão (x-default) é a página inicial; GRATIARUM no agradecimento, cuja
-    versão padrão é a edição em inglês. O agradecimento tem descrição e prévia próprias, e o título
-    escrito no modelo, em latim; por isso, ali, page não tem title."""
-    meta = content[code]['meta']
-    if not path:
-        own = {'title': meta['title'], 'description': meta['description'], 'image': IMAGES[code], 'image_alt': meta['image_alt']}
-    else:
-        thanks = content[code]['gratiarum']
-        own = {'description': thanks['description'], 'image': GRATIARUM_IMAGE, 'image_alt': thanks['image_alt']}
+def same_address(path):
+    """Endereço igual nos quatro idiomas, depois de /<idioma>/: por exemplo, pt/gratiarum-actio/."""
+    return {code: '%s/%s' % (code, path) for code in TAGS}
+
+
+def translated_address(content, table):
+    """Endereço traduzido: cada idioma o define em [<table>] path, por exemplo /pt/privacidade/.
+    Para, com uma mensagem, se o endereço não for minúsculas sem acento e hífens."""
+    paths = {}
+    for code in TAGS:
+        name = content[code][table]['path']
+        if not re.fullmatch(r'[a-z0-9]+(-[a-z0-9]+)*', name):
+            sys.exit('src/content/%s.toml: [%s] path = %r: use só minúsculas sem acento, algarismos e hífens' % (code, table, name))
+        paths[code] = '%s/%s/' % (code, name)
+    return paths
+
+
+def page_table(content):
+    """Tabela única das páginas com conteúdo. Cada entrada é uma página nos quatro idiomas, uma
+    edição por idioma, e diz:
+      template  o modelo, em src/, que estende layout.html;
+      paths     o endereço de cada edição, depois do domínio (por exemplo, pt/gratiarum-actio/),
+                igual nos quatro idiomas ou traduzido;
+      text      a tabela do arquivo de idioma com a descrição (description) e, se a página não
+                escreve o título no modelo, o título (title);
+      image     a imagem de prévia, a mesma nos quatro idiomas; None: a de cada idioma (IMAGES);
+      alt       a tabela do arquivo de idioma com o texto alternativo da imagem (image_alt);
+      home      se a entrada tem também a página inicial, a edição em inglês publicada em /. A
+                versão padrão (x-default) é então a página inicial; nas outras, a edição em inglês.
+    Dela saem a montagem, o endereço canônico, as versões por idioma (hreflang) e o sitemap."""
+    page = types.SimpleNamespace
+    return {
+        # o portfólio: a página inicial e /pt/, /en/, /es/, /it/
+        'portfolio': page(template='page.html', paths=same_address(''), text='meta', image=None, alt='meta', home=True),
+        # o agradecimento: o mesmo endereço nos quatro idiomas, porque é latim
+        'gratiarum': page(template='gratiarum.html', paths=same_address(GRATIARUM), text='gratiarum',
+                          image=GRATIARUM_IMAGE, alt='gratiarum', home=False),
+        # a privacidade: o endereço traduzido, definido em cada arquivo de idioma; a prévia é a do portfólio
+        'privacy': page(template='privacy.html', paths=translated_address(content, 'privacy'), text='privacy',
+                        image=None, alt='meta', home=False),
+    }
+
+
+def x_default(entry):
+    """Endereço da versão padrão de uma página, para quem não tem um dos quatro idiomas."""
+    return BASE if entry.home else BASE + entry.paths[DEFAULT]
+
+
+def head(entry, code, content, home=False, og_description=None):
+    """Dados do <head> de uma edição de uma página da tabela. home: a página inicial, a edição em
+    inglês publicada em /, sem idioma fixo, para o script de idioma levar os outros visitantes à
+    página deles. Uma página que escreve o título no modelo (o agradecimento, em latim) não tem
+    title na sua tabela de textos; ali, page não tem title."""
+    text = content[code][entry.text]
+    own = {'description': text['description'], 'image': entry.image or IMAGES[code],
+           'image_alt': content[code][entry.alt]['image_alt']}
+    if 'title' in text:
+        own['title'] = text['title']
     return types.SimpleNamespace(
-        html_lang=TAGS[code], data_lang=data_lang, home=home, current=code, path=path,
-        x_default=BASE + (DEFAULT + '/' + path if path else ''),
+        html_lang=TAGS[code], data_lang=None if home else code, home=home, current=code,
+        paths=entry.paths, x_default=x_default(entry),
         og_description=og_description or own['description'],
         locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
-        url=url, **own)
+        url=BASE if home else BASE + entry.paths[code], **own)
 
 
 def environment():
@@ -175,40 +226,35 @@ def environment():
                        trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
 
 
-def pages(content, day):
+def pages(content, day, table):
     env = environment()
     shared = {
         'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
         'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
         'article': namespace(ARTICLE), 'updated': day, 'time_tag': time_tag,
         'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
+        'addresses': {name: entry.paths for name, entry in table.items()},  # para os links do rodapé
     }
-    everyone = [edition(code, content) for code in TAGS]
-    root_description = content[DEFAULT]['meta']['og_description_root']
-    # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
-    render(env, 'page.html', 'index.html', page=head(DEFAULT, content, BASE, og_description=root_description, home=True),
-           editions=[edition(DEFAULT, content)], colophon_link=True, **shared)
-    for code in TAGS:
-        render(env, 'page.html', os.path.join(code, 'index.html'),
-               page=head(code, content, BASE + code + '/', data_lang=code), editions=[edition(code, content)],
-               colophon_link=True, **shared)
-    # agradecimento: o colofão do rodapé aparece sem link, porque já se está na página a que ele leva
-    for code in TAGS:
-        render(env, 'gratiarum.html', os.path.join(code, GRATIARUM, 'index.html'),
-               page=head(code, content, BASE + code + '/' + GRATIARUM, data_lang=code, path=GRATIARUM),
-               editions=[edition(code, content)], colophon_link=False, **shared)
-    render(env, '404.html', '404.html', editions=everyone, default=edition(DEFAULT, content), **shared)
+    for name, entry in table.items():
+        if entry.home:
+            # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
+            render(env, entry.template, 'index.html',
+                   page=head(entry, DEFAULT, content, home=True, og_description=content[DEFAULT]['meta']['og_description_root']),
+                   editions=[edition(DEFAULT, content)], current_page=name, **shared)
+        for code in TAGS:
+            render(env, entry.template, entry.paths[code] + 'index.html', page=head(entry, code, content),
+                   editions=[edition(code, content)], current_page=name, **shared)
+    render(env, '404.html', '404.html', editions=[edition(code, content) for code in TAGS], default=edition(DEFAULT, content), **shared)
 
 
-def sitemap():
-    """sitemap.xml: cada página publicada, com as versões por idioma e a padrão (x-default).
-    Duas famílias de páginas: o portfólio (a página inicial e /pt/ etc., cuja versão padrão é a
-    página inicial) e o agradecimento (/pt/gratiarum-actio/ etc., cuja padrão é a edição em inglês)."""
+def sitemap(table):
+    """sitemap.xml: cada página da tabela, com as versões por idioma e a padrão (x-default)."""
     urls = ''
-    for path, default, locs in (('', BASE, [BASE] + [BASE + code + '/' for code in TAGS]),
-                                (GRATIARUM, BASE + DEFAULT + '/' + GRATIARUM, [BASE + code + '/' + GRATIARUM for code in TAGS])):
-        links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s/%s"/>\n' % (tag, BASE, code, path) for code, tag in TAGS.items())
-        links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % default
+    for entry in table.values():
+        links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s"/>\n' % (TAGS[code], BASE, path)
+                        for code, path in entry.paths.items())
+        links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % x_default(entry)
+        locs = ([BASE] if entry.home else []) + [BASE + path for path in entry.paths.values()]
         urls += ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in locs)
     with open(os.path.join(OUT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -311,12 +357,13 @@ def main():
     version = os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD') or 'local'
     with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(version + '\n')
-    pages(content, day)
+    table = page_table(content)
+    pages(content, day, table)
     cvs(content)
-    sitemap()
+    sitemap(table)
     count = sum(len(files) for _, _, files in os.walk(OUT))
-    print('Site montado em _site/: %d arquivos, com as páginas %s e %s; versão %s, atualizado em %s.' % (
-        count, ', '.join('/%s/' % c for c in TAGS), ', '.join('/%s/%s' % (c, GRATIARUM) for c in TAGS), version[:7], day.isoformat()))
+    print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
+        count, ', '.join('/' + path for entry in table.values() for path in entry.paths.values()), version[:7], day.isoformat()))
 
 
 if __name__ == '__main__':

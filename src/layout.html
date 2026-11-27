@@ -3,24 +3,30 @@
   idioma e o rodapé, escritos uma vez. As páginas a estendem ({% extends 'layout.html' %}) e
   preenchem o bloco main:
   - src/page.html: o portfólio (página inicial e /pt/, /en/, /es/, /it/);
-  - src/gratiarum.html: o agradecimento (/pt/gratiarum-actio/ e as outras três).
+  - src/gratiarum.html: o agradecimento (/pt/gratiarum-actio/ e as outras três);
+  - src/privacy.html: a privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/).
   A 404 (src/404.html) não usa esta moldura: traz as quatro edições de uma vez e não tem rodapé.
 
   Variáveis (preparadas por ci/build.py):
     base       endereço do site, com barra final
     page       head (título, descrição, Open Graph), html_lang, data_lang, current (idioma do
-               seletor), path (o que vem depois de /<idioma>/ no endereço: vazio no portfólio,
-               "gratiarum-actio/" no agradecimento) e x_default (endereço da versão padrão)
+               seletor), paths (o endereço desta página em cada idioma, depois do domínio, por
+               exemplo "pt/gratiarum-actio/") e x_default (endereço da versão padrão)
     editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)
-    colophon_link  se o colofão é link para a página de agradecimento (não é na própria página)
+    addresses  o endereço de cada página da tabela de ci/build.py, por idioma: addresses.gratiarum.pt
+    current_page  o nome, na tabela, da página que se monta: no agradecimento ("gratiarum"), o
+               colofão não é link, porque já se está na página a que ele leva; na página de
+               privacidade ("privacy"), a frase de privacidade continua link, marcada como a
+               página atual (aria-current="page")
   Uma página pode definir, fora dos blocos:
     title    o título ({% set title = ... %}); sem isso, vale page.title, do arquivo do idioma;
     og_type  o tipo da página na prévia de compartilhamento: profile (o padrão, o portfólio, que
-             descreve uma pessoa) ou article (o agradecimento, um texto do autor).
-  E pode preencher dois blocos além de main: work, a obra que os dados estruturados (JSON-LD)
-  listam além da pessoa (por padrão, o artigo do LinkedIn), e top, o que fica no topo, à
+             descreve uma pessoa), article (o agradecimento, um texto do autor) ou website (a
+             privacidade, um aviso sobre o site).
+  E pode preencher dois blocos além de main: work, a obra ou página que os dados estruturados
+  (JSON-LD) listam além da pessoa (por padrão, o artigo do LinkedIn), e top, o que fica no topo, à
   esquerda do seletor de idioma (por padrão, nada).
 
   Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
@@ -32,6 +38,9 @@
 
   Idiomas: cada edição é um elemento class="t" com o atributo lang; o CSS mostra só a
   edição cujo lang coincide com o do elemento html. Trechos em latim levam lang="la".
+
+  A segunda linha do rodapé, "sem cookies, sem rastreadores e sem recursos de terceiros", é um
+  link para a página de privacidade no idioma da edição, que diz o que isso significa.
 
   O colofão, primeira linha do rodapé, é a fórmula latina Non nisi te, Domine, escrita só aqui
   e igual nos quatro idiomas. Leva à página de agradecimento no idioma da edição.
@@ -72,7 +81,7 @@
 <meta property="og:image:alt" content="{{ page.image_alt }}">
 <meta name="twitter:image" content="{{ base }}{{ page.image }}">
 {% for l in languages %}
-<link rel="alternate" hreflang="{{ l.tag }}" href="{{ base }}{{ l.code }}/{{ page.path }}">
+<link rel="alternate" hreflang="{{ l.tag }}" href="{{ base }}{{ page.paths[l.code] }}">
 {% endfor %}
 <link rel="alternate" hreflang="x-default" href="{{ page.x_default }}">
 <script type="application/ld+json">
@@ -126,7 +135,7 @@
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
 {% for l in languages %}
-      <li><a href="/{{ l.code }}/{{ page.path }}" data-lang="{{ l.code }}" lang="{{ l.tag }}" hreflang="{{ l.tag }}"{% if l.code == page.current %} aria-current="true"{% endif %}>{{ l.code | upper }}<span class="vh"> – {{ l.name }}</span></a></li>
+      <li><a href="/{{ page.paths[l.code] }}" data-lang="{{ l.code }}" lang="{{ l.tag }}" hreflang="{{ l.tag }}"{% if l.code == page.current %} aria-current="true"{% endif %}>{{ l.code | upper }}<span class="vh"> – {{ l.name }}</span></a></li>
 {% endfor %}
     </ul>
   </nav>
@@ -138,8 +147,8 @@
   <div class="foot">
     <p class="colophon">
 {% for e in editions %}
-{% if colophon_link %}
-      <span class="t" lang="{{ e.tag }}"><a href="/{{ e.code }}/gratiarum-actio/">{{ colophon }}<span class="vh"> ({{ e.gratiarum.colophon_note }})</span></a></span>
+{% if current_page != 'gratiarum' %}
+      <span class="t" lang="{{ e.tag }}"><a href="/{{ addresses.gratiarum[e.code] }}">{{ colophon }}<span class="vh"> ({{ e.gratiarum.colophon_note }})</span></a></span>
 {% else %}
       <span class="t" lang="{{ e.tag }}">{{ colophon }}</span>
 {% endif %}
@@ -147,7 +156,7 @@
     </p>
     <p>
 {% for e in editions %}
-      <span class="t" lang="{{ e.tag }}">{{ e.footer.privacy }}</span>
+      <span class="t" lang="{{ e.tag }}"><a href="/{{ addresses.privacy[e.code] }}"{% if current_page == 'privacy' %} aria-current="page"{% endif %}>{{ e.footer.privacy }}<span class="vh"> ({{ e.privacy.footer_note }})</span></a></span>
 {% endfor %}
     </p>
     <p>

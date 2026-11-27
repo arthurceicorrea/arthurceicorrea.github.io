@@ -34,7 +34,7 @@
 {% endblock %}
 {% block top %}
 {% for e in editions %}
-  <a class="home" href="/{{ e.code }}/">{{ e.gratiarum.home }}</a>
+  <a class="home" href="/{{ addresses.portfolio[e.code] }}">{{ e.ui.home }}</a>
 {% endfor %}
 {% endblock %}
 {% block main %}
