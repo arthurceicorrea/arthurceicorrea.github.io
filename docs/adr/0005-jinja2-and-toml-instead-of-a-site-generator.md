@@ -1,6 +1,6 @@
 # 5. Jinja2 and TOML instead of a site generator or framework
 
-- Status: accepted
+- Status: accepted; extended by [ADR 11](0011-articles-in-markdown-in-english-built-by-the-same-script.md), which answers the last consequence below for articles
 - Date: 2026-11-24
 
 ## Context

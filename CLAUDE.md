@@ -21,6 +21,7 @@ Site estático em quatro idiomas (pt-BR, en, es, it), publicado no GitHub Pages 
 - Link externo com `target="_blank"` leva `rel="noopener noreferrer"` e precisa constar em `ALLOWED_EXTERNAL`, em `tests/helpers.py`.
 - Nunca publicar telefone, endereço ou dados de saúde. Os testes procuram telefones.
 - Conteúdo verdadeiro: não inventar fatos, métricas, certificações ou competências.
-- Mudou um texto num idioma, mude nos quatro. Os textos ficam em `src/content/{pt,en,es,it}.toml`; o modelo da página é `src/page.html`.
+- Interface e apresentação, nos quatro idiomas: mudou um texto num idioma, mude nos quatro. Os textos ficam em `src/content/{pt,en,es,it}.toml`, e um teste exige as mesmas chaves nos quatro; os modelos ficam em `src/`, com a moldura comum em `src/layout.html`.
+- Artigos, só em inglês (a partir da Etapa 12 de `docs/PLAN.md`): o texto e o título de cada artigo ficam em inglês, em `src/articles/<slug>.md`, junto com o resumo, que é apresentação e vai nos quatro idiomas. As listas e a página inicial apresentam os artigos nos quatro idiomas, com o título marcado `lang="en"`. Um artigo publicado nunca muda de slug.
 - Ações do GitHub ficam presas por hash de commit, com a versão num comentário. Ferramentas de teste ficam com versões exatas.
 - Mensagens de commit em inglês, no imperativo.
