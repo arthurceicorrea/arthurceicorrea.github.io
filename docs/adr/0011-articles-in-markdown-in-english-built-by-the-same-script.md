@@ -1,7 +1,7 @@
 # 11. Articles in Markdown, in English, built by the same script
 
 - Status: accepted
-- Date: 2026-11-27; context corrected the same day (the first article)
+- Date: 2026-11-27; context corrected the same day (the first article); amended the same day (the language of a passage, and the essay leaving LinkedIn)
 - Extends: [ADR 5](0005-jinja2-and-toml-instead-of-a-site-generator.md)
 
 ## Context
@@ -17,6 +17,8 @@ The articles are written in English only. The rest of the site, interface and pr
 **Each article is a Markdown file in the repository**, `src/articles/<slug>.md`, whose name is its address. A TOML header between `+++` lines, read by `tomllib` like the content files, holds the title, the date, an optional update date, an optional LinkedIn address and the summary in the four languages. The body is CommonMark.
 
 **The body is rendered by [markdown-it-py](https://github.com/executablebooks/markdown-it-py)** (4.3.0, with its only dependency, mdurl 0.1.2, both pinned), with the `commonmark` preset and raw HTML turned off. Any HTML written in an article comes out escaped, so no article can add a `<script>`, a `style=` or an `on…=` attribute, and the Content Security Policy ([ADR 2](0002-content-security-policy-in-a-meta-tag-with-self.md)) and its tests hold for articles without exception.
+
+**The language of a passage is the one markup beyond CommonMark.** The site marks Latin with `lang="la"`, and WCAG 2.2 success criterion 3.1.2 (Language of Parts, level AA) asks that the language of each passage be programmatically determinable; the first two articles carry Latin and transliterated Greek. The `attrs` plugin of [mdit-py-plugins](https://github.com/executablebooks/mdit-py-plugins) (0.7.0, pinned) turns `[Sapientis est ordinare]{lang=la}` into `<span lang="la">…</span>`, in the body and in the title. The plugin would accept any attribute, so the build accepts `lang` alone and stops on any other (`style`, `class`, `id`, `title`); event attributes are dropped by the plugin itself, and a test checks they never reach the page. Where the title is used as plain text (the page title, the share preview, the structured data, the feed), the markup is removed.
 
 **The same build script builds them**, with the new code in its own module, `ci/articles.py`, and every page (portfolio, thanksgiving, privacy, article lists, articles) entered in one table in `ci/build.py`, from which the addresses, `canonical`, `hreflang` and the sitemap are derived.
 
@@ -36,11 +38,13 @@ The articles are written in English only. The rest of the site, interface and pr
 - **A site generator** (Pelican, Hugo, Zola, Eleventy). Each gives articles and feeds for free, but would mean rewriting every template, the four-language content check, the CV printing and the tests that import the build, for a list, a feed and a few pages.
 - **Python-Markdown**, the best-known library: it does not follow CommonMark and passes raw HTML through, with no safe mode since version 3, so it would need a sanitizer. **mistune**: smaller and fast, with less use. **Pandoc**: a separate program to install in the pipeline.
 - **Translated articles**, and folders per language for them: not needed, since the owner writes in English only.
+- **Leaving Latin and Greek in articles unmarked**, with the article body exempt from the test that requires `lang="la"`: no new package, but a WCAG gap the rest of the site does not have, and screen readers would read the Latin with English pronunciation.
 
 ## Consequences
 
 - Writing an article is adding one file and one line in `tests/published.txt`, through a pull request like any other change; the pipeline checks it before it is published.
-- The build grows by some 140 lines, mostly in `ci/articles.py`. Two packages are added to `ci/requirements.txt`.
+- The build code is about 650 lines in all after this decision, some 230 of them in `ci/articles.py`, docstrings included. Three packages are added to `ci/requirements.txt`.
+- A passage in another language is written `[text]{lang=xx}`, inside the emphasis if it is italic: `*[telos]{lang=grc-Latn}*`.
 - An article cannot carry HTML of its own: tables, embeds or styled blocks would need a Markdown plugin, pinned, or a change of this record.
 - Each article must have its summary in four languages; the text itself, never.
 - Links in an article body may point anywhere over `https`, without the `ALLOWED_EXTERNAL` list that governs the interface, but open in the same tab and load nothing.
@@ -50,4 +54,6 @@ The articles are written in English only. The rest of the site, interface and pr
 
 - GitHub Docs, [Repository limits](https://docs.github.com/en/repositories/creating-and-managing-repositories/repository-limits) and [GitHub Pages limits](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits).
 - markdown-it-py, [documentation](https://markdown-it-py.readthedocs.io/): the `html` option and link validation.
+- mdit-py-plugins, [attrs plugin](https://mdit-py-plugins.readthedocs.io/en/latest/#attributes).
+- W3C, [Understanding WCAG 2.2: Language of Parts (3.1.2)](https://www.w3.org/WAI/WCAG22/Understanding/language-of-parts.html).
 - T. Kindberg and S. Hawke, [RFC 4151: The 'tag' URI Scheme](https://www.rfc-editor.org/rfc/rfc4151).

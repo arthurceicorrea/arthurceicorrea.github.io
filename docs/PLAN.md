@@ -388,6 +388,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
   - Corpo em Markdown (CommonMark), escrito como prosa. Aspas e travessões tipográficos se escrevem diretamente, como nos arquivos TOML.
   - O build para, com uma mensagem que diz o arquivo e o campo, se faltar `title`, `date` ou um dos quatro resumos, se um resumo estiver vazio, se a data for inválida ou futura, ou se o nome do arquivo não seguir a regra do slug.
 - **Markdown com `markdown-it-py==4.3.0` e `mdurl==0.1.2`**, versões exatas em `ci/requirements.txt`. Preset `commonmark`, com `html` desligado: todo HTML escrito no texto sai escapado, de modo que nenhum artigo introduz `<script>`, `style=` ou `on…=`, e a política de segurança e os testes continuam valendo sem exceção. Sem conversão tipográfica automática e sem notas de rodapé (se um texto precisar delas, entra `mdit-py-plugins`, com versão exata).
+- **A língua de um trecho** (ajuste de 27/11/2026, durante a etapa). O site marca o latim com `lang="la"`, e a WCAG 3.1.2 (língua das partes, nível AA) pede que a língua de cada trecho se possa saber por programa; os dois primeiros artigos têm latim e grego no corpo. Entra `mdit-py-plugins==0.7.0`, só com o plugin `attrs`: `[Sapientis est ordinare]{lang=la}` vira `<span lang="la">…</span>`, também no título. O build aceita só o atributo `lang` e para diante de qualquer outro. Latim como `la`; grego transliterado como `grc-Latn`.
 - **Código novo num módulo próprio**, `ci/articles.py`, importado por `ci/build.py`: lê e valida os artigos, transforma o Markdown e monta o feed. Os artigos, as listas e o feed entram na tabela única de páginas da Etapa 11.
 - **Página de cada artigo**, só em inglês, em `/en/articles/<slug>/`, com o modelo `src/article.html`, que estende `src/layout.html`.
   - A página inteira é em inglês, inclusive o topo, o rodapé e as datas: `<html lang="en" data-lang="en">`. Com o idioma fixo, o script de idioma não leva ninguém a outra página, qualquer que seja o fuso.
@@ -406,7 +407,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 - **Sitemap**: as quatro listas, com as versões por idioma, e cada artigo, sem versões alternativas; todos com `lastmod`.
 - **Links no corpo dos artigos**: só `https`, abrindo na mesma aba (sem `target`), e nada carregado como recurso. `ALLOWED_EXTERNAL` continua valendo para os links da interface e dos modelos. Imagens dentro de artigos ficam fora desta etapa.
 - **A estreia: o artigo de apresentação.** O texto é de Arthur, e a data é a do dia em que for publicado. Não tem campo `linkedin`, porque sai primeiro no site; o post no LinkedIn vem depois, com o resumo e o link. Como é o mais recente, aparece no topo das listas e do feed.
-- **O ensaio do LinkedIn passa a ser um arquivo de artigo**, com a data original, 24/08/2026, e a menção ao LinkedIn. Por ser mais antigo, vem depois da apresentação nas listas e no feed.
+- **O ensaio do LinkedIn passa a ser um arquivo de artigo**, com a data original, 24/08/2026. Por ser mais antigo, vem depois da apresentação nas listas e no feed. Ajuste de 27/11/2026: Arthur tirou o ensaio do LinkedIn, então ele vai sem o campo `linkedin` e sem a linha "Originally published on LinkedIn"; o campo continua aceito, para um texto que também esteja lá.
 - **Os dados saem do build e dos arquivos de idioma.** A constante `ARTICLE` de `ci/build.py` e as chaves `summary` de `[article]` saem; a seção da página inicial, o bloco `work` dos dados estruturados e o currículo passam a ler os arquivos de artigo.
   - A seção da página inicial mantém a forma atual nesta etapa, com um artigo só, o mais recente (a apresentação). O link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 13.
   - O currículo continua com o ensaio, lido agora do arquivo dele. A escolha dos artigos do currículo vem na Etapa 13.
@@ -425,7 +426,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 **Pronto quando:**
 - o artigo de apresentação está publicado em `/en/articles/<slug>/`, com o texto fornecido por Arthur e a data da publicação, no topo das listas e do feed;
-- o ensaio está publicado em `/en/articles/from-purism-to-prudence/`, com o texto fornecido por Arthur, a data de 24/08/2026 e a menção ao LinkedIn;
+- o ensaio está publicado em `/en/articles/from-purism-to-prudence/`, com o texto fornecido por Arthur e a data de 24/08/2026 (sem a menção ao LinkedIn, de onde saiu);
 - `tests/published.txt` lista os dois endereços;
 - as quatro listas e o feed existem, e o sitemap os lista;
 - os currículos continuam em duas páginas e com o resumo do ensaio no seu idioma;
@@ -466,6 +467,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 ## Depois da reformulação (conteúdo)
 
+- Página de privacidade: o primeiro parágrafo diz que o idioma é escolhido "pelo fuso horário", mas `src/js/language.js` também usa o idioma do navegador. Corrigir o texto nos quatro idiomas, numa mudança à parte (anotado na Etapa 12).
 - Revisão dos textos em italiano e espanhol por um falante nativo.
 - Competências ligadas às provas: cada grupo diz onde foi usado, com link para o projeto.
 - Formato e tamanho nos links de download (por exemplo, "PDF, 104 KB").
