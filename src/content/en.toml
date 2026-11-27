@@ -34,6 +34,8 @@ problem = "Problem"
 role = "My role"
 see_details = "See details"
 hide_details = "Hide details"
+# Link de volta à página inicial do idioma, no topo das páginas que não são a inicial.
+home = "Home page"
 to_top = "Back to top"
 
 # Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
@@ -250,4 +252,22 @@ epigraph_translation = "«Instruct the beginning, direct the progress, complete 
 epigraph_source = "— St. Thomas Aquinas, prayer {prayer}"
 to_god = "To God, most good and most great, the beginning and end of all things, I give thanks first of all, as justice requires. If it belongs to the wise to order, and if, as St. Thomas teaches, the name of wise man belongs properly to him who considers the end of the universe, which is also its beginning (Summa contra Gentiles I, 1), then to order my work is to order it to Him. All that is shown here proceeds from Him, for every perfect gift comes down from the Father of lights (Jas 1:17)."
 to_wife = "Then, to my wife. «{uxor}»: house and riches are given by parents, but a prudent wife is properly from the Lord (Prov 19:14). And between husband and wife, says St. Thomas, «{amicitia}», there seems to be the greatest of friendships (Summa contra Gentiles III, 123). For her, companion of my labors and solace of my life, I give thanks to God, and I thank her with all my heart."
-home = "Home page"
+
+[privacy]
+# Privacy page (src/privacy.html) and link of the footer's privacy sentence (src/layout.html).
+# Faithful translation of pt.toml; see the comments there. The two policies are in English, so this
+# edition does not say "in English" after the links.
+# Address of the page in this language: /en/<path>/. Once published, do not change it.
+path = "privacy"
+title = "Privacy — Arthur Cei Corrêa"
+heading = "Privacy"
+description = "Privacy notice for Arthur Cei Corrêa’s site: no cookies, no trackers and no third-party resources, and what Cloudflare and GitHub Pages receive from a visit."
+# Read by screen readers after the footer sentence, which links to this page.
+footer_note = "privacy notice"
+intro = "This site uses no cookies, stores nothing in your browser, does not measure visits and loads nothing from other sites: fonts, styles, scripts and images come from the site itself. The language is chosen on your device, from its time zone, without consulting any service, and the address of this page is not sent to the sites that the links lead to."
+services = "Outside the site, two services receive your visit, as happens with any site published on them:"
+cloudflare = "Cloudflare, which answers for the domain {domain} and delivers the pages, processes your IP address and connection data ({policy});"
+cloudflare_policy = "Cloudflare’s privacy policy"
+github = "GitHub Pages, which hosts the site, logs the IP address of visitors, for security, and receives it from Cloudflare with every page requested ({policy})."
+github_policy = "GitHub’s privacy statement"
+closing = "Neither policy sets a period for keeping these records. When you follow a link to LinkedIn or GitHub, the rules of those sites apply. Questions: {email}."

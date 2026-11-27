@@ -303,6 +303,20 @@
     text-transform: uppercase;
   }
 
+  /* ---- Página de privacidade: os dois serviços numa lista, com o travessão dourado como marcador ---- */
+  .notice .body ul {
+    padding-left: 1.25em;
+    list-style-type: "– ";
+  }
+
+  .notice .body li + li {
+    margin-top: 0.5rem;
+  }
+
+  .notice .body li::marker {
+    color: var(--gold);
+  }
+
   @media (min-width: 36rem) {
     .facts,
     .facts.pair {

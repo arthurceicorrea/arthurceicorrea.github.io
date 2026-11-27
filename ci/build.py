@@ -11,7 +11,9 @@
     Graph) no idioma; e a página inicial, a edição em inglês, marcada com data-home: o script
     de idioma leva os outros visitantes à página do seu idioma;
   - src/gratiarum.html, o agradecimento: /pt/gratiarum-actio/ e as outras três, uma edição
-    cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês).
+    cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês);
+  - src/privacy.html, a privacidade: /pt/privacidade/, /en/privacy/, /es/privacidad/ e
+    /it/privacy/, com o endereço traduzido em cada arquivo de idioma.
 - Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
   mostra a do visitante.
 - Copia, como estão, os arquivos de static/: fontes, imagens, vCard e arquivos de
@@ -158,6 +160,18 @@ def same_address(path):
     return {code: '%s/%s' % (code, path) for code in TAGS}
 
 
+def translated_address(content, table):
+    """Endereço traduzido: cada idioma o define em [<table>] path, por exemplo /pt/privacidade/.
+    Para, com uma mensagem, se o endereço não for minúsculas sem acento e hífens."""
+    paths = {}
+    for code in TAGS:
+        name = content[code][table]['path']
+        if not re.fullmatch(r'[a-z0-9]+(-[a-z0-9]+)*', name):
+            sys.exit('src/content/%s.toml: [%s] path = %r: use só minúsculas sem acento, algarismos e hífens' % (code, table, name))
+        paths[code] = '%s/%s/' % (code, name)
+    return paths
+
+
 def page_table(content):
     """Tabela única das páginas com conteúdo. Cada entrada é uma página nos quatro idiomas, uma
     edição por idioma, e diz:
@@ -178,6 +192,9 @@ def page_table(content):
         # o agradecimento: o mesmo endereço nos quatro idiomas, porque é latim
         'gratiarum': page(template='gratiarum.html', paths=same_address(GRATIARUM), text='gratiarum',
                           image=GRATIARUM_IMAGE, alt='gratiarum', home=False),
+        # a privacidade: o endereço traduzido, definido em cada arquivo de idioma; a prévia é a do portfólio
+        'privacy': page(template='privacy.html', paths=translated_address(content, 'privacy'), text='privacy',
+                        image=None, alt='meta', home=False),
     }
 
 

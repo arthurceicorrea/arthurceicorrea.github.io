@@ -29,6 +29,10 @@ resource "cloudflare_zone_setting" "this" {
 # - crawler_protection: o "labirinto" que insere links escondidos nas páginas;
 # - is_robots_txt_managed: anteporia regras da Cloudflare ao robots.txt do site;
 # - ai_bots_protection: bloquearia robôs de IA, o que contradiz o "Allow: /" do robots.txt do site.
+# Privacidade: ligar qualquer destes recursos faz a Cloudflare pôr cookies no navegador de quem visita
+# (por exemplo, __cf_bm), e o site deixaria de ser "sem cookies". Isso obriga a mudar a página de
+# privacidade (src/privacy.html e a tabela [privacy] de src/content/) e a frase do rodapé. A
+# conferência no ar (ci/monitor.py) falha se alguma resposta do site trouxer Set-Cookie.
 resource "cloudflare_bot_management" "this" {
   zone_id               = local.zone_id
   enable_js             = false
