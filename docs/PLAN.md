@@ -465,6 +465,45 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 ---
 
+## Etapa 14: leitura dos artigos
+
+**Objetivo:** que a página de um artigo seja agradável de ler, tenha a fisionomia do site e não ofereça um seletor de idioma que leva para fora dela. Vem de uma conversa de 27/11/2026, depois do merge da Etapa 13: na página do artigo, o seletor levava às listas, como se traduzisse algo; o topo só voltava à lista, e não à página inicial; e a leitura parecia a de um Markdown sem identidade.
+
+**Decidido por Arthur, antes do código**
+- O negrito é o EB Garamond semibold (600): um arquivo novo da mesma família e da mesma licença (OFL), servido pelo próprio site e baixado só nas páginas que usam negrito. Hoje o navegador engrossa a letra por conta própria. A alternativa, destacar pela cor, no dourado claro, foi descartada.
+
+**O que muda**
+- **Navegação da página do artigo.**
+  - O seletor de idioma sai: nada se traduz ali, e ele levava o leitor para fora do artigo.
+  - No topo, uma trilha, "Home / Articles". Home leva à raiz, onde o script de idioma escolhe a página inicial do visitante; Articles leva à lista em inglês. A trilha é um `<nav>` com nome acessível e separador só visual, e os dados estruturados ganham um `BreadcrumbList`.
+  - No fim do artigo, links para as listas nas outras línguas, cada um escrito na própria língua e marcado com ela: *Resumos em português*, *Resúmenes en español*, *Riassunti in italiano*.
+- **Listas de artigos.** No topo, a mesma trilha, no idioma da lista ("Página inicial / Artigos"), com "Artigos" marcado como a página atual. O seletor fica, porque as listas existem nos quatro idiomas.
+- **Identidade da página do artigo**, só com elementos que o site já tem:
+  - **Frontispício.** Acima do título, "Article" em Cinzel pequeno, como os títulos de seção; o título em EB Garamond, à direita; embaixo dele, o filete dourado do lema; sob o filete, a data e o tempo de leitura, calculado no build pelo número de palavras (por exemplo, "9 min read").
+  - **Epígrafe.** Uma citação que abra o texto é composta como a epígrafe da *Gratiarum actio*: à direita, em itálico, com o filete embaixo.
+  - **Capitular.** A primeira letra do texto, uma inicial em Cinzel dourado, de três linhas: letra de inscrição, conforme o [ADR 9](adr/0009-cinzel-only-where-the-page-is-an-inscription.md), que ganha essa linha.
+  - **Intertítulos.** Em tela larga, pendem na margem esquerda, alinhados à direita, com o filete curto acima, como os títulos de seção da página inicial, mas em EB Garamond; no celular, sobre o texto.
+  - **Corpo.** Letra um pouco maior e entrelinha mais folgada, mantendo de 65 a 70 caracteres por linha.
+  - **Fecho.** O filete dourado à direita, seguido dos links para as listas.
+  - **Negrito** em EB Garamond semibold.
+- **Registros de decisão:** o [ADR 11](adr/0011-articles-in-markdown-in-english-built-by-the-same-script.md) passa a dizer que o artigo não tem seletor de idioma, e sim a trilha e os links finais; o ADR 9 ganha a capitular.
+- **Testes**
+  - Página do artigo: não há seletor; a trilha leva a `/` e a `/en/articles/`; os links finais levam às três listas, cada um com o `lang` da própria língua; `BreadcrumbList` nos dados estruturados; o tempo de leitura bate com a contagem de palavras.
+  - Listas: a trilha no idioma da lista, com a página atual marcada.
+  - A nova fonte existe e está declarada na folha de estilo; o monitoramento a confere no ar.
+  - No navegador: o caminho artigo → Home cai na página inicial do idioma do visitante (com o fuso do Brasil, `/pt/`); nenhum erro no console; nenhuma rolagem horizontal com a capitular e os intertítulos na margem.
+  - Ajustes, explicados no pull request: os testes do seletor na página do artigo passam a exigir a ausência dele; os do link de volta passam a conferir a trilha.
+
+**Fora do escopo:** imagens nos artigos e imagem de prévia por artigo; índice do artigo; artigo anterior e próximo; mudar as outras páginas além do topo das listas.
+
+**Pronto quando:**
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas;
+- Arthur aprovou as capturas antes e depois dos dois artigos e das listas `/pt/artigos/` e `/en/articles/`, em 390 px e 1440 px.
+
+**O que Arthur precisa entender:** por que o seletor sai do artigo e fica nas listas; o que é uma trilha e por que "Home" leva à raiz, e não a `/en/`; por que a capitular cabe no ADR 9; e como o build calcula o tempo de leitura.
+
+---
+
 ## Depois da reformulação (conteúdo)
 
 - Página de privacidade: o primeiro parágrafo diz que o idioma é escolhido "pelo fuso horário", mas `src/js/language.js` também usa o idioma do navegador. Corrigir o texto nos quatro idiomas, numa mudança à parte (anotado na Etapa 12).
