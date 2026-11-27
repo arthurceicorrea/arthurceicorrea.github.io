@@ -1,6 +1,7 @@
 +++
 title = "From Purism to Prudence: Artificial Intelligence and the Right Order of Means"
 date = 2026-08-24
+cv = true
 
 [summary]
 en = "An essay on using AI at work, in the light of the Aristotelian-Thomistic tradition: the instrument serves the intellect, but one should not delegate what one has not yet learned, and AI-suggested code, configurations and pipelines must be read, tested and understood before they reach production."

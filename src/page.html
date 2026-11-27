@@ -29,7 +29,7 @@
 
   <nav class="jump" aria-label="{{ e.ui.jump_label }}">
     <ul role="list">
-{% for key in ['projects', 'article', 'skills', 'education', 'contact'] %}
+{% for key in ['projects', 'articles', 'skills', 'education', 'contact'] %}
       <li><a href="#{{ e.sections[key].id }}">{{ e.sections[key].jump }}</a></li>
 {% endfor %}
     </ul>
@@ -102,15 +102,29 @@
     </div>
   </section>
 
-  <section class="sec" id="{{ e.sections.article.id }}">
-    <h2>{{ e.sections.article.title }}</h2>
+  {# Artigos: o mais recente em destaque, com o resumo no idioma da página; os anteriores (até dois)
+     numa linha cada, com título e data; e o link para a lista do idioma, mesmo com um artigo só.
+     Tudo visível, sem movimento e sem JavaScript. #}
+  <section class="sec" id="{{ e.sections.articles.id }}">
+    <h2>{{ e.sections.articles.title }}</h2>
     <div class="body">
+{% if e.articles.written_in %}
+      <p class="note">{{ e.articles.written_in }}</p>
+{% endif %}
+{% set featured = home_posts[0] %}
       <article class="entry">
-        <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.title_html }}</h3>
-        <p class="meta">{{ e.article.meta | replace('{date}', time_tag(article.date, e)) }}</p>
-        <p>{{ article.summary[e.code] }}</p>
-        <p><a href="/{{ article.path }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
+        <h3{% if e.code != featured.lang %} lang="{{ featured.lang }}"{% endif %}><a href="/{{ featured.path }}" hreflang="{{ featured.lang }}">{{ featured.title_html }}</a></h3>
+        <p class="meta">{{ time_tag(featured.date, e) }}</p>
+        <p>{{ featured.summary[e.code] }}</p>
       </article>
+{% if home_posts | length > 1 %}
+      <ul class="earlier" role="list">
+{% for p in home_posts[1:] %}
+        <li><a href="/{{ p.path }}" hreflang="{{ p.lang }}"{% if e.code != p.lang %} lang="{{ p.lang }}"{% endif %}>{{ p.title_html }}</a>, <span class="meta">{{ time_tag(p.date, e) }}</span></li>
+{% endfor %}
+      </ul>
+{% endif %}
+      <p class="all"><a href="/{{ addresses.articles[e.code] }}">{{ e.articles.all }}</a></p>
     </div>
   </section>
 

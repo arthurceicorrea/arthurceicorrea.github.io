@@ -73,9 +73,8 @@ GRATIARUM = 'gratiarum-actio/'
 EMAIL = 'arthurceicorrea@gmail.com'
 LINKEDIN = 'https://www.linkedin.com/in/arthurceicorrea/'
 GITHUB = 'https://github.com/arthurceicorrea'
-# Artigo do currículo: o ensaio. A escolha dos artigos do currículo, no cabeçalho de cada um, vem na
-# Etapa 13 de docs/PLAN.md.
-CV_ARTICLE = 'from-purism-to-prudence'
+# Artigos na seção da página inicial: o mais recente em destaque e os anteriores numa linha cada.
+HOME_ARTICLES = 3
 # Política de segurança de todas as páginas: estilos e scripts só de arquivos do próprio site.
 POLICY = ("default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; "
           "connect-src 'self'; base-uri 'none'; form-action 'none'")
@@ -258,7 +257,7 @@ def shared_context(content, day, table, posts):
         'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
         'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
         # o artigo da página inicial, o mais recente, e todos, do mais recente ao mais antigo, para as listas
-        'article': posts[0], 'posts': posts, 'updated': day, 'time_tag': time_tag,
+        'article': posts[0], 'posts': posts, 'home_posts': posts[:HOME_ARTICLES], 'updated': day, 'time_tag': time_tag,
         'feed_title': content[DEFAULT]['articles']['feed_title'],  # o feed é um só, em inglês
         'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
         'addresses': {name: entry.paths for name, entry in table.items()},  # para os links do rodapé
@@ -345,14 +344,12 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def cvs(content, posts):
+def cvs(content, posts, table):
     """Gera /cv/arthur-cei-correa-cv-<idioma>.pdf: monta src/cv.html numa pasta temporária,
     com as fontes e o estilo, serve essa pasta num servidor local e a imprime no Chrome."""
     from playwright.sync_api import Error, sync_playwright
     env = environment()
-    essay = [p for p in posts if p.slug == CV_ARTICLE]
-    if not essay:
-        sys.exit('ci/build.py: CV_ARTICLE = %r, mas não há src/articles/%s.md' % (CV_ARTICLE, CV_ARTICLE))
+    chosen = [p for p in posts if p.cv]  # os marcados com cv = true, no máximo dois (ci/articles.py)
     target = os.path.join(OUT, 'cv')
     os.makedirs(target, exist_ok=True)
     with tempfile.TemporaryDirectory() as folder:
@@ -364,7 +361,8 @@ def cvs(content, posts):
         for code in TAGS:
             e = edition(code, content)
             render(env, 'cv.html', 'cv-%s.html' % code, folder=folder, e=e, email=EMAIL, linkedin=LINKEDIN,
-                   github=GITHUB, site=BASE + code + '/', base=BASE, article=essay[0], long_date=long_date,
+                   github=GITHUB, site=BASE + code + '/', base=BASE, chosen=chosen, long_date=long_date,
+                   articles_url=BASE + table['articles'].paths[code],
                    adds_nothing=adds_nothing, page_label=page_label(e.resume.page))
         server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=folder))
         threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -410,7 +408,7 @@ def main():
         f.write(version + '\n')
     table = page_table(content, posts)
     pages(content, day, table, posts)
-    cvs(content, posts)
+    cvs(content, posts, table)
     sitemap(table, posts)
     with open(os.path.join(OUT, 'feed.xml'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(articles.feed(posts, BASE, content[DEFAULT]['articles']['feed_title']))

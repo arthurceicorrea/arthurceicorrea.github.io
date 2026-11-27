@@ -331,6 +331,24 @@
     margin-top: 2.4rem;
   }
 
+  /* ---- Seção de artigos da página inicial: os anteriores ao destaque numa linha cada, com a data
+     em itálico, e o link para a lista ---- */
+  .sec .earlier {
+    margin-top: 1.6rem;
+  }
+
+  .sec .earlier li + li {
+    margin-top: 0.6rem;
+  }
+
+  .sec .earlier .meta {
+    white-space: nowrap;
+  }
+
+  .sec .all {
+    margin-top: 1.6rem;
+  }
+
   /* ---- Artigo: o título em letra de livro, o corpo numa coluna de leitura (cerca de 65 a 70
      caracteres por linha), intertítulos em EB Garamond, como o título (ADR 9) ---- */
   .post .hero .meta {

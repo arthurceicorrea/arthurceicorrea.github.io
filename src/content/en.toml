@@ -45,10 +45,11 @@ id = "projects"
 jump = "Projects"
 title = "Projects"
 
-[sections.article]
-id = "article"
-jump = "Article"
-title = "Article"
+[sections.articles]
+# Âncora nova na Etapa 13 (antes, #article, no singular); um link antigo para ela leva ao topo da página.
+id = "articles"
+jump = "Articles"
+title = "Articles"
 
 [sections.skills]
 id = "skills"
@@ -144,12 +145,6 @@ stack = "HTML and CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-cor
 repo = "https://github.com/arthurceicorrea/arthurceicorrea.github.io"
 problem = "A portfolio in four languages, accessible and free of third-party resources, published only after it passes automated tests."
 role = "I conceived and led the project: I set the requirements, the pipeline checks and the priorities for each improvement. I used AI as a tool to write the code."
-
-[article]
-# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
-# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
-meta = "{date}"
-link = "Read the article"
 
 [skills]
 intro = "Technologies I have had hands-on contact with: in my internship, in projects and in coursework labs."
@@ -281,12 +276,15 @@ heading = "Articles"
 description = "Articles by Arthur Cei Corrêa, with a summary of each."
 # Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
 written_in = ""
+# Link para a lista do idioma: no fim da seção de artigos da página inicial e, em inglês, no topo da
+# página de cada artigo.
+all = "All articles"
+# Linha final da seção de artigos do currículo: {url} é o endereço da lista no idioma do currículo.
+cv_line = "All articles: {url}."
 # Link para o feed Atom, no fim da lista.
 feed = "Articles feed (Atom)"
 # Só em inglês: a página de cada artigo e o feed são inteiros em inglês, e estas chaves não existem
 # nos outros idiomas.
-# Link no topo da página de um artigo, para a lista em inglês.
-back = "All articles"
 # Título do feed Atom (/feed.xml).
 feed_title = "Arthur Cei Corrêa — Articles"
 # Data de revisão, depois da data de publicação, na página de um artigo que tenha updated.

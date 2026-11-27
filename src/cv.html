@@ -1,13 +1,15 @@
 {#
   Currículo em PDF (Jinja2), um por idioma, montado por ci/build.py com os textos de
   src/content/<idioma>.toml: os mesmos da página (resumo, projetos, artigo, competências,
-  idiomas, formação e experiência) e os de [resume], que só o currículo usa. O artigo é o ensaio
-  (CV_ARTICLE, em ci/build.py), com o título, a data e o resumo lidos de src/articles/.
+  idiomas, formação e experiência) e os de [resume], que só o currículo usa. Os artigos são os
+  marcados com cv = true no cabeçalho (no máximo dois), com o título, a data e o resumo lidos de
+  src/articles/; uma linha final dá o endereço da lista de artigos no idioma do currículo.
   Este HTML não é publicado: o build o abre no Chrome (Playwright) e publica só o PDF,
   em /cv/arthur-cei-correa-cv-<idioma>.pdf. O estilo está em src/css/cv.css.
 #}
 {# rótulo de um endereço: sem https:// nem www. #}
 {% macro url_label(url) %}{% set rest = url.split('://', 1)[1] %}{{ (rest[4:] if rest.startswith('www.') else rest).rstrip('/') }}{% endmacro %}
+{% macro link_to(url) %}<a href="{{ url }}">{{ url_label(url) }}</a>{% endmacro %}
 <!DOCTYPE html>
 <html lang="{{ e.tag }}">
 <head>
@@ -92,15 +94,19 @@
   <p>{% for item in e.languages.items %}{{ item.name }} ({{ item.level }}){% if not loop.last %} · {% endif %}{% endfor %}</p>
 </section>
 
+{% if chosen %}
 <section>
-  <h2>{{ e.sections.article.title }}</h2>
+  <h2>{{ e.sections.articles.title }}</h2>
+{% for a in chosen %}
   <article>
-    <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.title_html }}</h3>
-    <p class="meta">{{ e.article.meta | replace('{date}', long_date(article.date, e)) }}</p>
-    <p>{{ article.summary[e.code] }}</p>
-    <p><a href="{{ base }}{{ article.path }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
+    <h3{% if e.code != a.lang %} lang="{{ a.lang }}"{% endif %}><a href="{{ base }}{{ a.path }}" hreflang="{{ a.lang }}">{{ a.title_html }}</a></h3>
+    <p class="meta">{{ long_date(a.date, e) }}</p>
+    <p>{{ a.summary[e.code] }}</p>
   </article>
+{% endfor %}
+  <p class="more">{{ e.articles.cv_line | replace('{url}', link_to(articles_url)) }}</p>
 </section>
+{% endif %}
 
 </body>
 </html>

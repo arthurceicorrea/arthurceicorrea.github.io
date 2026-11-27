@@ -10,6 +10,7 @@ O arquivo começa por um cabeçalho em TOML entre duas linhas +++:
     date = 2026-08-24              # data de publicação, sem aspas
     # updated = 2026-…            (opcional: data da última revisão)
     # linkedin = "https://www.linkedin.com/pulse/…"   (opcional: onde o texto também saiu)
+    # cv = true                    (opcional: o artigo vai no currículo; no máximo dois)
 
     [summary]                      # resumo nos quatro idiomas: é apresentação
     en = "…"
@@ -33,7 +34,7 @@ O build para, com uma mensagem que diz o arquivo e o campo, se: o nome do arquiv
 regra do slug; faltar title, date ou um dos quatro resumos; um resumo estiver vazio; a data for
 inválida ou futura; houver um campo desconhecido; o corpo tiver um título de nível 1 (o título
 vem do cabeçalho), uma imagem (fora desta etapa), um link que não seja https, ou um trecho
-marcado com qualquer atributo além de lang.
+marcado com qualquer atributo além de lang; ou se mais de dois artigos tiverem cv = true.
 """
 import datetime
 import os
@@ -50,7 +51,8 @@ from mdit_py_plugins.attrs import attrs_plugin
 SLUG = re.compile(r'[a-z0-9]+(-[a-z0-9]+)*')
 FENCE = '+++'
 SUMMARY_CODES = ('en', 'pt', 'es', 'it')
-FIELDS = {'title', 'date', 'updated', 'linkedin', 'summary'}
+FIELDS = {'title', 'date', 'updated', 'linkedin', 'summary', 'cv'}
+CV_MAX = 2  # artigos no currículo, no máximo
 # etiqueta de língua (BCP 47) de um trecho: la, grc-Latn, pt-BR...
 LANG = re.compile(r'[a-z]{2,3}(-[A-Za-z0-9]{2,8})*')
 FOLDER = 'en/articles/'  # endereço das páginas dos artigos, depois do domínio: /en/articles/<slug>/
@@ -122,10 +124,13 @@ def check_header(header, where, today):
         text = summary.get(code)
         if not isinstance(text, str) or not text.strip():
             raise ArticleError('%s: falta o resumo summary.%s, ou está vazio' % (where, code))
+    cv = header.get('cv', False)
+    if type(cv) is not bool:
+        raise ArticleError('%s: cv = %r; escreva cv = true (o artigo vai no currículo) ou apague a linha' % (where, cv))
     extra = sorted(set(summary) - set(SUMMARY_CODES))
     if extra:
         raise ArticleError('%s: resumo em idioma desconhecido: summary.%s' % (where, ', summary.'.join(extra)))
-    return title.strip(), date, updated, linkedin, {code: summary[code].strip() for code in SUMMARY_CODES}
+    return title.strip(), date, updated, linkedin, cv, {code: summary[code].strip() for code in SUMMARY_CODES}
 
 
 def tokens_of(tokens):
@@ -167,7 +172,7 @@ def title_of(md, title, where):
 def load(folder, today):
     """Os artigos de folder, do mais recente ao mais antigo. Cada um tem slug, title (texto),
     title_html (com a língua dos trechos marcada), date,
-    updated (ou None), modified (updated ou date), linkedin (ou None), summary (por idioma),
+    updated (ou None), modified (updated ou date), linkedin (ou None), cv (vai no currículo), summary (por idioma),
     path (/en/articles/<slug>/, sem a barra inicial) e html, o corpo já transformado."""
     md = markdown()
     found = []
@@ -186,7 +191,7 @@ def load(folder, today):
             header = tomllib.loads(header_text)
         except tomllib.TOMLDecodeError as error:
             raise ArticleError('%s: o cabeçalho não é TOML válido: %s' % (where, error)) from None
-        title, date, updated, linkedin, summary = check_header(header, where, today)
+        title, date, updated, linkedin, cv, summary = check_header(header, where, today)
         tokens = md.parse(body)
         if not tokens:
             raise ArticleError('%s: o corpo do artigo está vazio' % where)
@@ -194,8 +199,12 @@ def load(folder, today):
         html = md.renderer.render(tokens, md.options, {})
         title, title_html = title_of(md, title, where)
         found.append(types.SimpleNamespace(
-            slug=slug, title=title, title_html=title_html, date=date, updated=updated, modified=updated or date, linkedin=linkedin,
+            slug=slug, title=title, title_html=title_html, date=date, updated=updated, modified=updated or date, linkedin=linkedin, cv=cv,
             summary=summary, path=FOLDER + slug + '/', lang='en', html=Markup(html)))  # o corpo já vem escapado
+    marked = [a.slug for a in found if a.cv]
+    if len(marked) > CV_MAX:
+        raise ArticleError('src/articles/: %d artigos com cv = true (%s); o currículo leva no máximo %d'
+                           % (len(marked), ', '.join(sorted(marked)), CV_MAX))
     return sorted(found, key=lambda a: (a.date, a.slug), reverse=True)
 
 

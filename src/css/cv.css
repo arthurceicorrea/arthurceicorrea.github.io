@@ -113,6 +113,12 @@
     margin-top: 2.6mm;
   }
 
+  /* linha final da seção de artigos: o endereço da lista, separada dos artigos */
+  .more {
+    margin-top: 2.6mm;
+    color: var(--soft);
+  }
+
   h3 {
     font-size: 10.5pt;
     font-weight: 600;
