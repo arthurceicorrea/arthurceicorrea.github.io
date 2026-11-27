@@ -1,12 +1,12 @@
 # 11. Articles in Markdown, in English, built by the same script
 
 - Status: accepted
-- Date: 2026-11-27
+- Date: 2026-11-27; context corrected the same day (the first article)
 - Extends: [ADR 5](0005-jinja2-and-toml-instead-of-a-site-generator.md)
 
 ## Context
 
-The owner will publish articles regularly: on the site first, then on LinkedIn, with a summary and the link. The first one is an essay already on LinkedIn, *From Purism to Prudence: Artificial Intelligence and the Right Order of Means* (24 August 2026). Until now the site only pointed to it: its title, address and date were a constant in `ci/build.py`, and its summary lived in the four content files.
+The owner will publish articles regularly: on the site first, then on LinkedIn, with a summary and the link. The site opens its articles with a presentation of the site and the project. With it comes an essay already on LinkedIn, *From Purism to Prudence: Artificial Intelligence and the Right Order of Means* (24 August 2026). Until now the site only pointed to the essay: its title, address and date were a constant in `ci/build.py`, and its summary lived in the four content files.
 
 The articles are written in English only. The rest of the site, interface and presentation included, stays in Portuguese, English, Spanish and Italian, under the rule that a text changed in one language is changed in all four.
 

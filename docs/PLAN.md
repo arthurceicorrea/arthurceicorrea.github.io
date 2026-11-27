@@ -361,15 +361,16 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 ## Etapa 12: artigos
 
-**Objetivo:** publicar artigos no próprio site, em inglês, apresentados nos quatro idiomas, começando pelo ensaio que já está no LinkedIn.
+**Objetivo:** publicar artigos no próprio site, em inglês, apresentados nos quatro idiomas. A estreia é um artigo de apresentação do site e do projeto; junto com ele, o ensaio que já está no LinkedIn passa a morar no site.
 
 **Feito por Arthur, antes do código**
+- Fornecer o texto final do artigo de apresentação, redigido na sessão de Comunicação, já atualizado com a etapa em que o projeto estiver (o rascunho é de 25/11/2026, quando o plano ia até a Etapa 8), o título e o resumo nos quatro idiomas.
 - Fornecer o texto integral de "From Purism to Prudence: Artificial Intelligence and the Right Order of Means", publicado no LinkedIn em 24/08/2026.
 - Confirmar o resumo do ensaio nos quatro idiomas (são os de `[article]`, hoje nos arquivos de conteúdo).
 
 **O que muda**
-- **Um arquivo por artigo**, `src/articles/<slug>.md`. O nome do arquivo é o slug: minúsculas sem acento, palavras separadas por hífen, curto. **Uma vez publicado, o slug nunca muda**; o título pode mudar. O primeiro é `src/articles/from-purism-to-prudence.md`.
-  - Cabeçalho em TOML entre linhas `+++`, lido pelo `tomllib`:
+- **Um arquivo por artigo**, `src/articles/<slug>.md`. O nome do arquivo é o slug: minúsculas sem acento, palavras separadas por hífen, curto. **Uma vez publicado, o slug nunca muda**; o título pode mudar. Os dois primeiros são o da apresentação, cujo slug sai do título final, e `src/articles/from-purism-to-prudence.md`.
+  - Cabeçalho em TOML entre linhas `+++`, lido pelo `tomllib` (o exemplo é o do ensaio):
     ```toml
     +++
     title = "From Purism to Prudence: Artificial Intelligence and the Right Order of Means"
@@ -404,7 +405,11 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 - **Feed Atom único**, `/feed.xml`, com `xml:lang="en"`: resumo e texto completo de cada artigo, autor e datas. O identificador do feed e de cada entrada é um URI `tag:` (RFC 4151), que não depende do endereço do site: `tag:arthurceicorrea.dev,2026-11-25:articles` para o feed e `tag:arthurceicorrea.dev,2026-11-25:<slug>` para cada entrada (a data é a da compra do domínio, quando ele já era de Arthur). Um `<link rel="alternate" type="application/atom+xml">` em `src/layout.html` anuncia o feed em todas as páginas que usam a moldura.
 - **Sitemap**: as quatro listas, com as versões por idioma, e cada artigo, sem versões alternativas; todos com `lastmod`.
 - **Links no corpo dos artigos**: só `https`, abrindo na mesma aba (sem `target`), e nada carregado como recurso. `ALLOWED_EXTERNAL` continua valendo para os links da interface e dos modelos. Imagens dentro de artigos ficam fora desta etapa.
-- **O ensaio do LinkedIn passa a ser um arquivo de artigo.** A constante `ARTICLE` de `ci/build.py` e as chaves `summary` de `[article]` saem; a seção da página inicial, o bloco `work` dos dados estruturados e o currículo passam a ler o artigo do arquivo. A seção da página inicial mantém a forma atual nesta etapa, mas o link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 13.
+- **A estreia: o artigo de apresentação.** O texto é de Arthur, e a data é a do dia em que for publicado. Não tem campo `linkedin`, porque sai primeiro no site; o post no LinkedIn vem depois, com o resumo e o link. Como é o mais recente, aparece no topo das listas e do feed.
+- **O ensaio do LinkedIn passa a ser um arquivo de artigo**, com a data original, 24/08/2026, e a menção ao LinkedIn. Por ser mais antigo, vem depois da apresentação nas listas e no feed.
+- **Os dados saem do build e dos arquivos de idioma.** A constante `ARTICLE` de `ci/build.py` e as chaves `summary` de `[article]` saem; a seção da página inicial, o bloco `work` dos dados estruturados e o currículo passam a ler os arquivos de artigo.
+  - A seção da página inicial mantém a forma atual nesta etapa, com um artigo só, o mais recente (a apresentação). O link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 13.
+  - O currículo continua com o ensaio, lido agora do arquivo dele. A escolha dos artigos do currículo vem na Etapa 13.
 - **Registro de decisão:** [ADR 11](adr/0011-articles-in-markdown-in-english-built-by-the-same-script.md). O ADR 5 passa a dizer que foi estendido por ele.
 - **Testes**
   - Do conteúdo, sem o site montado: o cabeçalho de cada artigo tem `title`, `date` e os quatro resumos, nenhum vazio; a data não está no futuro; o nome do arquivo segue a regra do slug.
@@ -419,7 +424,9 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 **Fora do escopo:** traduções de artigos (se um dia houver, ganham endereço próprio e só então entram `hreflang` e `workTranslation`); imagens e notas de rodapé nos artigos; categorias, paginação e busca; imagem de prévia por artigo; a forma nova da seção da página inicial e a escolha dos artigos do currículo (Etapa 13); banco de dados e gerador de sites (descartados no ADR 11).
 
 **Pronto quando:**
+- o artigo de apresentação está publicado em `/en/articles/<slug>/`, com o texto fornecido por Arthur e a data da publicação, no topo das listas e do feed;
 - o ensaio está publicado em `/en/articles/from-purism-to-prudence/`, com o texto fornecido por Arthur, a data de 24/08/2026 e a menção ao LinkedIn;
+- `tests/published.txt` lista os dois endereços;
 - as quatro listas e o feed existem, e o sitemap os lista;
 - os currículos continuam em duas páginas e com o resumo do ensaio no seu idioma;
 - `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas, também nas páginas novas;
@@ -441,7 +448,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
   - nas páginas em português, espanhol e italiano, a frase "Os artigos são escritos em inglês." acima dos itens;
   - no fim, o link "Todos os artigos", para a lista do idioma, presente mesmo com um artigo só.
 - **Sem carrossel e sem movimento.** Tudo visível, sem JavaScript. Um carrossel foi considerado e descartado: dois dos três artigos ficariam escondidos; passar sozinho seria um segundo movimento na página, contra o [ADR 9](adr/0009-cinzel-only-where-the-page-is-an-inscription.md), que deixa o fio dourado sob o lema como único; e a WCAG 2.2.2 exigiria botão de pausa e parada com o foco e com o mouse.
-- **Currículo: no máximo dois artigos, escolhidos por Arthur**, com `cv = true` no cabeçalho do artigo. Cada um entra com título, data e o resumo no idioma do currículo, e uma linha final dá o endereço da lista de artigos no idioma. O build para se houver mais de dois marcados. O ensaio migrado começa marcado.
+- **Currículo: no máximo dois artigos, escolhidos por Arthur**, com `cv = true` no cabeçalho do artigo. Cada um entra com título, data e o resumo no idioma do currículo, e uma linha final dá o endereço da lista de artigos no idioma. O build para se houver mais de dois marcados. O ensaio começa marcado; o artigo de apresentação não, porque interessa a quem visita o site, e pouco a quem lê um currículo.
 - **Testes**
   - A página inicial mostra no máximo três artigos, o mais recente em destaque com o resumo do idioma, os outros só com título e data, e o link para a lista do idioma; a frase sobre o inglês nas três línguas que não são inglesas.
   - O sumário continua levando a cinco seções visíveis.
