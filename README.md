@@ -143,7 +143,7 @@ External links in the pages and templates must be in `ALLOWED_EXTERNAL`, in `tes
 ## Publishing an article
 
 1. Add `src/articles/<slug>.md`. The file name is the article's address, `/en/articles/<slug>/`: lowercase letters without accents, digits and hyphens. Once published, the slug never changes; the title may.
-2. Start the file with the header, in TOML between two `+++` lines: `title`, `date` (the day of publication, without quotes), optionally `updated` and `linkedin`, and the summary in `[summary]`, in `en`, `pt`, `es` and `it`. Then the text, in Markdown (CommonMark), with typographic quotes and dashes written as they are.
+2. Start the file with the header, in TOML between two `+++` lines: `title`, `date` (the day of publication, without quotes), optionally `updated`, `linkedin` and `cv = true` (the article goes in the CV; two at most), and the summary in `[summary]`, in `en`, `pt`, `es` and `it`. Then the text, in Markdown (CommonMark), with typographic quotes and dashes written as they are.
 3. Mark a passage in another language as `[Sapientis est ordinare]{lang=la}` (inside the asterisks if it is italic). It is the only markup beyond CommonMark; HTML written in the text comes out escaped, and images are not accepted yet.
 4. Add the address to `tests/published.txt`, run `make build` and `make test`, and open a pull request.
 
