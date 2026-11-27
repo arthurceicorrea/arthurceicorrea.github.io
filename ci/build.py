@@ -13,7 +13,13 @@
   - src/gratiarum.html, o agradecimento: /pt/gratiarum-actio/ e as outras três, uma edição
     cada, com o idioma fixo, e endereços por idioma próprios (o padrão é a edição em inglês);
   - src/privacy.html, a privacidade: /pt/privacidade/, /en/privacy/, /es/privacidad/ e
-    /it/privacy/, com o endereço traduzido em cada arquivo de idioma.
+    /it/privacy/, com o endereço traduzido em cada arquivo de idioma;
+  - src/articles.html, as listas de artigos: /pt/artigos/, /en/articles/, /es/articulos/ e
+    /it/articoli/, com o endereço traduzido em cada arquivo de idioma;
+  - src/article.html, cada artigo: /en/articles/<slug>/, só em inglês e sem versões em outras
+    línguas (nenhum hreflang); o seletor de idioma leva às listas nos outros idiomas.
+- Lê os artigos de src/articles/<slug>.md (ci/articles.py) e para, com uma mensagem que diz o
+  arquivo e o campo, se um deles tiver problema. Gera o feed Atom, /feed.xml, com todos.
 - Monta a 404 a partir de src/404.html, com as quatro edições: o script de idioma
   mostra a do visitante.
 - Copia, como estão, os arquivos de static/: fontes, imagens, vCard e arquivos de
@@ -24,7 +30,8 @@
 - Monta /assets/: junta os arquivos de src/css/ em site.css (e em 404.css, para a
   página de erro), na ordem das camadas (@layer), e copia os scripts de src/js/.
 - Gera sitemap.xml a partir da mesma tabela: cada página, com as versões nos outros idiomas
-  (hreflang) e a padrão (x-default).
+  (hreflang) e a padrão (x-default); as listas e os artigos, com a data da última mudança
+  (lastmod), e os artigos sem versões, porque só existem em inglês.
 - Preenche no rodapé a data da última atualização (a do último commit) e o ano,
   e grava version.txt com o commit publicado, que o monitoramento confere no ar.
 
@@ -46,6 +53,8 @@ import types
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
+import articles
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, '_site')
 SRC = os.path.join(ROOT, 'src')
@@ -64,12 +73,9 @@ GRATIARUM = 'gratiarum-actio/'
 EMAIL = 'arthurceicorrea@gmail.com'
 LINKEDIN = 'https://www.linkedin.com/in/arthurceicorrea/'
 GITHUB = 'https://github.com/arthurceicorrea'
-ARTICLE = {
-    'headline': 'From Purism to Prudence: Artificial Intelligence and the Right Order of Means',
-    'url': 'https://www.linkedin.com/pulse/from-purism-prudence-teleological-error-resistance-arthur-cei-corr%C3%AAa-awqef/',
-    'date': '2026-08-24',
-    'lang': 'en',
-}
+# Artigo do currículo: o ensaio. A escolha dos artigos do currículo, no cabeçalho de cada um, vem na
+# Etapa 13 de docs/PLAN.md.
+CV_ARTICLE = 'from-purism-to-prudence'
 # Política de segurança de todas as páginas: estilos e scripts só de arquivos do próprio site.
 POLICY = ("default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:; "
           "connect-src 'self'; base-uri 'none'; form-action 'none'")
@@ -172,7 +178,7 @@ def translated_address(content, table):
     return paths
 
 
-def page_table(content):
+def page_table(content, posts):
     """Tabela única das páginas com conteúdo. Cada entrada é uma página nos quatro idiomas, uma
     edição por idioma, e diz:
       template  o modelo, em src/, que estende layout.html;
@@ -184,9 +190,16 @@ def page_table(content):
       alt       a tabela do arquivo de idioma com o texto alternativo da imagem (image_alt);
       home      se a entrada tem também a página inicial, a edição em inglês publicada em /. A
                 versão padrão (x-default) é então a página inicial; nas outras, a edição em inglês.
+    Um artigo é uma entrada à parte, só em inglês (built), sem versões em outras línguas
+    (versions=False): paths diz, para os outros idiomas, aonde leva o seletor (a lista do idioma);
+    text traz o título e a descrição do próprio artigo, e post, o artigo.
     Dela saem a montagem, o endereço canônico, as versões por idioma (hreflang) e o sitemap."""
-    page = types.SimpleNamespace
-    return {
+    page = functools.partial(types.SimpleNamespace, built=tuple(TAGS), versions=True, post=None)
+    lists = translated_address(content, 'articles')
+    if lists[DEFAULT] != articles.FOLDER:
+        sys.exit('src/content/%s.toml: [articles] path deveria levar a /%s, onde ci/articles.py publica os artigos'
+                 % (DEFAULT, articles.FOLDER))
+    table = {
         # o portfólio: a página inicial e /pt/, /en/, /es/, /it/
         'portfolio': page(template='page.html', paths=same_address(''), text='meta', image=None, alt='meta', home=True),
         # o agradecimento: o mesmo endereço nos quatro idiomas, porque é latim
@@ -195,7 +208,16 @@ def page_table(content):
         # a privacidade: o endereço traduzido, definido em cada arquivo de idioma; a prévia é a do portfólio
         'privacy': page(template='privacy.html', paths=translated_address(content, 'privacy'), text='privacy',
                         image=None, alt='meta', home=False),
+        # as listas de artigos: o endereço traduzido; a prévia é a do portfólio
+        'articles': page(template='articles.html', paths=lists, text='articles', image=None, alt='meta', home=False),
     }
+    for post in posts:
+        # cada artigo, só em inglês; nos outros idiomas, o seletor leva à lista
+        table['article:' + post.slug] = page(
+            template='article.html', paths=dict(lists, **{DEFAULT: post.path}), built=(DEFAULT,), versions=False,
+            text={'title': '%s — Arthur Cei Corrêa' % post.title, 'description': post.summary[DEFAULT]},
+            image=None, alt='meta', home=False, post=post)
+    return table
 
 
 def x_default(entry):
@@ -207,17 +229,21 @@ def head(entry, code, content, home=False, og_description=None):
     """Dados do <head> de uma edição de uma página da tabela. home: a página inicial, a edição em
     inglês publicada em /, sem idioma fixo, para o script de idioma levar os outros visitantes à
     página deles. Uma página que escreve o título no modelo (o agradecimento, em latim) não tem
-    title na sua tabela de textos; ali, page não tem title."""
-    text = content[code][entry.text]
+    title na sua tabela de textos; ali, page não tem title. Um artigo traz o título e a descrição
+    em entry.text. Uma página sem versões em outras línguas (um artigo) não declara nenhuma
+    (hreflang nem x-default) nem as regiões do Open Graph dos outros idiomas."""
+    text = entry.text if isinstance(entry.text, dict) else content[code][entry.text]
     own = {'description': text['description'], 'image': entry.image or IMAGES[code],
            'image_alt': content[code][entry.alt]['image_alt']}
     if 'title' in text:
         own['title'] = text['title']
+    versions = entry.versions
     return types.SimpleNamespace(
-        html_lang=TAGS[code], data_lang=None if home else code, home=home, current=code,
-        paths=entry.paths, x_default=x_default(entry),
+        html_lang=TAGS[code], data_lang=None if home else code, home=home, current=code, paths=entry.paths,
+        alternates=[(TAGS[other], BASE + entry.paths[other]) for other in TAGS] if versions else [],
+        x_default=x_default(entry) if versions else None,
         og_description=og_description or own['description'],
-        locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
+        locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code] if versions else [],
         url=BASE if home else BASE + entry.paths[code], **own)
 
 
@@ -226,12 +252,14 @@ def environment():
                        trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
 
 
-def pages(content, day, table):
+def pages(content, day, table, posts):
     env = environment()
     shared = {
         'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
         'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
-        'article': namespace(ARTICLE), 'updated': day, 'time_tag': time_tag,
+        # o artigo da página inicial, o mais recente, e todos, do mais recente ao mais antigo, para as listas
+        'article': posts[0], 'posts': posts, 'updated': day, 'time_tag': time_tag,
+        'feed_title': content[DEFAULT]['articles']['feed_title'],  # o feed é um só, em inglês
         'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
         'addresses': {name: entry.paths for name, entry in table.items()},  # para os links do rodapé
     }
@@ -240,22 +268,30 @@ def pages(content, day, table):
             # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles
             render(env, entry.template, 'index.html',
                    page=head(entry, DEFAULT, content, home=True, og_description=content[DEFAULT]['meta']['og_description_root']),
-                   editions=[edition(DEFAULT, content)], current_page=name, **shared)
-        for code in TAGS:
+                   editions=[edition(DEFAULT, content)], current_page=name, post=None, **shared)
+        for code in entry.built:
             render(env, entry.template, entry.paths[code] + 'index.html', page=head(entry, code, content),
-                   editions=[edition(code, content)], current_page=name, **shared)
+                   editions=[edition(code, content)], current_page=name, post=entry.post, **shared)
     render(env, '404.html', '404.html', editions=[edition(code, content) for code in TAGS], default=edition(DEFAULT, content), **shared)
 
 
-def sitemap(table):
-    """sitemap.xml: cada página da tabela, com as versões por idioma e a padrão (x-default)."""
+def sitemap(table, posts):
+    """sitemap.xml: cada página da tabela, com as versões por idioma e a padrão (x-default). As listas
+    de artigos e os artigos levam também a data da última mudança (lastmod): a do artigo mais
+    recentemente publicado ou revisto, nas listas; a do próprio artigo, nele. Os artigos não têm
+    versões em outras línguas."""
     urls = ''
-    for entry in table.values():
+    for name, entry in table.items():
+        if entry.post:
+            urls += '  <url>\n    <loc>%s%s</loc>\n    <lastmod>%s</lastmod>\n  </url>\n' % (
+                BASE, entry.paths[DEFAULT], entry.post.modified.isoformat())
+            continue
         links = ''.join('    <xhtml:link rel="alternate" hreflang="%s" href="%s%s"/>\n' % (TAGS[code], BASE, path)
                         for code, path in entry.paths.items())
         links += '    <xhtml:link rel="alternate" hreflang="x-default" href="%s"/>\n' % x_default(entry)
+        lastmod = '    <lastmod>%s</lastmod>\n' % max(p.modified for p in posts).isoformat() if name == 'articles' else ''
         locs = ([BASE] if entry.home else []) + [BASE + path for path in entry.paths.values()]
-        urls += ''.join('  <url>\n    <loc>%s</loc>\n%s  </url>\n' % (loc, links) for loc in locs)
+        urls += ''.join('  <url>\n    <loc>%s</loc>\n%s%s  </url>\n' % (loc, lastmod, links) for loc in locs)
     with open(os.path.join(OUT, 'sitemap.xml'), 'w', encoding='utf-8', newline='\n') as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
@@ -304,11 +340,14 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def cvs(content):
+def cvs(content, posts):
     """Gera /cv/arthur-cei-correa-cv-<idioma>.pdf: monta src/cv.html numa pasta temporária,
     com as fontes e o estilo, serve essa pasta num servidor local e a imprime no Chrome."""
     from playwright.sync_api import Error, sync_playwright
     env = environment()
+    essay = [p for p in posts if p.slug == CV_ARTICLE]
+    if not essay:
+        sys.exit('ci/build.py: CV_ARTICLE = %r, mas não há src/articles/%s.md' % (CV_ARTICLE, CV_ARTICLE))
     target = os.path.join(OUT, 'cv')
     os.makedirs(target, exist_ok=True)
     with tempfile.TemporaryDirectory() as folder:
@@ -320,7 +359,7 @@ def cvs(content):
         for code in TAGS:
             e = edition(code, content)
             render(env, 'cv.html', 'cv-%s.html' % code, folder=folder, e=e, email=EMAIL, linkedin=LINKEDIN,
-                   github=GITHUB, site=BASE + code + '/', article=namespace(ARTICLE), long_date=long_date,
+                   github=GITHUB, site=BASE + code + '/', base=BASE, article=essay[0], long_date=long_date,
                    adds_nothing=adds_nothing, page_label=page_label(e.resume.page))
         server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Quiet, directory=folder))
         threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -346,6 +385,13 @@ def cvs(content):
 
 def main():
     content = load_content()
+    try:
+        # hoje no fuso de São Paulo: um artigo com a data de hoje no Brasil não é recusado como futuro
+        posts = articles.load(os.path.join(SRC, 'articles'), datetime.datetime.now(articles.ZONE).date())
+    except articles.ArticleError as error:
+        sys.exit('Artigo com problema: %s' % error)
+    if not posts:
+        sys.exit('src/articles/ não tem nenhum artigo; a página inicial mostra o mais recente')
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
     os.makedirs(OUT)
@@ -357,13 +403,15 @@ def main():
     version = os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD') or 'local'
     with open(os.path.join(OUT, 'version.txt'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(version + '\n')
-    table = page_table(content)
-    pages(content, day, table)
-    cvs(content)
-    sitemap(table)
+    table = page_table(content, posts)
+    pages(content, day, table, posts)
+    cvs(content, posts)
+    sitemap(table, posts)
+    with open(os.path.join(OUT, 'feed.xml'), 'w', encoding='utf-8', newline='\n') as f:
+        f.write(articles.feed(posts, BASE, content[DEFAULT]['articles']['feed_title']))
     count = sum(len(files) for _, _, files in os.walk(OUT))
     print('Site montado em _site/: %d arquivos, com as páginas %s; versão %s, atualizado em %s.' % (
-        count, ', '.join('/' + path for entry in table.values() for path in entry.paths.values()), version[:7], day.isoformat()))
+        count, ', '.join('/' + entry.paths[code] for entry in table.values() for code in entry.built), version[:7], day.isoformat()))
 
 
 if __name__ == '__main__':

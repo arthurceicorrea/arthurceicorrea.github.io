@@ -144,11 +144,10 @@ problem = "Un portafolio en cuatro idiomas, accesible y sin recursos de terceros
 role = "Concebí y dirigí el proyecto: definí los requisitos, las verificaciones del pipeline y las prioridades de cada mejora. Usé IA como herramienta para escribir el código."
 
 [article]
-# O título, o endereço e a data do artigo ficam em ci/build.py (ARTICLE).
-meta = "LinkedIn, {date}, en inglés"
-summary = "Ensayo sobre el uso de la IA en el trabajo, a la luz de la tradición aristotélico-tomista: el instrumento sirve al intelecto, pero no se delega lo que aún no se ha aprendido, y el código, las configuraciones y los pipelines sugeridos por la IA deben leerse, probarse y entenderse antes de llegar a producción."
-link = "Leer el artículo en LinkedIn"
-link_note = "en inglés; se abre en una pestaña nueva"
+# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
+# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
+meta = "{date}, en inglés"
+link = "Leer el artículo"
 
 [skills]
 intro = "Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera."
@@ -268,3 +267,16 @@ cloudflare_policy = "política de privacidad de Cloudflare"
 github = "GitHub Pages, que aloja el sitio, registra la dirección IP de quien lo visita, por seguridad, y la recibe de Cloudflare con cada página solicitada ({policy}, en inglés)."
 github_policy = "declaración de privacidad de GitHub"
 closing = "Ninguna de las dos políticas fija un plazo de conservación de esos registros. Al seguir un enlace a LinkedIn o a GitHub, usted pasa a regirse por las reglas de esos sitios. Dudas: {email}."
+
+[articles]
+# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
+# Endereço da lista neste idioma: /es/<path>/. Uma vez publicado, não mude.
+path = "articulos"
+title = "Artículos — Arthur Cei Corrêa"
+heading = "Artículos"
+description = "Artículos de Arthur Cei Corrêa, escritos en inglés, con el resumen de cada uno en español."
+# Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
+written_in = "Los artículos están escritos en inglés."
+# Link para o feed Atom, no fim da lista.
+feed = "Feed de los artículos (Atom)"

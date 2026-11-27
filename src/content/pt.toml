@@ -144,11 +144,10 @@ problem = "Um portfólio em quatro idiomas, acessível e sem recursos de terceir
 role = "Concebi e conduzi o projeto: defini os requisitos, as verificações do pipeline e as prioridades de cada melhoria. Usei IA como ferramenta para escrever o código."
 
 [article]
-# O título, o endereço e a data do artigo ficam em ci/build.py (ARTICLE).
-meta = "LinkedIn, {date}, em inglês"
-summary = "Ensaio sobre o uso de IA no trabalho, à luz da tradição aristotélico-tomista: o instrumento serve ao intelecto, mas não se delega o que ainda não se aprendeu, e o código, as configurações e os pipelines sugeridos por IA devem ser lidos, testados e entendidos antes de chegar à produção."
-link = "Ler o artigo no LinkedIn"
-link_note = "em inglês; abre em nova aba"
+# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
+# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
+meta = "{date}, em inglês"
+link = "Ler o artigo"
 
 [skills]
 intro = "Tecnologias com que tive contato prático: no estágio, em projetos e nos laboratórios da graduação."
@@ -277,3 +276,16 @@ cloudflare_policy = "política de privacidade da Cloudflare"
 github = "o GitHub Pages, que hospeda o site, registra o endereço IP de quem visita, por segurança, e o recebe da Cloudflare a cada página buscada ({policy}, em inglês)."
 github_policy = "declaração de privacidade do GitHub"
 closing = "Nenhuma das duas políticas fixa um prazo de guarda desses registros. Ao seguir um link para o LinkedIn ou o GitHub, você passa às regras desses sites. Dúvidas: {email}."
+
+[articles]
+# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
+# Endereço da lista neste idioma: /pt/<path>/. Uma vez publicado, não mude.
+path = "artigos"
+title = "Artigos — Arthur Cei Corrêa"
+heading = "Artigos"
+description = "Artigos de Arthur Cei Corrêa, escritos em inglês, com o resumo de cada um em português."
+# Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
+written_in = "Os artigos são escritos em inglês."
+# Link para o feed Atom, no fim da lista.
+feed = "Feed dos artigos (Atom)"

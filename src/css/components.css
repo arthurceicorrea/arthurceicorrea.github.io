@@ -78,6 +78,7 @@
     margin-top: 2.4rem;
   }
 
+  .entry h2,
   .entry h3 {
     font-size: 1.22em;
     line-height: 1.25;
@@ -315,6 +316,101 @@
 
   .notice .body li::marker {
     color: var(--gold);
+  }
+
+  /* ---- Lista de artigos: a seção começa onde as outras páginas têm o título; o feed, no fim ---- */
+  .list {
+    padding-top: clamp(2.5rem, 9vh, 5.5rem);
+  }
+
+  .list .note + .entry {
+    margin-top: 1.6rem;
+  }
+
+  .list .feed {
+    margin-top: 2.4rem;
+  }
+
+  /* ---- Artigo: o título em letra de livro, o corpo numa coluna de leitura (cerca de 65 a 70
+     caracteres por linha), intertítulos em EB Garamond, como o título (ADR 9) ---- */
+  .post .hero .meta {
+    margin-top: 0.75rem;
+  }
+
+  /* na coluna da direita, como nas outras páginas, mais estreita: cerca de 65 a 70 caracteres */
+  .post .prose {
+    max-width: 26em;
+    margin-left: auto;
+  }
+
+  .post .prose h2 {
+    margin-top: 2.5rem;
+    font-size: 1.45em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .post .prose h3 {
+    margin-top: 2rem;
+    font-size: 1.2em;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .post .prose h2 + *,
+  .post .prose h3 + * {
+    margin-top: 0.75rem;
+  }
+
+  /* citação: o filete dourado à esquerda; o itálico, só onde o texto o marca */
+  .post .prose blockquote {
+    padding-left: 1.25em;
+    border-left: 1px solid var(--gold);
+  }
+
+  .post .prose ul,
+  .post .prose ol {
+    padding-left: 1.25em;
+  }
+
+  .post .prose ul {
+    list-style-type: "– ";
+  }
+
+  .post .prose ol {
+    list-style-type: decimal;
+  }
+
+  .post .prose li + li {
+    margin-top: 0.5rem;
+  }
+
+  .post .prose li::marker {
+    color: var(--gold);
+  }
+
+  .post .prose code {
+    font-family: ui-monospace, SFMono-Regular, menlo, consolas, monospace;
+    font-size: 0.85em;
+    overflow-wrap: anywhere;
+  }
+
+  .post .prose pre {
+    overflow-x: auto;
+    padding: 1rem;
+    border: 1px solid var(--rule);
+  }
+
+  .post .prose pre code {
+    overflow-wrap: normal;
+  }
+
+  .post .prose hr {
+    width: 5rem;
+    height: 1px;
+    margin-inline: 0;
+    border: 0;
+    background: var(--rule);
   }
 
   @media (min-width: 36rem) {

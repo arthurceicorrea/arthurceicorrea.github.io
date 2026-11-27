@@ -1,0 +1,59 @@
+{#
+  Modelo das listas de artigos (Jinja2). ci/build.py o usa para montar /pt/artigos/,
+  /en/articles/, /es/articulos/ e /it/articoli/, uma edição cada, com o idioma fixo. O endereço é
+  traduzido: cada idioma o define em src/content/<idioma>.toml, na tabela [articles] (path).
+  O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos das outras páginas.
+
+  As quatro listas têm os mesmos artigos, do mais recente ao mais antigo, sem paginação: o título
+  em inglês (lang="en" e hreflang="en" no link), a data no formato do idioma e o resumo no idioma
+  da lista. Nas listas em português, espanhol e italiano, uma frase no alto diz que os artigos são
+  escritos em inglês. No fim, o link para o feed.
+
+  O título da lista, "Artigos", é um título de seção, em Cinzel, como os da página inicial
+  (ADR 9); os títulos dos artigos, em EB Garamond.
+#}
+{% extends 'layout.html' %}
+{% set og_type = 'website' %}
+{% block work %}
+  {
+  "@type": "CollectionPage",
+  "name": {{ editions[0].articles.heading | tojson }},
+  "url": "{{ page.url }}",
+  "inLanguage": "{{ page.html_lang }}",
+  "author": { "@id": "{{ base }}#arthur" }
+  }
+{% endblock %}
+{% block top %}
+{% for e in editions %}
+  <a class="home" href="/{{ addresses.portfolio[e.code] }}">{{ e.ui.home }}</a>
+{% endfor %}
+{% endblock %}
+{% block main %}
+<main id="conteudo" class="wrap" tabindex="-1">
+{% for e in editions %}
+
+<div class="t" lang="{{ e.tag }}"
+     data-title="{{ e.articles.title }}"
+     data-desc="{{ e.articles.description }}">
+
+  <section class="sec list">
+    <h1>{{ e.articles.heading }}</h1>
+    <div class="body">
+{% if e.articles.written_in %}
+      <p class="note">{{ e.articles.written_in }}</p>
+{% endif %}
+{% for p in posts %}
+      <article class="entry">
+        <h2 lang="{{ p.lang }}"><a href="/{{ p.path }}" hreflang="{{ p.lang }}">{{ p.title_html }}</a></h2>
+        <p class="meta">{{ time_tag(p.date, e) }}</p>
+        <p>{{ p.summary[e.code] }}</p>
+      </article>
+{% endfor %}
+      <p class="feed"><a href="/feed.xml" type="application/atom+xml">{{ e.articles.feed }}</a></p>
+    </div>
+  </section>
+</div>
+{% endfor %}
+
+</main>
+{% endblock %}

@@ -1,7 +1,8 @@
 {#
   Currículo em PDF (Jinja2), um por idioma, montado por ci/build.py com os textos de
   src/content/<idioma>.toml: os mesmos da página (resumo, projetos, artigo, competências,
-  idiomas, formação e experiência) e os de [resume], que só o currículo usa.
+  idiomas, formação e experiência) e os de [resume], que só o currículo usa. O artigo é o ensaio
+  (CV_ARTICLE, em ci/build.py), com o título, a data e o resumo lidos de src/articles/.
   Este HTML não é publicado: o build o abre no Chrome (Playwright) e publica só o PDF,
   em /cv/arthur-cei-correa-cv-<idioma>.pdf. O estilo está em src/css/cv.css.
 #}
@@ -94,10 +95,10 @@
 <section>
   <h2>{{ e.sections.article.title }}</h2>
   <article>
-    <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.headline }}</h3>
+    <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.title_html }}</h3>
     <p class="meta">{{ e.article.meta | replace('{date}', long_date(article.date, e)) }}</p>
-    <p>{{ e.article.summary }}</p>
-    <p><a href="{{ article.url }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
+    <p>{{ article.summary[e.code] }}</p>
+    <p><a href="{{ base }}{{ article.path }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
   </article>
 </section>
 

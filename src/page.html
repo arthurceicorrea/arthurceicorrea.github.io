@@ -106,10 +106,10 @@
     <h2>{{ e.sections.article.title }}</h2>
     <div class="body">
       <article class="entry">
-        <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.headline }}</h3>
+        <h3{% if e.code != article.lang %} lang="{{ article.lang }}"{% endif %}>{{ article.title_html }}</h3>
         <p class="meta">{{ e.article.meta | replace('{date}', time_tag(article.date, e)) }}</p>
-        <p>{{ e.article.summary }}</p>
-        <p><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" hreflang="{{ article.lang }}">{{ e.article.link }}<span class="vh"> ({{ e.article.link_note }})</span></a></p>
+        <p>{{ article.summary[e.code] }}</p>
+        <p><a href="/{{ article.path }}" hreflang="{{ article.lang }}">{{ e.article.link }}</a></p>
       </article>
     </div>
   </section>
