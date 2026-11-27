@@ -14,11 +14,15 @@ idioma da página (na página inicial, o inglês), sem link no próprio agradeci
 404. A página de privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/, /it/privacy/): o
 mesmo, com o endereço traduzido, os links das duas políticas e o e-mail; a frase de privacidade
 do rodapé, link para ela no idioma da página; e nenhum script do site que guarde algo no navegador
-ou envie algo a outro lugar. O latim: todo trecho marcado com lang="la" e idêntico nos quatro
-idiomas. Toda página do sitemap.xml está na lista dos testes (PAGES). Por fim,
+ou envie algo a outro lugar. Os artigos: os endereços publicados (tests/published.txt) existem; a
+página de cada artigo, só em inglês, sem hreflang, com o seletor levando às listas e os dados
+estruturados do artigo; as quatro listas, com cada artigo, o resumo no idioma da lista e a frase
+sobre o inglês; o feed; os links no corpo dos artigos (só https, na mesma aba, nada carregado);
+e, na página inicial, o artigo mais recente. O latim: todo trecho marcado com lang="la" e idêntico
+nos quatro idiomas. Toda página do sitemap.xml está na lista dos testes (PAGES). Por fim,
 robots.txt, sitemap.xml, versão publicada, a ausência de telefone nas páginas, nos currículos e no
 cartão de contato, e os currículos gerados: os quatro existem, trazem os textos da página no seu
-idioma (resumo, formação e experiência, projetos, competências, idiomas e artigo), cabem em duas
+idioma (resumo, formação e experiência, projetos, competências, idiomas e o resumo do ensaio), cabem em duas
 páginas e numeram as páginas no idioma do currículo.
 
 Testes que valem para várias páginas, links ou arquivos rodam uma vez para cada um; o item
@@ -36,8 +40,8 @@ from html.parser import HTMLParser
 import pytest
 
 import helpers
-from helpers import (ALLOWED_EXTERNAL, CODES, GRATIARUM, GRATIARUM_PAGES, LANGUAGE_PAGES, LANGS, LOCALES, PAGES, PHONE, POLICY,
-                     PRIVACY, PRIVACY_PAGES, RESOURCE_TAGS, VOID, page)
+from helpers import (ALLOWED_EXTERNAL, ARTICLE_LISTS, ARTICLE_PAGES, CODES, GRATIARUM, GRATIARUM_PAGES, LANGUAGE_PAGES, LANGS,
+                     LIST_PAGES, LOCALES, PAGES, PHONE, POLICY, PRIVACY, PRIVACY_PAGES, RESOURCE_TAGS, VOID, page)
 
 helpers.require_site()
 
@@ -46,12 +50,18 @@ on_pages_with_data = pytest.mark.parametrize('name', [n for n in PAGES if n != '
 on_language_pages = pytest.mark.parametrize('name', list(LANGUAGE_PAGES))
 
 
+def article_day(header, field):
+    """Data de um artigo: date ou, para "updated", a de revisão se houver, senão a de publicação."""
+    return header.get(field) or header['date']
+
+
 def short(url, size=70):
     return url if len(url) <= size else url[:size - 1] + '…'
 
 
 def links(kind):
-    """(página, etiqueta, atributos, linha, endereço) de cada endereço externo ou local, com o id do teste."""
+    """(página, etiqueta, atributos, linha, endereço) de cada endereço externo ou local, com o id do teste.
+    Os links no corpo dos artigos ficam de fora: têm regras próprias (links no corpo, mais abaixo)."""
     found = []
     for name in PAGES:
         for tag, a, line, url in page(name).links():
@@ -415,12 +425,15 @@ def test_sitemap_is_well_formed():
         pytest.fail('sitemap.xml não é XML bem formado: %s' % error)
 
 
-def test_sitemap_lists_home_language_thanksgiving_and_privacy_pages():
+def test_sitemap_lists_home_language_thanksgiving_privacy_and_article_pages():
     locs = [u.find('s:loc', SITEMAP).text for u in sitemap_urls()]
     expected = ([helpers.base()] + [helpers.base() + code + '/' for code in CODES]
                 + [helpers.base() + code + '/' + GRATIARUM for code in CODES]
-                + [helpers.base() + code + '/' + PRIVACY[code] for code in CODES])
-    assert locs == expected, 'sitemap.xml lista %s; esperado %s' % (locs, expected)
+                + [helpers.base() + code + '/' + PRIVACY[code] for code in CODES]
+                + [helpers.base() + code + '/' + ARTICLE_LISTS[code] for code in CODES])
+    articles = sorted(helpers.base() + address.lstrip('/') for address in helpers.published())
+    assert locs[:len(expected)] == expected and sorted(locs[len(expected):]) == articles, \
+        'sitemap.xml lista %s; esperado %s e os artigos %s' % (locs, expected, articles)
 
 
 def test_every_page_in_the_sitemap_is_tested():
@@ -456,6 +469,30 @@ def test_sitemap_declares_privacy_alternates(code):
     assert found, 'sitemap.xml não lista %s' % url
     alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
     assert alternates == helpers.expected_alternates(PRIVACY), 'sitemap.xml: versões por idioma de %s diferentes do esperado: %s' % (url, alternates)
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_sitemap_declares_article_list_alternates_and_lastmod(code):
+    url = helpers.base() + code + '/' + ARTICLE_LISTS[code]
+    found = [u for u in sitemap_urls() if u.find('s:loc', SITEMAP).text == url]
+    assert found, 'sitemap.xml não lista %s' % url
+    alternates = {e.get('hreflang'): e.get('href') for e in found[0].findall('x:link', SITEMAP)}
+    newest = max(article_day(h, 'updated') for h in helpers.article_headers().values())
+    lastmod = found[0].find('s:lastmod', SITEMAP)
+    assert alternates == helpers.expected_alternates(ARTICLE_LISTS), 'sitemap.xml: versões por idioma de %s: %s' % (url, alternates)
+    assert lastmod is not None and lastmod.text == newest.isoformat(), \
+        'sitemap.xml: lastmod de %s deveria ser %s, a data do artigo mais recente: %s' % (url, newest, lastmod is not None and lastmod.text)
+
+
+@pytest.mark.parametrize('slug', list(helpers.article_headers()))
+def test_sitemap_lists_each_article_without_versions(slug):
+    url = helpers.base() + 'en/articles/%s/' % slug
+    found = [u for u in sitemap_urls() if u.find('s:loc', SITEMAP).text == url]
+    assert found, 'sitemap.xml não lista %s' % url
+    lastmod = found[0].find('s:lastmod', SITEMAP)
+    expected = article_day(helpers.article_headers()[slug], 'updated').isoformat()
+    assert not found[0].findall('x:link', SITEMAP) and lastmod is not None and lastmod.text == expected, \
+        'sitemap.xml: %s deveria vir sem versões em outras línguas e com lastmod %s' % (url, expected)
 
 
 # ---------- página de agradecimento (Gratiarum actio) ----------
@@ -876,6 +913,8 @@ def test_latin_is_identical_in_the_four_languages(group):
 # ---------- currículos e cartão de contato ----------
 
 CV_NAMES = ['arthur-cei-correa-cv-%s.pdf' % code for code in CODES]
+# Artigo do currículo: o ensaio, até a Etapa 13 de docs/PLAN.md deixar a escolha no cabeçalho de cada artigo.
+CV_ESSAY = 'from-purism-to-prudence'
 # Rodapé da primeira página de cada currículo, escrito aqui e não lido do conteúdo.
 CV_FOOTERS = {'pt': 'Página 1 de 2', 'en': 'Page 1 of 2', 'es': 'Página 1 de 2', 'it': 'Pagina 1 di 2'}
 
@@ -914,7 +953,7 @@ def site_texts():
         for i, g in enumerate(c['skills']['groups'], 1):
             found += [(code, 'skills.groups[%d].%s' % (i, k), g[k]) for k in ('name', 'items')]
         found += [(code, 'languages.items[%d]' % i, '%s (%s)' % (l['name'], l['level'])) for i, l in enumerate(c['languages']['items'], 1)]
-        found.append((code, 'article.summary', c['article']['summary']))
+        found.append((code, 'ensaio: summary.%s' % code, helpers.article_headers()[CV_ESSAY]['summary'][code]))
     return [pytest.param(code, where, text, id='%s:%s' % (code, where)) for code, where, text in found]
 
 
@@ -930,7 +969,8 @@ def test_cv_has_the_site_text(code, where, text):
         # quando o resumo do projeto já diz o papel (SellOut EasyTrack), o currículo não o repete:
         # basta estar no resumo, que pode começar com minúscula e não terminar ali
         expected, found = expected.rstrip('.').lower(), found.lower()
-    assert expected in found, '%s: falta o texto de %s em src/content/%s.toml: %r' % (name, where, code, text)
+    source = 'src/articles/%s.md' % CV_ESSAY if where.startswith('ensaio') else 'src/content/%s.toml' % code
+    assert expected in found, '%s: falta o texto de %s em %s: %r' % (name, where, source, text)
 
 
 @pytest.mark.parametrize('name', CV_NAMES)
@@ -983,3 +1023,311 @@ def test_vcard_has_name_and_site():
 def test_no_phone_number_in_vcard():
     found = PHONE.search(helpers.read('arthur-cei-correa.vcf'))
     assert not found, 'arthur-cei-correa.vcf: parece haver um telefone: %r' % (found.group(0) if found else '')
+
+
+# ---------- artigos: endereços publicados ----------
+
+@pytest.mark.parametrize('address', helpers.published())
+def test_published_address_still_exists(address):
+    """Um endereço publicado nunca some: mudar o slug de um artigo, ou apagá-lo, reprova aqui."""
+    assert os.path.isfile(helpers.local_file(address)), \
+        '%s está em tests/published.txt, mas não existe no site montado; o slug de um artigo publicado não muda' % address
+
+
+@pytest.mark.parametrize('slug', list(helpers.article_headers()))
+def test_every_article_is_in_published_list(slug):
+    assert '/en/articles/%s/' % slug in helpers.published(), \
+        'src/articles/%s.md: acrescente /en/articles/%s/ a tests/published.txt (publicar um artigo inclui essa linha)' % (slug, slug)
+
+
+# ---------- artigos: a página de cada artigo ----------
+
+on_article_pages = pytest.mark.parametrize('name', list(ARTICLE_PAGES))
+
+
+def slug_of(name):
+    return name.split('/')[2]
+
+
+def header_of(name):
+    return helpers.article_headers()[slug_of(name)]
+
+
+@on_article_pages
+def test_article_page_is_english_with_fixed_language(name):
+    assert '<html lang="en" data-lang="en">' in page(name).raw, '%s: esperado <html lang="en" data-lang="en">' % name
+
+
+@on_article_pages
+def test_article_title_and_description(name):
+    p, header = page(name), header_of(name)
+    title = helpers.plain_title(header['title']) + ' — Arthur Cei Corrêa'
+    found = re.search(r'<title>([^<]*)</title>', p.raw)
+    got = (found.group(1) if found else None, p.meta('og:title'), p.meta('description'), p.meta('og:description'))
+    assert got == (title, title, header['summary']['en'], header['summary']['en']), \
+        '%s: título e descrição deveriam ser o título do artigo e o resumo em inglês: %s' % (name, got)
+
+
+@on_article_pages
+def test_article_heading_is_its_title(name):
+    found = re.search(r'<h1>(.*?)</h1>', page(name).body, flags=re.S)
+    text = re.sub(r'<[^>]+>', '', found.group(1)) if found else None
+    assert text == helpers.plain_title(header_of(name)['title']), '%s: o título da página (h1) deveria ser o do artigo: %r' % (name, text)
+
+
+@on_article_pages
+def test_article_canonical_is_itself_and_no_alternates(name):
+    p = page(name)
+    url = helpers.base() + name[:-len('index.html')]
+    assert p.canonical == url and p.meta('og:url') == url and p.alternates == {}, \
+        '%s: canonical %r, og:url %r e versões %s; esperado %s e nenhum hreflang, porque o artigo só existe em inglês' % (
+            name, p.canonical, p.meta('og:url'), p.alternates, url)
+
+
+@on_article_pages
+def test_article_is_shared_as_an_article(name):
+    p, header = page(name), header_of(name)
+    published = header['date'].isoformat()
+    modified = article_day(header, 'updated').isoformat()
+    got = (p.meta('og:type'), p.meta('og:locale'), p.meta('article:published_time'), p.meta('article:modified_time'))
+    assert got == ('article', 'en_US', published, modified) and 'og:locale:alternate' not in p.raw \
+        and p.meta('profile:first_name') is None and image_exists(p.meta('og:image')), \
+        '%s: prévia de artigo em inglês, com as datas %s e %s, sem outras regiões: %s' % (name, published, modified, got)
+
+
+@on_article_pages
+def test_article_structured_data(name):
+    p, header = page(name), header_of(name)
+    works = [n for n in p.structured_data() or [] if n.get('@type') == 'Article']
+    expected = {'headline': helpers.plain_title(header['title']), 'url': p.canonical, 'inLanguage': 'en',
+                'datePublished': header['date'].isoformat(), 'dateModified': article_day(header, 'updated').isoformat(),
+                'description': header['summary']['en']}
+    got = {k: works[0].get(k) for k in expected} if len(works) == 1 else works
+    assert got == expected and p.person() == page('index.html').person(), \
+        '%s: dados estruturados do artigo diferentes do esperado (ou a pessoa difere da página inicial): %s' % (name, got)
+
+
+@on_article_pages
+def test_article_switcher_leads_to_the_lists(name):
+    raw = page(name).raw
+    url = '/' + name[:-len('index.html')]
+    expected = {code: '/%s/%s' % (code, ARTICLE_LISTS[code]) for code in CODES if code != 'en'}
+    missing = [code for code, href in expected.items() if ('<a href="%s" data-lang="%s"' % (href, code)) not in raw]
+    current = '<a href="%s" data-lang="en" lang="en" hreflang="en" aria-current="true">' % url
+    assert not missing and current in raw and raw.count('aria-current="true"') == 1, \
+        '%s: o seletor deveria marcar EN e levar às listas em PT, ES e IT (faltam: %s)' % (name, missing)
+
+
+@on_article_pages
+def test_article_links_back_to_the_english_list(name):
+    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+    assert '<a class="home" href="/en/articles/">' in top, '%s: falta, no topo, o link para a lista de artigos em inglês' % name
+
+
+@on_article_pages
+def test_article_shows_its_date_in_english(name):
+    day = header_of(name)['date']
+    expected = '<time datetime="%s">%s %d, %d</time>' % (day.isoformat(), day.strftime('%B'), day.day, day.year)
+    hero = page(name).body.split('<header class="hero">', 1)[1].split('</header>', 1)[0]
+    assert expected in hero, '%s: falta a data de publicação, em inglês, sob o título: %s' % (name, expected)
+
+
+@on_article_pages
+def test_article_has_no_unreplaced_marker(name):
+    text = re.sub(r'<[^>]+>', ' ', page(name).body.split('<div class="body prose">')[0])
+    found = re.search(r'\{[a-z_]+\}', text)
+    assert not found, '%s: marcador sem trocar no texto: %s' % (name, found.group(0) if found else '')
+
+
+# ---------- artigos: links no corpo ----------
+
+def body_links():
+    return [pytest.param(name, tag, a, url, id='%s:%d:%s' % (name, line, short(url)))
+            for name in ARTICLE_PAGES for tag, a, line, url in page(name).links(prose=True)]
+
+
+@pytest.mark.parametrize('name', list(ARTICLE_PAGES))
+def test_article_body_is_found(name):
+    assert page(name).prose_tags(), '%s: o corpo do artigo (class="body prose") não foi encontrado' % name
+
+
+@pytest.mark.parametrize('name, tag, attrs, url', body_links())
+def test_body_link_is_https_in_the_same_tab(name, tag, attrs, url):
+    assert tag == 'a' and url.startswith('https://') and 'target' not in attrs, \
+        '%s: link no corpo deveria ser https e abrir na mesma aba (<%s>, target=%r): %s' % (name, tag, attrs.get('target'), url)
+
+
+@pytest.mark.parametrize('name, tag, attrs, url', [p for p in body_links() if p.values[3].startswith(helpers.base())])
+def test_body_link_to_the_site_exists(name, tag, attrs, url):
+    assert os.path.isfile(helpers.local_file(url[len(helpers.base()) - 1:])), '%s: o link leva a uma página que não existe no site: %s' % (name, url)
+
+
+@pytest.mark.parametrize('name', list(ARTICLE_PAGES))
+def test_body_loads_nothing(name):
+    loaded = sorted({tag for tag, a, line in page(name).prose_tags() if tag in RESOURCE_TAGS + ('link', 'style', 'form')})
+    attributes = sorted({k for tag, a, line in page(name).prose_tags() for k in a if k == 'style' or k.startswith('on')})
+    assert not loaded and not attributes, '%s: o corpo do artigo carrega recursos (%s) ou tem atributos proibidos (%s)' % (name, loaded, attributes)
+
+
+@pytest.mark.parametrize('name', list(ARTICLE_PAGES))
+def test_body_marks_only_languages(name):
+    """A única marcação além do CommonMark é a língua de um trecho (<span lang="...">)."""
+    spans = [a for tag, a, line in page(name).prose_tags() if tag == 'span']
+    assert all(set(a) == {'lang'} and a['lang'] for a in spans), '%s: <span> no corpo com algo além de lang: %s' % (name, spans)
+
+
+# ---------- artigos: as quatro listas ----------
+
+on_list_pages = pytest.mark.parametrize('name', list(LIST_PAGES))
+# Frase no alto das listas que não são inglesas; escrita aqui de novo, e não lida dos arquivos de idioma.
+WRITTEN_IN = {'pt': 'Os artigos são escritos em inglês.', 'es': 'Los artículos están escritos en inglés.',
+              'it': 'Gli articoli sono scritti in inglese.'}
+
+
+@on_list_pages
+def test_list_has_fixed_language(name):
+    code, tag = LIST_PAGES[name]
+    assert ('<html lang="%s" data-lang="%s">' % (tag, code)) in page(name).raw, '%s: esperado <html lang="%s" data-lang="%s">' % (name, tag, code)
+
+
+@on_list_pages
+def test_list_title_and_description_are_in_page_language(name):
+    p = page(name)
+    title, desc = edition_attributes(name, LIST_PAGES[name][1])
+    found = re.search(r'<title>([^<]*)</title>', p.raw)
+    got = (found.group(1) if found else None, p.meta('description'), p.meta('og:description'), p.meta('og:title'))
+    assert title and desc and got == (title, desc, desc, title), '%s: título e descrição fora do idioma da página: %s' % (name, got)
+
+
+@on_list_pages
+def test_list_canonical_and_alternates(name):
+    p = page(name)
+    code = LIST_PAGES[name][0]
+    url = helpers.base() + code + '/' + ARTICLE_LISTS[code]
+    assert p.canonical == url and p.alternates == helpers.expected_alternates(ARTICLE_LISTS) and p.meta('og:locale') == LOCALES[code], \
+        '%s: canonical %r, versões %s e og:locale %r' % (name, p.canonical, p.alternates, p.meta('og:locale'))
+
+
+@on_list_pages
+def test_list_switcher_leads_to_the_same_list_in_each_language(name):
+    code, tag = LIST_PAGES[name]
+    raw = page(name).raw
+    missing = [other for other in CODES if ('<a href="/%s/%s" data-lang="%s"' % (other, ARTICLE_LISTS[other], other)) not in raw]
+    current = '<a href="/%s/%s" data-lang="%s" lang="%s" hreflang="%s" aria-current="true">' % (code, ARTICLE_LISTS[code], code, tag, tag)
+    assert not missing and current in raw and raw.count('aria-current="true"') == 1, \
+        '%s: o seletor deveria levar à lista nos quatro idiomas (faltam: %s) e marcar só %s' % (name, missing, code.upper())
+
+
+@on_list_pages
+def test_list_links_back_to_the_home_page_of_its_language(name):
+    code = LIST_PAGES[name][0]
+    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+    assert ('<a class="home" href="/%s/">' % code) in top, '%s: falta, no topo, o link de volta a /%s/' % (name, code)
+
+
+@pytest.mark.parametrize('name, slug', [(n, s) for n in LIST_PAGES for s in helpers.article_headers()])
+def test_list_shows_each_article_with_the_summary_of_its_language(name, slug):
+    code = LIST_PAGES[name][0]
+    header = helpers.article_headers()[slug]
+    main = page(name).body.split('<main', 1)[1]
+    link = '<h2 lang="en"><a href="/en/articles/%s/" hreflang="en">' % slug
+    summary = '<p>%s</p>' % header['summary'][code].replace('&', '&amp;')
+    assert link in main and summary in main, '%s: falta o artigo %s, com o título em inglês (lang="en") e o resumo em %s' % (name, slug, code)
+
+
+@on_list_pages
+def test_list_is_newest_first(name):
+    slugs = re.findall(r'<h2 lang="en"><a href="/en/articles/([^/]+)/"', page(name).body)
+    headers = helpers.article_headers()
+    expected = sorted(headers, key=lambda s: (headers[s]['date'], s), reverse=True)
+    assert slugs == expected, '%s: artigos na ordem %s; esperado do mais recente ao mais antigo: %s' % (name, slugs, expected)
+
+
+@on_list_pages
+def test_list_says_articles_are_in_english(name):
+    code = LIST_PAGES[name][0]
+    text = re.sub(r'<[^>]+>', ' ', page(name).body)
+    if code == 'en':
+        assert not any(sentence in text for sentence in WRITTEN_IN.values()), '%s: a lista inglesa não diz que os artigos são em inglês' % name
+    else:
+        assert WRITTEN_IN[code] in text, '%s: falta a frase "%s"' % (name, WRITTEN_IN[code])
+
+
+@on_list_pages
+def test_list_links_to_the_feed(name):
+    assert '<a href="/feed.xml" type="application/atom+xml">' in page(name).body, '%s: falta o link para o feed' % name
+
+
+@pytest.mark.parametrize('name', [n for n, e in PAGES.items() if e])
+def test_page_announces_the_feed(name):
+    assert '<link rel="alternate" type="application/atom+xml" href="/feed.xml"' in page(name).raw, '%s: o <head> não anuncia o feed' % name
+
+
+# ---------- artigos: o feed ----------
+
+ATOM = {'a': 'http://www.w3.org/2005/Atom'}
+TAG = 'tag:arthurceicorrea.dev,2026-11-25:'
+
+
+@functools.lru_cache(maxsize=None)
+def feed():
+    return ET.parse(helpers.path('feed.xml')).getroot()
+
+
+def feed_day(text):
+    """Dia de uma data do feed (RFC 3339), no fuso que ela própria declara."""
+    return datetime.datetime.fromisoformat(text).date()
+
+
+def test_feed_is_well_formed_and_in_english():
+    try:
+        root = feed()
+    except (ET.ParseError, OSError) as error:
+        pytest.fail('feed.xml não é XML bem formado: %s' % error)
+    assert root.tag == '{%s}feed' % ATOM['a'] and root.get('{http://www.w3.org/XML/1998/namespace}lang') == 'en', \
+        'feed.xml deveria ser um feed Atom com xml:lang="en"'
+
+
+def test_feed_identifiers_are_unique_tag_uris():
+    ids = [feed().find('a:id', ATOM).text] + [e.find('a:id', ATOM).text for e in feed().findall('a:entry', ATOM)]
+    expected = [TAG + 'articles'] + [TAG + slug for slug in sorted(helpers.article_headers(), key=lambda s: (helpers.article_headers()[s]['date'], s), reverse=True)]
+    assert ids == expected and len(set(ids)) == len(ids), 'feed.xml: identificadores %s; esperados %s' % (ids, expected)
+
+
+def test_feed_links_exist():
+    links = [l.get('href') for l in feed().iter('{%s}link' % ATOM['a'])]
+    missing = [href for href in links if not href.startswith(helpers.base()) or not os.path.isfile(helpers.local_file(href[len(helpers.base()) - 1:]))]
+    assert links and not missing, 'feed.xml: links que não existem no site montado: %s' % missing
+
+
+@pytest.mark.parametrize('slug', list(helpers.article_headers()))
+def test_feed_entry_matches_the_article_header(slug):
+    header = helpers.article_headers()[slug]
+    entries = [e for e in feed().findall('a:entry', ATOM) if e.find('a:id', ATOM).text == TAG + slug]
+    assert len(entries) == 1, 'feed.xml: o artigo %s deveria ter uma entrada' % slug
+    e = entries[0]
+    got = (e.find('a:title', ATOM).text, feed_day(e.find('a:published', ATOM).text), feed_day(e.find('a:updated', ATOM).text),
+           e.find('a:summary', ATOM).text, e.find('a:link', ATOM).get('href'))
+    expected = (helpers.plain_title(header['title']), header['date'], article_day(header, 'updated'), header['summary']['en'],
+                helpers.base() + 'en/articles/%s/' % slug)
+    assert got == expected, 'feed.xml: entrada de %s diferente do cabeçalho do artigo:\n  %s\n  esperado %s' % (slug, got, expected)
+    assert e.find('a:content', ATOM).get('type') == 'html' and len(e.find('a:content', ATOM).text or '') > 500, \
+        'feed.xml: a entrada de %s deveria trazer o texto completo (content type="html")' % slug
+
+
+def test_feed_updated_is_the_newest_change():
+    newest = max(article_day(h, 'updated') for h in helpers.article_headers().values())
+    assert feed_day(feed().find('a:updated', ATOM).text) == newest, 'feed.xml: updated deveria ser %s' % newest
+
+
+# ---------- página inicial: o artigo mais recente ----------
+
+@on_language_pages
+def test_home_section_shows_the_newest_article(name):
+    code = LANGUAGE_PAGES[name][0]
+    headers = helpers.article_headers()
+    slug = max(headers, key=lambda s: (headers[s]['date'], s))
+    main = page(name).body.split('<main', 1)[1]
+    link = '<a href="/en/articles/%s/" hreflang="en">' % slug
+    summary = '<p>%s</p>' % headers[slug]['summary'][code]
+    assert link in main and summary in main, '%s: a seção de artigo deveria mostrar o mais recente (%s), com o resumo em %s e o link para a página dele' % (name, slug, code)

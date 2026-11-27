@@ -252,9 +252,9 @@ def environment():
                        trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True)
 
 
-def pages(content, day, table, posts):
-    env = environment()
-    shared = {
+def shared_context(content, day, table, posts):
+    """Variáveis comuns a todas as páginas montadas com src/layout.html (descritas lá)."""
+    return {
         'base': BASE, 'policy': Markup(POLICY),  # constante do build: entra sem escape
         'email': EMAIL, 'linkedin': LINKEDIN, 'github': GITHUB,
         # o artigo da página inicial, o mais recente, e todos, do mais recente ao mais antigo, para as listas
@@ -263,6 +263,11 @@ def pages(content, day, table, posts):
         'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
         'addresses': {name: entry.paths for name, entry in table.items()},  # para os links do rodapé
     }
+
+
+def pages(content, day, table, posts):
+    env = environment()
+    shared = shared_context(content, day, table, posts)
     for name, entry in table.items():
         if entry.home:
             # página inicial: a edição em inglês; o script de idioma leva os outros visitantes à página deles

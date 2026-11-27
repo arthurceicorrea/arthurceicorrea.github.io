@@ -16,7 +16,13 @@
         "http://127.0.0.1:8080/pt/privacidade/",
         "http://127.0.0.1:8080/en/privacy/",
         "http://127.0.0.1:8080/es/privacidad/",
-        "http://127.0.0.1:8080/it/privacy/"
+        "http://127.0.0.1:8080/it/privacy/",
+        "http://127.0.0.1:8080/pt/artigos/",
+        "http://127.0.0.1:8080/en/articles/",
+        "http://127.0.0.1:8080/es/articulos/",
+        "http://127.0.0.1:8080/it/articoli/",
+        "http://127.0.0.1:8080/en/articles/built-like-a-production-system/",
+        "http://127.0.0.1:8080/en/articles/from-purism-to-prudence/"
       ],
       "numberOfRuns": 1,
       "settings": {

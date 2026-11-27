@@ -1,0 +1,6 @@
+# Endereços dos artigos publicados, um por linha, depois do domínio.
+# Um endereço publicado nunca some: tests/test_static.py falha se algum deles não existir no site
+# montado, e o monitoramento (ci/monitor.py) confere cada um no ar. Publicar um artigo inclui
+# acrescentar a sua linha aqui; mudar o slug de um artigo publicado reprova.
+/en/articles/built-like-a-production-system/
+/en/articles/from-purism-to-prudence/

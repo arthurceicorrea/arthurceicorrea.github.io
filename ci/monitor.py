@@ -4,10 +4,12 @@ Confere:
 - (com --expect-version) que o site no ar já serve o commit que acabou de ser publicado,
   tentando por até 10 minutos, enquanto a publicação se propaga;
 - página inicial, páginas /pt/, /en/, /es/, /it/, páginas de agradecimento (/pt/gratiarum-actio/
-  e as outras três) e de privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/,
-  /it/privacy/): resposta 200, HTML, idioma certo e política de segurança presente;
+  e as outras três), de privacidade (/pt/privacidade/, /en/privacy/, /es/privacidad/,
+  /it/privacy/), as listas de artigos (/pt/artigos/, /en/articles/, /es/articulos/, /it/articoli/) e
+  cada artigo publicado (tests/published.txt): resposta 200, HTML, idioma certo e política de
+  segurança presente;
 - página 404 personalizada para endereços inexistentes;
-- robots.txt, sitemap.xml, currículos em PDF, fontes, folhas de estilo e scripts de /assets/
+- robots.txt, sitemap.xml, o feed dos artigos (feed.xml), currículos em PDF, fontes, folhas de estilo e scripts de /assets/
   e imagens de prévia;
 - redirecionamento de http para https;
 - cabeçalhos de segurança postos pela Cloudflare (infra/rules.tf);
@@ -87,7 +89,11 @@ if EXPECT:
 # ---------- páginas ----------
 PAGES = {'': None, 'pt/': 'pt-BR', 'en/': 'en', 'es/': 'es', 'it/': 'it',
          'pt/gratiarum-actio/': 'pt-BR', 'en/gratiarum-actio/': 'en', 'es/gratiarum-actio/': 'es', 'it/gratiarum-actio/': 'it',
-         'pt/privacidade/': 'pt-BR', 'en/privacy/': 'en', 'es/privacidad/': 'es', 'it/privacy/': 'it'}
+         'pt/privacidade/': 'pt-BR', 'en/privacy/': 'en', 'es/privacidad/': 'es', 'it/privacy/': 'it',
+         'pt/artigos/': 'pt-BR', 'en/articles/': 'en', 'es/articulos/': 'es', 'it/articoli/': 'it'}
+# os artigos publicados, só em inglês: a mesma lista que os testes conferem no site montado
+with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tests', 'published.txt'), encoding='utf-8') as f:
+    PAGES.update({line.strip().lstrip('/'): 'en' for line in f if line.strip() and not line.startswith('#')})
 for path, tag in PAGES.items():
     status, kind, body = fetch(path, fresh=True)
     html = body.decode('utf-8', 'replace')
@@ -106,6 +112,7 @@ check(status == 404 and b'Page not found' in body, 'endereço inexistente mostra
 FILES = {
     'robots.txt': ('text/plain', b'Sitemap:'),
     'sitemap.xml': ('xml', b'<urlset'),
+    'feed.xml': ('xml', b'<feed'),
     'cv/arthur-cei-correa-cv-pt.pdf': ('application/pdf', b'%PDF'),
     'cv/arthur-cei-correa-cv-en.pdf': ('application/pdf', b'%PDF'),
     'cv/arthur-cei-correa-cv-es.pdf': ('application/pdf', b'%PDF'),
