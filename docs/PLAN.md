@@ -13,7 +13,7 @@ Cada etapa é um ramo e um pull request. Uma etapa só começa depois que a ante
 - **Acessibilidade WCAG 2.2 AA**, verificada pelo axe e pelo Lighthouse (acessibilidade ≥ 95).
 - **Nenhum framework rodando no navegador.** Ferramentas de build e de teste podem ser usadas.
 - **Sem telefone, endereço ou dados de saúde** em páginas e currículos.
-- **Interface e apresentação, nos quatro idiomas:** mudou um texto num idioma, mude nos quatro. **Artigos, só em inglês** (a partir da Etapa 12): o texto e o título ficam em inglês, e o resumo de cada artigo, que é apresentação, nos quatro idiomas.
+- **Interface e apresentação, nos quatro idiomas:** mudou um texto num idioma, mude nos quatro. **Artigos, só em inglês** (a partir da Etapa 13): o texto e o título ficam em inglês, e o resumo de cada artigo, que é apresentação, nos quatro idiomas.
 - **O relatório final de cada etapa** explica, em português simples, o que mudou e por quê.
 
 ## Estrutura de destino
@@ -299,9 +299,9 @@ Dedicatória curta em latim, guardada para usos futuros (por exemplo, nos currí
 
 ---
 
-## Etapas 11 a 13: privacidade e artigos
+## Etapas 11 a 14: privacidade, alertas de segurança e artigos
 
-As três etapas seguintes vêm de uma discussão de 25 a 27/11/2026, registrada no ADR 11. Arthur passa a publicar artigos com regularidade: no site primeiro e, depois, no LinkedIn, com um resumo e o link. Os artigos são escritos só em inglês; o resto do site continua nos quatro idiomas. A privacidade vem antes porque é pequena, descreve uma situação que já existe (a Cloudflare está na frente do site desde a Etapa 9) e cria no build a peça que as listas de artigos vão usar: uma página nos quatro idiomas, com endereço traduzido, registrada numa tabela única de páginas.
+As etapas de privacidade (11) e de artigos (13 e 14) vêm de uma discussão de 25 a 27/11/2026, registrada no ADR 11. Arthur passa a publicar artigos com regularidade: no site primeiro e, depois, no LinkedIn, com um resumo e o link. Os artigos são escritos só em inglês; o resto do site continua nos quatro idiomas. A privacidade vem antes porque é pequena, descreve uma situação que já existe (a Cloudflare está na frente do site desde a Etapa 9) e cria no build a peça que as listas de artigos vão usar: uma página nos quatro idiomas, com endereço traduzido, registrada numa tabela única de páginas. A Etapa 12 entrou depois, em 27/11/2026, quando a aba de segurança do GitHub mostrou quatro alertas do CodeQL e a política de segurança desligada; vem antes dos artigos por ser pequena e tratar de segurança.
 
 ---
 
@@ -359,7 +359,47 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 ---
 
-## Etapa 12: artigos
+## Etapa 12: alertas do CodeQL e política de segurança
+
+**Objetivo:** resolver os quatro alertas que o CodeQL abriu no `main` e publicar a política de segurança do repositório, que o GitHub mostra como desligada. O visitante não nota diferença.
+
+**Os alertas, examinados um a um em 27/11/2026**
+
+| # | Alerta do CodeQL | Onde | Decisão |
+|---|---|---|---|
+| 1 | Use of insecure SSL/TLS version (alto) | `ci/monitor.py`, conferência do certificado | Corrigir: a versão mínima de TLS passa a ser explícita. |
+| 3 | Client-side URL redirect (médio) | `src/js/language.js`, redirecionamento da página inicial | Não há falha explorável: o idioma só pode ser `pt`, `en`, `es` ou `it`, e a âncora vem depois da barra, então não muda o domínio nem o caminho. Reescrever a linha para que a própria análise o reconheça, sem dispensar o alerta. |
+| 4 | DOM text reinterpreted as HTML (alto) | a mesma linha | O mesmo do #3. |
+| 2 | Bad HTML filtering regexp (alto, marcado como teste) | `tests/test_static.py`, teste de scripts embutidos | Não há falha: a expressão procura `<script>` no HTML que o próprio build gera e não filtra conteúdo de ninguém. O código fica como está; Arthur dispensa o alerta. |
+
+**Feito por Arthur, no GitHub**
+- Dispensar o alerta #2 como *Used in tests*, com o comentário: "Test code: the regex looks for inline scripts in the site's own build output; it does not filter untrusted input."
+- Depois do merge, conferir em Security and quality que a análise do `main` fechou os alertas #1, #3 e #4 e que a política de segurança aparece como ativa.
+
+**O que muda**
+- **`ci/monitor.py`:** uma função só cria o contexto TLS do monitor, com `minimum_version = ssl.TLSVersion.TLSv1_2`, e as três conexões HTTPS passam a usá-la (as páginas lidas com `urlopen`, os redirecionamentos e o certificado). Nas versões atuais do Python o mínimo já é TLS 1.2, mas implícito; fica escrito, igual ao que a Cloudflare impõe (`min_tls_version = "1.2"` em `infra/settings.tf`).
+- **`src/js/language.js`:** o redirecionamento da página inicial deixa de concatenar `location.hash` inteiro: `"/" + current + "/" + (location.hash ? "#" + location.hash.slice(1) : "")`. O comportamento é o mesmo (`/pt/` sem âncora, `/pt/#projetos` com ela); o `#` passa a ser texto fixo do código, e não algo lido da URL. Um comentário explica o porquê.
+- **`SECURITY.md`**, na raiz, em inglês como o README:
+  - o que cobre: o site em `arthurceicorrea.dev`, o código, os workflows e a infraestrutura deste repositório;
+  - como relatar: só pelo relato privado de vulnerabilidades do GitHub (link para `/security/advisories/new`), nunca numa issue pública; nenhum e-mail, porque o domínio não tem e-mail;
+  - versão coberta: só a que está no ar, publicada do `main`;
+  - o que fica de fora: falhas do próprio GitHub, do GitHub Pages ou da Cloudflare, que se relatam a eles;
+  - nenhum prazo de resposta, porque Arthur não definiu um.
+- **README:** o `SECURITY.md` entra na estrutura de pastas e ganha uma linha na seção de segurança.
+- **Testes:** um teste novo no navegador, com o fuso do Brasil: a página inicial com `#projetos` leva a `/pt/#projetos`, e sem âncora leva a `/pt/`, sem `#` no fim. Ele garante que a reescrita não mudou o comportamento.
+
+**Fora do escopo:** mudar configurações do GitHub (análise de código, relato privado, regras do ramo); um workflow próprio do CodeQL no lugar da configuração padrão; comentários de supressão no código; qualquer outra mudança no monitor ou na escolha do idioma.
+
+**Pronto quando:**
+- a análise do CodeQL no pull request não aponta os alertas #1, #3 e #4. Se a reescrita não bastar para o #3 e o #4, o pull request diz isso, e Arthur decide entre outra reescrita e dispensar os alertas como *False positive*;
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o monitor passa contra o site no ar (na sessão, se ela alcançar o site; senão, no pipeline depois do merge);
+- o pull request diz que não há mudança visual e, por isso, não traz capturas.
+
+**O que Arthur precisa entender:** como o CodeQL segue um dado de uma "fonte" (a URL) até um "destino" (`location.replace`) e por que ele não enxerga as garantias do caminho, como a lista fechada de idiomas; quando se corrige o código e quando se dispensa um alerta, e por que dispensar exige justificativa; para que servem o `SECURITY.md` e o relato privado (divulgação coordenada: a falha chega primeiro ao dono, e não ao público); e por que escrever o TLS mínimo, mesmo quando ele já é o padrão.
+
+---
+
+## Etapa 13: artigos
 
 **Objetivo:** publicar artigos no próprio site, em inglês, apresentados nos quatro idiomas. A estreia é um artigo de apresentação do site e do projeto; junto com ele, o ensaio que já está no LinkedIn passa a morar no site.
 
@@ -408,8 +448,8 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 - **A estreia: o artigo de apresentação.** O texto é de Arthur, e a data é a do dia em que for publicado. Não tem campo `linkedin`, porque sai primeiro no site; o post no LinkedIn vem depois, com o resumo e o link. Como é o mais recente, aparece no topo das listas e do feed.
 - **O ensaio do LinkedIn passa a ser um arquivo de artigo**, com a data original, 24/08/2026, e a menção ao LinkedIn. Por ser mais antigo, vem depois da apresentação nas listas e no feed.
 - **Os dados saem do build e dos arquivos de idioma.** A constante `ARTICLE` de `ci/build.py` e as chaves `summary` de `[article]` saem; a seção da página inicial, o bloco `work` dos dados estruturados e o currículo passam a ler os arquivos de artigo.
-  - A seção da página inicial mantém a forma atual nesta etapa, com um artigo só, o mais recente (a apresentação). O link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 13.
-  - O currículo continua com o ensaio, lido agora do arquivo dele. A escolha dos artigos do currículo vem na Etapa 13.
+  - A seção da página inicial mantém a forma atual nesta etapa, com um artigo só, o mais recente (a apresentação). O link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 14.
+  - O currículo continua com o ensaio, lido agora do arquivo dele. A escolha dos artigos do currículo vem na Etapa 14.
 - **Registro de decisão:** [ADR 11](adr/0011-articles-in-markdown-in-english-built-by-the-same-script.md). O ADR 5 passa a dizer que foi estendido por ele.
 - **Testes**
   - Do conteúdo, sem o site montado: o cabeçalho de cada artigo tem `title`, `date` e os quatro resumos, nenhum vazio; a data não está no futuro; o nome do arquivo segue a regra do slug.
@@ -421,7 +461,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
   - No navegador: com o fuso do Brasil, a página do artigo continua em inglês; o seletor leva às listas; nenhum erro no console. O axe passa a cobrir uma lista e o artigo.
   - Ajustes em testes existentes, cada um explicado no pull request: "mesmas versões que a página inicial" passa a valer só para as páginas iniciais; `ALLOWED_EXTERNAL` deixa de valer para os links no corpo dos artigos; os testes do currículo e dos dados estruturados passam a ler o resumo do arquivo do artigo; as listas e o artigo entram em `PAGES`, em `ci/monitor.py` e no Lighthouse.
 
-**Fora do escopo:** traduções de artigos (se um dia houver, ganham endereço próprio e só então entram `hreflang` e `workTranslation`); imagens e notas de rodapé nos artigos; categorias, paginação e busca; imagem de prévia por artigo; a forma nova da seção da página inicial e a escolha dos artigos do currículo (Etapa 13); banco de dados e gerador de sites (descartados no ADR 11).
+**Fora do escopo:** traduções de artigos (se um dia houver, ganham endereço próprio e só então entram `hreflang` e `workTranslation`); imagens e notas de rodapé nos artigos; categorias, paginação e busca; imagem de prévia por artigo; a forma nova da seção da página inicial e a escolha dos artigos do currículo (Etapa 14); banco de dados e gerador de sites (descartados no ADR 11).
 
 **Pronto quando:**
 - o artigo de apresentação está publicado em `/en/articles/<slug>/`, com o texto fornecido por Arthur e a data da publicação, no topo das listas e do feed;
@@ -436,7 +476,7 @@ Os fatos por trás do texto, conferidos em 27/11/2026:
 
 ---
 
-## Etapa 13: artigos na página inicial e no currículo
+## Etapa 14: artigos na página inicial e no currículo
 
 **Objetivo:** mostrar os artigos mais recentes na página inicial sem que a seção cresça a cada publicação, e levar ao currículo só os artigos que Arthur escolher.
 
