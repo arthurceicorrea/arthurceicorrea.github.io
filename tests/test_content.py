@@ -8,7 +8,8 @@ test_texts_are_complete[it] e diz qual chave falta. Não precisa do site montado
 Também confere os artigos (src/articles/<slug>.md), lendo o cabeçalho aqui de novo, e não pelo
 build: o nome do arquivo segue a regra do slug; o cabeçalho tem title, date e os quatro resumos,
 nenhum vazio; a data não está no futuro. E confere que o build (ci/articles.py) recusa, com uma
-mensagem que diz o arquivo e o campo, cada problema que deve recusar, e que a página de um artigo
+mensagem que diz o arquivo e o campo, cada problema que deve recusar (também mais de dois artigos
+marcados para o currículo), e que a página de um artigo
 publicado também no LinkedIn traz a linha "Originally published on LinkedIn".
 
 Uso: python -m pytest tests/test_content.py
@@ -119,6 +120,7 @@ REFUSED = {
     'attribute besides lang': ('an-article.md', GOOD_HEADER + '[x]{lang=la title="t"}\n', 'lang'),
     'markup in title': ('an-article.md', GOOD_HEADER.replace('"A title"', '"A [title](https://example.org/)"') + 'Text.\n', 'title'),
     'empty body': ('an-article.md', GOOD_HEADER, 'vazio'),
+    'cv as text': ('an-article.md', GOOD_HEADER.replace('date = 2026-08-24', 'date = 2026-08-24\ncv = "yes"') + 'Text.\n', 'cv'),
 }
 
 
@@ -128,6 +130,17 @@ def test_build_refuses_a_bad_article(tmp_path, case):
     with pytest.raises(articles.ArticleError) as error:
         load_one(tmp_path, text, name)
     assert name in str(error.value) and field in str(error.value), 'mensagem sem o arquivo ou o campo: %s' % error.value
+
+
+def test_build_refuses_more_than_two_articles_in_the_cv(tmp_path):
+    marked = GOOD_HEADER.replace('date = 2026-08-24', 'date = 2026-08-24\ncv = true') + 'Text.\n'
+    for name in ('one.md', 'two.md'):
+        (tmp_path / name).write_text(marked, encoding='utf-8')
+    assert [a.slug for a in articles.load(str(tmp_path), TODAY) if a.cv] == ['two', 'one']
+    (tmp_path / 'three.md').write_text(marked, encoding='utf-8')
+    with pytest.raises(articles.ArticleError) as error:
+        articles.load(str(tmp_path), TODAY)
+    assert 'cv = true' in str(error.value) and 'three' in str(error.value), 'mensagem sem o campo ou os artigos: %s' % error.value
 
 
 def test_build_escapes_html_written_in_an_article(tmp_path):

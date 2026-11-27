@@ -13,7 +13,7 @@
   (updated ou date), linkedin (ou None), summary (por idioma), path e html, o corpo já transformado
   e escapado por ci/articles.py, que entra como está.
 
-  Os textos da interface ficam em [articles] de src/content/en.toml: back (o link do topo, para a
+  Os textos da interface ficam em [articles] de src/content/en.toml: all (o link do topo, para a
   lista), updated e linkedin.
 #}
 {% extends 'layout.html' %}
@@ -39,7 +39,7 @@
 {% endblock %}
 {% block top %}
 {% for e in editions %}
-  <a class="home" href="/{{ addresses.articles[e.code] }}">{{ e.articles.back }}</a>
+  <a class="home" href="/{{ addresses.articles[e.code] }}">{{ e.articles.all }}</a>
 {% endfor %}
 {% endblock %}
 {% block main %}

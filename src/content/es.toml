@@ -43,10 +43,11 @@ id = "proyectos"
 jump = "Proyectos"
 title = "Proyectos"
 
-[sections.article]
-id = "articulo"
-jump = "Artículo"
-title = "Artículo"
+[sections.articles]
+# Âncora nova na Etapa 13 (antes, #articulo, no singular); um link antigo para ela leva ao topo da página.
+id = "articulos"
+jump = "Artículos"
+title = "Artículos"
 
 [sections.skills]
 id = "habilidades"
@@ -142,12 +143,6 @@ stack = "HTML y CSS, GitHub Pages, GitHub Actions, Python, Playwright, axe-core,
 repo = "https://github.com/arthurceicorrea/arthurceicorrea.github.io"
 problem = "Un portafolio en cuatro idiomas, accesible y sin recursos de terceros, que solo se publica después de superar pruebas automáticas."
 role = "Concebí y dirigí el proyecto: definí los requisitos, las verificaciones del pipeline y las prioridades de cada mejora. Usé IA como herramienta para escribir el código."
-
-[article]
-# Seção da página inicial: o artigo mais recente de src/articles/, com o título, a data e o resumo
-# lidos do arquivo dele; o link leva à página do artigo no site. No currículo, o ensaio.
-meta = "{date}, en inglés"
-link = "Leer el artículo"
 
 [skills]
 intro = "Tecnologías con las que he tenido contacto práctico: en la pasantía, en proyectos y en los laboratorios de la carrera."
@@ -278,5 +273,10 @@ heading = "Artículos"
 description = "Artículos de Arthur Cei Corrêa, escritos en inglés, con el resumen de cada uno en español."
 # Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
 written_in = "Los artículos están escritos en inglés."
+# Link para a lista do idioma: no fim da seção de artigos da página inicial e, em inglês, no topo da
+# página de cada artigo.
+all = "Todos los artículos"
+# Linha final da seção de artigos do currículo: {url} é o endereço da lista no idioma do currículo.
+cv_line = "Escritos en inglés; todos están en {url}."
 # Link para o feed Atom, no fim da lista.
 feed = "Feed de los artículos (Atom)"

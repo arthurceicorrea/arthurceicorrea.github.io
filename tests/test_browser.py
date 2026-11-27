@@ -25,7 +25,8 @@ Serve a pasta do site localmente e confere:
 - listas de artigos (/pt/artigos/ e as outras três) e páginas dos artigos, no celular e em tela
   larga: edição certa, seletor, fontes, nenhuma rolagem horizontal, nenhum erro no console; o artigo
   continua em inglês com o fuso do Brasil e sem JavaScript; o seletor do artigo leva às listas, a
-  lista leva ao artigo, e a página inicial, ao artigo mais recente;
+  lista leva ao artigo, e a página inicial, ao artigo mais recente; um link antigo para a âncora da
+  seção de artigos no singular (#artigo) leva ao topo da página, sem erro;
 - depois de visitar todas as páginas, o navegador não tem cookie nenhum do site, e o localStorage
   está vazio: o que a página de privacidade afirma;
 - página 404 no idioma do navegador.
@@ -744,6 +745,26 @@ def test_article_back_link_leads_to_the_english_list(once, browser, site_url):
 def test_console_has_no_errors_along_the_articles(once, browser, site_url):
     steps, errors = once(article_tour, browser, site_url)
     assert not errors, 'erros no console no caminho pelos artigos: %s' % errors[:3]
+
+
+# Âncora antiga da seção de artigos (no singular, até a Etapa 13): o link leva ao topo, sem erro.
+OLD_ANCHOR = {'pt': 'artigo', 'en': 'article', 'es': 'articulo', 'it': 'articolo'}
+
+
+def old_anchor(browser, site_url, code):
+    errors = []
+    ctx, page = open_page(browser, site_url, '%s/#%s' % (code, OLD_ANCHOR[code]), errors)
+    page.evaluate('document.fonts.ready')
+    state = {'path': page.evaluate('location.pathname'), 'y': page.evaluate('window.scrollY')}
+    ctx.close()
+    return state, errors
+
+
+@pytest.mark.parametrize('code', list(CODES))
+def test_old_article_anchor_leads_to_the_top(once, browser, site_url, code):
+    s, errors = once(old_anchor, browser, site_url, code)
+    assert s['path'] == '/%s/' % code and s['y'] == 0 and not errors, \
+        '/%s/#%s: esperado o topo da página, sem erros; rolagem %s, erros %s' % (code, OLD_ANCHOR[code], s['y'], errors[:3])
 
 
 def published_newest():
