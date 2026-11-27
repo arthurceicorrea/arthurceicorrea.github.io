@@ -43,6 +43,22 @@
     color: var(--gold-hi);
   }
 
+  /* link de volta à página inicial, à esquerda do seletor (só na página de agradecimento): discreto,
+     no cinza dos rótulos, para o fecho da página continuar sendo o da própria página */
+  .top .home {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-right: auto;
+    color: var(--muted);
+    font: 400 1.0625rem/1 var(--garamond);
+    text-decoration: none;
+  }
+
+  .top .home:hover {
+    color: var(--gold-hi);
+  }
+
   html[lang="pt-BR"] .langs [data-lang="pt"],
   html[lang="en"] .langs [data-lang="en"],
   html[lang="es"] .langs [data-lang="es"],

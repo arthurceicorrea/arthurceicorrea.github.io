@@ -103,6 +103,7 @@ FILES = {
     'fonts/eb-garamond-400.woff2': ('font/woff2', b'wOF2'),
     'og.png': ('image/png', b'\x89PNG'),
     'og-pt.png': ('image/png', b'\x89PNG'),
+    'og-gratiarum.png': ('image/png', b'\x89PNG'),
     'apple-touch-icon.png': ('image/png', b'\x89PNG'),
     'arthur-cei-correa.vcf': ('vcard', b'BEGIN:VCARD'),
 }

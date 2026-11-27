@@ -15,8 +15,13 @@
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)
     colophon_link  se o colofão é link para a página de agradecimento (não é na própria página)
-  Uma página pode definir title antes do bloco main ({% set title = ... %}); sem isso, vale
-  page.title, que vem do arquivo do idioma.
+  Uma página pode definir, fora dos blocos:
+    title    o título ({% set title = ... %}); sem isso, vale page.title, do arquivo do idioma;
+    og_type  o tipo da página na prévia de compartilhamento: profile (o padrão, o portfólio, que
+             descreve uma pessoa) ou article (o agradecimento, um texto do autor).
+  E pode preencher dois blocos além de main: work, a obra que os dados estruturados (JSON-LD)
+  listam além da pessoa (por padrão, o artigo do LinkedIn), e top, o que fica no topo, à
+  esquerda do seletor de idioma (por padrão, nada).
 
   Política de segurança (CSP): estilos e scripts só de arquivos do próprio site
   (style-src 'self'; script-src 'self'). Não há estilo nem script embutido na página,
@@ -32,6 +37,7 @@
   e igual nos quatro idiomas. Leva à página de agradecimento no idioma da edição.
 #}
 {% set title = title | default(page.title) %}
+{% set og_type = og_type | default('profile') %}
 {% set colophon %}<span lang="la">Non nisi te, Domine</span>{% endset %}
 <!DOCTYPE html>
 <html lang="{{ page.html_lang }}"{% if page.data_lang is not none %} data-lang="{{ page.data_lang }}"{% endif %}{% if page.home %} data-home{% endif %}>
@@ -45,7 +51,7 @@
 <meta name="author" content="Arthur Cei Corrêa">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#14181E">
-<meta property="og:type" content="profile">
+<meta property="og:type" content="{{ og_type }}">
 <meta property="og:site_name" content="Arthur Cei Corrêa">
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ page.og_description }}">
@@ -53,8 +59,10 @@
 {% for locale in page.locale_alternates %}
 <meta property="og:locale:alternate" content="{{ locale }}">
 {% endfor %}
+{% if og_type == 'profile' %}
 <meta property="profile:first_name" content="Arthur">
 <meta property="profile:last_name" content="Cei Corrêa">
+{% endif %}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="{{ page.url }}">
 <meta property="og:url" content="{{ page.url }}">
@@ -83,6 +91,7 @@
   "knowsLanguage": [{% for l in languages %}"{{ l.code }}"{% if not loop.last %}, {% endif %}{% endfor %}],
   "sameAs": ["{{ linkedin }}", "{{ github }}"]
   },
+{% block work %}
   {
   "@type": "Article",
   "headline": "{{ article.headline }}",
@@ -91,6 +100,7 @@
   "inLanguage": "{{ article.lang }}",
   "author": { "@id": "{{ base }}#arthur" }
   }
+{% endblock %}
   ]
 }
 </script>
@@ -112,6 +122,7 @@
 </a>
 
 <header class="wrap top" id="topo">
+{% block top %}{% endblock %}
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
 {% for l in languages %}

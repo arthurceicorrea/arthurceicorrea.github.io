@@ -508,8 +508,46 @@ def test_thanksgiving_switcher_leads_to_the_same_page_in_each_language(name):
 @on_thanksgiving_pages
 def test_thanksgiving_links_back_to_the_home_page_of_its_language(name):
     code = GRATIARUM_PAGES[name][0]
-    main = page(name).body.split('<main', 1)[1].split('</main>', 1)[0]
-    assert ('<a href="/%s/">' % code) in main, '%s: falta o link de volta a /%s/' % (name, code)
+    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+    assert ('<a class="home" href="/%s/">' % code) in top, '%s: falta, no topo, o link de volta a /%s/' % (name, code)
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_is_shared_as_an_article(name):
+    p = page(name)
+    assert p.meta('og:type') == 'article' and p.meta('profile:first_name') is None, \
+        '%s: a prévia deveria ser de um artigo (og:type article, sem os dados de perfil): og:type %r' % (name, p.meta('og:type'))
+
+
+@pytest.mark.parametrize('name', ['index.html'] + list(LANGUAGE_PAGES))
+def test_portfolio_is_shared_as_a_profile(name):
+    p = page(name)
+    assert p.meta('og:type') == 'profile' and p.meta('profile:first_name') == 'Arthur', \
+        '%s: a prévia do portfólio deveria ser de um perfil: og:type %r' % (name, p.meta('og:type'))
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_has_its_own_share_image(name):
+    p = page(name)
+    image = p.meta('og:image')
+    assert image == helpers.base() + 'og-gratiarum.png' and image_exists(image) and p.meta('twitter:image') == image, \
+        '%s: a imagem de prévia deveria ser og-gratiarum.png, existir e ser a mesma em og:image e twitter:image: %s' % (name, image)
+
+
+def test_thanksgiving_share_image_alt_differs_by_language():
+    alts = {page(name).meta('og:image:alt') for name in GRATIARUM_PAGES}
+    portfolio = {page(name).meta('og:image:alt') for name in LANGUAGE_PAGES}
+    assert len(alts) == 4 and not alts & portfolio, \
+        'o texto alternativo da prévia do agradecimento deveria ter uma versão por idioma, diferente da do portfólio: %s' % alts
+
+
+@on_thanksgiving_pages
+def test_thanksgiving_structured_data_describes_the_page(name):
+    p = page(name)
+    works = [n for n in p.structured_data() or [] if n.get('@type') == 'Article']
+    assert len(works) == 1 and works[0].get('url') == p.canonical and works[0].get('headline') == 'Gratiarum actio' \
+        and works[0].get('inLanguage') == GRATIARUM_PAGES[name][1], \
+        '%s: os dados estruturados deveriam descrever esta página (Article com url, título e idioma dela): %s' % (name, works)
 
 
 @on_thanksgiving_pages
@@ -569,7 +607,8 @@ def test_404_has_no_colophon():
 # ---------- latim marcado com lang="la" e igual nos quatro idiomas ----------
 
 # Trechos em latim do site, escritos aqui de novo, e não lidos dos modelos.
-LATIN = ['Non nisi te, Domine', 'Gratiarum actio', 'Ingressum instruas, progressum dirigas, egressum compleas.',
+# A epígrafe vai em três linhas fixas, uma por membro; cada membro é um trecho.
+LATIN = ['Non nisi te, Domine', 'Gratiarum actio', 'Ingressum instruas,', 'progressum dirigas,', 'egressum compleas.',
          'Creator ineffabilis', 'Domus et divitiae dantur a parentibus; a Domino autem proprie uxor prudens',
          'maxima amicitia esse videtur', 'Laus Deo.']
 

@@ -51,6 +51,7 @@ BASE = 'https://arthurceicorrea.dev/'
 TAGS = {'pt': 'pt-BR', 'en': 'en', 'es': 'es', 'it': 'it'}
 LOCALES = {'pt': 'pt_BR', 'en': 'en_US', 'es': 'es_ES', 'it': 'it_IT'}
 IMAGES = {'pt': 'og-pt.png', 'en': 'og.png', 'es': 'og-es.png', 'it': 'og-it.png'}
+GRATIARUM_IMAGE = 'og-gratiarum.png'  # prévia do agradecimento: a mesma nos quatro idiomas, porque é toda em latim
 NAMES = {'pt': 'Português', 'en': 'English', 'es': 'Español', 'it': 'Italiano'}
 DEFAULT = 'en'  # idioma da página inicial sem JavaScript e da 404
 # Página de agradecimento: o mesmo endereço nos quatro idiomas, porque é latim (/pt/gratiarum-actio/...).
@@ -153,16 +154,20 @@ def render(env, template, path, folder=OUT, **context):
 def head(code, content, url, og_description=None, data_lang=None, home=False, path=''):
     """Dados do <head> de uma página. path é o que vem depois de /<idioma>/ no endereço: vazio no
     portfólio, cuja versão padrão (x-default) é a página inicial; GRATIARUM no agradecimento, cuja
-    versão padrão é a edição em inglês. O agradecimento tem descrição própria e o título escrito no
-    modelo, em latim; por isso, ali, page não tem title."""
+    versão padrão é a edição em inglês. O agradecimento tem descrição e prévia próprias, e o título
+    escrito no modelo, em latim; por isso, ali, page não tem title."""
     meta = content[code]['meta']
-    own = {'title': meta['title'], 'description': meta['description']} if not path else {'description': content[code]['gratiarum']['description']}
+    if not path:
+        own = {'title': meta['title'], 'description': meta['description'], 'image': IMAGES[code], 'image_alt': meta['image_alt']}
+    else:
+        thanks = content[code]['gratiarum']
+        own = {'description': thanks['description'], 'image': GRATIARUM_IMAGE, 'image_alt': thanks['image_alt']}
     return types.SimpleNamespace(
         html_lang=TAGS[code], data_lang=data_lang, home=home, current=code, path=path,
         x_default=BASE + (DEFAULT + '/' + path if path else ''),
         og_description=og_description or own['description'],
         locale=LOCALES[code], locale_alternates=[LOCALES[other] for other in TAGS if other != code],
-        url=url, image=IMAGES[code], image_alt=meta['image_alt'], **own)
+        url=url, **own)
 
 
 def environment():

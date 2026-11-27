@@ -244,9 +244,10 @@ home = "Go to the home page"
 # Página de agradecimento, Gratiarum actio (src/gratiarum.html), e colofão do rodapé (src/layout.html).
 # Veja a nota em pt.toml: o latim fica no modelo; {prayer}, {uxor} e {amicitia} o trazem para a prosa.
 description = "A thanksgiving by Arthur Cei Corrêa: first to God, then to his wife."
+image_alt = "Gratiarum actio — an epigraph in Latin by St. Thomas Aquinas; Arthur Cei Corrêa"
 colophon_note = "thanksgiving page"
 epigraph_translation = "«Instruct the beginning, direct the progress, complete the end.»"
 epigraph_source = "— St. Thomas Aquinas, prayer {prayer}"
-to_god = "To God, most good and most great, the beginning and end of all things, I give thanks first of all, as justice requires. If it belongs to the wise to order, and if, as St. Thomas teaches, the name of wise belongs properly to him who considers the end of the universe, which is also its beginning (Summa contra Gentiles I, 1), then to order my work is to order it to Him. All that is shown here proceeds from Him, for every perfect gift comes down from the Father of lights (Jas 1:17)."
+to_god = "To God, most good and most great, the beginning and end of all things, I give thanks first of all, as justice requires. If it belongs to the wise to order, and if, as St. Thomas teaches, the name of wise man belongs properly to him who considers the end of the universe, which is also its beginning (Summa contra Gentiles I, 1), then to order my work is to order it to Him. All that is shown here proceeds from Him, for every perfect gift comes down from the Father of lights (Jas 1:17)."
 to_wife = "Then, to my wife. «{uxor}»: house and riches are given by parents, but a prudent wife is properly from the Lord (Prov 19:14). And between husband and wife, says St. Thomas, «{amicitia}», there seems to be the greatest of friendships (Summa contra Gentiles III, 123). For her, companion of my labors and solace of my life, I give thanks to God, and I thank her with all my heart."
-home = "Back to the home page"
+home = "Home page"

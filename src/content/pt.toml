@@ -246,10 +246,12 @@ home = "Ir para o início"
 # o latim, um marcador o traz: {prayer} (nome da oração), {uxor} (Pr 19, 14) e {amicitia} (Suma
 # contra os Gentios III, 123). As aspas em volta das citações ficam aqui, no costume de cada idioma.
 description = "Agradecimento de Arthur Cei Corrêa: primeiro a Deus, depois à sua esposa."
+# Texto alternativo da imagem de prévia (Open Graph), a mesma nos quatro idiomas: é toda em latim.
+image_alt = "Gratiarum actio — epígrafe de Santo Tomás de Aquino em latim; Arthur Cei Corrêa"
 # Lido por leitores de tela depois do colofão, que é um link para esta página.
 colophon_note = "página de agradecimento"
 epigraph_translation = "«Instruí o começo, dirigi o progresso, completai o fim.»"
 epigraph_source = "— Santo Tomás de Aquino, oração {prayer}"
 to_god = "A Deus, ótimo e máximo, princípio e fim de todas as coisas, rendo graças em primeiro lugar, como é de justiça. Se é próprio do sábio ordenar, e se, como ensina Santo Tomás, o nome de sábio pertence propriamente àquele que considera o fim do universo, que é também o seu princípio (Suma contra os Gentios I, 1), então ordenar o meu trabalho é ordená-lo a Ele. Tudo o que aqui se mostra d’Ele procede, pois toda dádiva perfeita desce do Pai das luzes (Tg 1, 17)."
 to_wife = "Depois, à minha esposa. «{uxor}»: a casa e as riquezas vêm dos pais, mas a esposa prudente vem propriamente do Senhor (Pr 19, 14). E entre marido e mulher, diz Santo Tomás, «{amicitia}», parece haver a maior das amizades (Suma contra os Gentios III, 123). Por ela, companheira dos trabalhos e consolo da vida, rendo graças a Deus, e a ela agradeço de todo o coração."
-home = "Voltar à página inicial"
+home = "Página inicial"
