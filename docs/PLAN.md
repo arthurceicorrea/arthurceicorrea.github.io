@@ -13,7 +13,7 @@ Cada etapa é um ramo e um pull request. Uma etapa só começa depois que a ante
 - **Acessibilidade WCAG 2.2 AA**, verificada pelo axe e pelo Lighthouse (acessibilidade ≥ 95).
 - **Nenhum framework rodando no navegador.** Ferramentas de build e de teste podem ser usadas.
 - **Sem telefone, endereço ou dados de saúde** em páginas e currículos.
-- **Mudou um texto num idioma, mude nos quatro.**
+- **Interface e apresentação, nos quatro idiomas:** mudou um texto num idioma, mude nos quatro. **Artigos, só em inglês** (a partir da Etapa 12): o texto e o título ficam em inglês, e o resumo de cada artigo, que é apresentação, nos quatro idiomas.
 - **O relatório final de cada etapa** explica, em português simples, o que mudou e por quê.
 
 ## Estrutura de destino
@@ -296,6 +296,164 @@ Dedicatória curta em latim, guardada para usos futuros (por exemplo, nos currí
 - o relatório final explica cada mudança em português simples, como para uma entrevista.
 
 **O que Arthur precisa entender:** como uma página nova entra no build (modelo, tabela de textos, endereços, sitemap) sem copiar a estrutura da página principal; por que o latim fica escrito uma vez só no modelo e a prosa nos arquivos de idioma; e para que serve `lang="la"`: leitores de tela e tradutores automáticos sabem que o trecho é latim e não o leem como se fosse português ou inglês.
+
+---
+
+## Etapas 11 a 13: privacidade e artigos
+
+As três etapas seguintes vêm de uma discussão de 25 a 27/11/2026, registrada no ADR 11. Arthur passa a publicar artigos com regularidade: no site primeiro e, depois, no LinkedIn, com um resumo e o link. Os artigos são escritos só em inglês; o resto do site continua nos quatro idiomas. A privacidade vem antes porque é pequena, descreve uma situação que já existe (a Cloudflare está na frente do site desde a Etapa 9) e cria no build a peça que as listas de artigos vão usar: uma página nos quatro idiomas, com endereço traduzido, registrada numa tabela única de páginas.
+
+---
+
+## Etapa 11: aviso de privacidade
+
+**Objetivo:** dizer com exatidão, numa página curta nos quatro idiomas, o que o site não faz e o que acontece fora dele; e garantir com testes que a página, o rodapé e o site nunca se contradigam.
+
+**O que muda**
+- **Página de privacidade** em `/pt/privacidade/`, `/en/privacy/`, `/es/privacidad/` e `/it/privacy/`. O endereço é traduzido, ao contrário da Gratiarum actio, que é latim.
+  - Modelo próprio, `src/privacy.html`, que estende `src/layout.html`: mesmo `<head>`, mesma política de segurança, mesmo rodapé. No topo (bloco `top`), o link de volta à página inicial do idioma, como na Gratiarum actio.
+  - Os textos e o endereço de cada idioma numa tabela nova, `[privacy]`, em cada `src/content/{pt,en,es,it}.toml`.
+  - O seletor de idioma leva à mesma página nos outros idiomas.
+- **Rodapé.** A frase "Página sem cookies, sem rastreadores e sem recursos de terceiros." passa a ser link para a página de privacidade do idioma, em todas as páginas com rodapé. O texto da frase não muda.
+- **Tabela única das páginas** em `ci/build.py`. Cada entrada diz o modelo, o endereço em cada idioma (traduzido ou igual) e as versões alternativas; dela saem a montagem, o `canonical`, o `hreflang` (o `x-default` aponta para a edição em inglês) e o sitemap, que hoje são escritos caso a caso. A Gratiarum actio passa a usar a tabela, sem nenhuma mudança no que se publica.
+- **Infraestrutura, só um comentário.** Em `infra/settings.tf`, junto ao bloco `cloudflare_bot_management`: ligar qualquer desses recursos faz a Cloudflare pôr cookies (por exemplo, `__cf_bm`) e obriga a mudar a página de privacidade e o rodapé. O `terraform plan` não muda.
+- **Testes**
+  - As quatro páginas entram em `PAGES` (`tests/helpers.py`), em `ci/monitor.py` e nas `url` de `ci/lighthouserc.json`, para que valham nelas as verificações que já existem.
+  - Novo: toda página listada no `sitemap.xml` está em `PAGES`. Assim nenhuma página nova escapa dos testes, e a lista dos testes continua escrita à parte, sem concordar com o build por construção.
+  - Novo: em toda página com rodapé, a frase de privacidade é link para a página de privacidade do próprio idioma.
+  - Novo: as quatro edições da página de privacidade têm o link da política da Cloudflare, o da declaração do GitHub (os dois em `ALLOWED_EXTERNAL`) e o e-mail.
+  - Novo: nenhum arquivo de `src/js/` usa `document.cookie`, `localStorage`, `sessionStorage`, `indexedDB`, `fetch`, `XMLHttpRequest` ou `sendBeacon`. É o que sustenta "nada guardado, nada enviado".
+  - Novo, no navegador: depois de visitar as páginas, o navegador não tem cookie nenhum do site, e o `localStorage` está vazio.
+  - Novo, no ar (`ci/monitor.py`, a cada publicação e toda semana): nenhuma resposta do site traz `Set-Cookie`. É o teste que percebe se alguém ligar o Bot Fight Mode no painel da Cloudflare, fora do Terraform.
+
+**Texto da página**
+
+A versão em português está abaixo. As versões em inglês, espanhol e italiano são traduções fiéis dela. Os links das duas políticas levam às páginas em inglês e dizem isso (`hreflang="en"` e a indicação "em inglês" no texto).
+
+- Título: Privacidade
+- Parágrafo 1:
+  > Este site não usa cookies, não guarda nada no seu navegador, não mede visitas e não carrega nada de outros sites: fontes, estilos, scripts e imagens vêm dele mesmo. O idioma é escolhido no seu aparelho, pelo fuso horário, sem consultar serviço algum, e o endereço desta página não é enviado aos sites para onde os links levam.
+- Parágrafo 2, com a lista:
+  > Fora do site, dois serviços recebem a sua visita, como acontece com qualquer site publicado neles:
+  > - a Cloudflare, que responde pelo domínio `arthurceicorrea.dev` e entrega as páginas, processa o seu endereço IP e dados da conexão (política de privacidade da Cloudflare, em inglês);
+  > - o GitHub Pages, que hospeda o site, registra o endereço IP de quem visita, por segurança, e o recebe da Cloudflare a cada página buscada (declaração de privacidade do GitHub, em inglês).
+- Parágrafo 3:
+  > Nenhuma das duas políticas fixa um prazo de guarda desses registros. Ao seguir um link para o LinkedIn ou o GitHub, você passa às regras desses sites. Dúvidas: (o e-mail, como link).
+
+Os fatos por trás do texto, conferidos em 27/11/2026:
+- GitHub, [What is GitHub Pages?](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages), seção "Data collection": o endereço IP de quem visita é registrado e guardado por segurança, com ou sem login no GitHub. A [declaração de privacidade](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) não dá prazo de retenção.
+- Cloudflare, [HTTP headers](https://developers.cloudflare.com/fundamentals/reference/http-headers/): `CF-Connecting-IP` e `X-Forwarded-For` são acrescentados por padrão e levam o IP do visitante ao servidor de origem. Por isso o GitHub recebe o IP mesmo com o proxy ligado; quem usa o endereço antigo em `github.io` fala direto com o GitHub antes do redirecionamento.
+- Cloudflare, [política de privacidade](https://www.cloudflare.com/privacypolicy/): processa endereços IP e dados de roteamento dos visitantes, é processadora dos registros e encaminha os visitantes ao dono do site; não fixa prazo de retenção desses registros. Daí o e-mail de contato na página.
+- Cloudflare, [cookies](https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/): os cookies que ela põe vêm de recursos que se ligam (Bot Management, Bot Fight Mode, regras de taxa, desafios); o Terraform os mantém desligados ([ADR 10](adr/0010-cloudflare-in-front-of-github-pages-managed-by-terraform.md)).
+
+**Fora do escopo:** alegar conformidade com qualquer lei (a página só descreve fatos verificáveis); mudar o texto da frase do rodapé; mudar configurações da Cloudflare; os artigos.
+
+**Pronto quando:**
+- a página existe nos quatro idiomas, com o texto aprovado por Arthur;
+- a frase do rodapé é link em todas as páginas com rodapé, e a Gratiarum actio é publicada igual a antes;
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas, também na página nova;
+- depois do merge, a conferência no ar passa, inclusive a de `Set-Cookie`;
+- o pull request traz capturas antes e depois, em 390 px e 1440 px, do rodapé de `/pt/` e `/en/`, e capturas da página nova nos mesmos tamanhos.
+
+**O que Arthur precisa entender:** por que a frase "sem cookies" depende de uma configuração da Cloudflare, e como a conferência no ar a garante; por que o GitHub recebe o IP do visitante mesmo com a Cloudflare na frente; por que a página descreve fatos e não alega conformidade com lei; e como a tabela única de páginas evita escrever endereços, `hreflang` e sitemap caso a caso.
+
+---
+
+## Etapa 12: artigos
+
+**Objetivo:** publicar artigos no próprio site, em inglês, apresentados nos quatro idiomas, começando pelo ensaio que já está no LinkedIn.
+
+**Feito por Arthur, antes do código**
+- Fornecer o texto integral de "From Purism to Prudence: Artificial Intelligence and the Right Order of Means", publicado no LinkedIn em 24/08/2026.
+- Confirmar o resumo do ensaio nos quatro idiomas (são os de `[article]`, hoje nos arquivos de conteúdo).
+
+**O que muda**
+- **Um arquivo por artigo**, `src/articles/<slug>.md`. O nome do arquivo é o slug: minúsculas sem acento, palavras separadas por hífen, curto. **Uma vez publicado, o slug nunca muda**; o título pode mudar. O primeiro é `src/articles/from-purism-to-prudence.md`.
+  - Cabeçalho em TOML entre linhas `+++`, lido pelo `tomllib`:
+    ```toml
+    +++
+    title = "From Purism to Prudence: Artificial Intelligence and the Right Order of Means"
+    date = 2026-08-24
+    # updated = 2026-…   (opcional)
+    linkedin = "https://www.linkedin.com/pulse/…"   # opcional: onde o texto também saiu
+
+    [summary]
+    en = "…"
+    pt = "…"
+    es = "…"
+    it = "…"
+    +++
+    ```
+  - Corpo em Markdown (CommonMark), escrito como prosa. Aspas e travessões tipográficos se escrevem diretamente, como nos arquivos TOML.
+  - O build para, com uma mensagem que diz o arquivo e o campo, se faltar `title`, `date` ou um dos quatro resumos, se um resumo estiver vazio, se a data for inválida ou futura, ou se o nome do arquivo não seguir a regra do slug.
+- **Markdown com `markdown-it-py==4.3.0` e `mdurl==0.1.2`**, versões exatas em `ci/requirements.txt`. Preset `commonmark`, com `html` desligado: todo HTML escrito no texto sai escapado, de modo que nenhum artigo introduz `<script>`, `style=` ou `on…=`, e a política de segurança e os testes continuam valendo sem exceção. Sem conversão tipográfica automática e sem notas de rodapé (se um texto precisar delas, entra `mdit-py-plugins`, com versão exata).
+- **Código novo num módulo próprio**, `ci/articles.py`, importado por `ci/build.py`: lê e valida os artigos, transforma o Markdown e monta o feed. Os artigos, as listas e o feed entram na tabela única de páginas da Etapa 11.
+- **Página de cada artigo**, só em inglês, em `/en/articles/<slug>/`, com o modelo `src/article.html`, que estende `src/layout.html`.
+  - A página inteira é em inglês, inclusive o topo, o rodapé e as datas: `<html lang="en" data-lang="en">`. Com o idioma fixo, o script de idioma não leva ninguém a outra página, qualquer que seja o fuso.
+  - Título, data e, quando houver `linkedin`, a linha "Originally published on LinkedIn on {date}", com o link.
+  - `canonical` para a própria página e **nenhum `hreflang`**: não há versão em outra língua. O seletor de idioma marca EN como atual, e PT, ES e IT levam à lista de artigos naquela língua.
+  - Dados estruturados: o mesmo nó `Person` da página inicial (mesmo `@id`) e um nó `Article` com `headline`, `description` (o resumo em inglês), `url`, `inLanguage` (`en`), `datePublished`, `dateModified`, `author` e, quando houver, `sameAs` com o endereço do LinkedIn.
+  - Prévia de compartilhamento: `og:type` `article`, `article:published_time`, `article:modified_time`, `og:locale` `en_US` e a imagem `og.png`. Imagem de prévia própria de cada artigo fica para depois.
+  - Tipografia, conforme o [ADR 9](adr/0009-cinzel-only-where-the-page-is-an-inscription.md): o título do artigo e os intertítulos em EB Garamond, o título maior; o corpo em EB Garamond, com cerca de 65 a 70 caracteres por linha. O Cinzel fica nos títulos de seção, como o "Artigos" da lista. O detalhe se decide com as capturas.
+- **Listas de artigos nos quatro idiomas**, em `/pt/artigos/`, `/en/articles/`, `/es/articulos/` e `/it/articoli/`, com o modelo `src/articles.html`.
+  - A interface (título, datas por extenso, rótulos) no idioma da lista. Os mesmos artigos nas quatro, do mais recente ao mais antigo, sem paginação.
+  - Cada item: o título em inglês, com `lang="en"` no título e `hreflang="en"` no link; a data no formato do idioma; o resumo no idioma da lista.
+  - No alto das listas em português, espanhol e italiano, uma frase: "Os artigos são escritos em inglês." (e o equivalente). Na inglesa, não.
+  - As quatro declaram as versões nos outros idiomas (`hreflang`), e o seletor leva à mesma lista nos outros idiomas.
+  - Um link para o feed.
+- **Feed Atom único**, `/feed.xml`, com `xml:lang="en"`: resumo e texto completo de cada artigo, autor e datas. O identificador do feed e de cada entrada é um URI `tag:` (RFC 4151), que não depende do endereço do site: `tag:arthurceicorrea.dev,2026-11-25:articles` para o feed e `tag:arthurceicorrea.dev,2026-11-25:<slug>` para cada entrada (a data é a da compra do domínio, quando ele já era de Arthur). Um `<link rel="alternate" type="application/atom+xml">` em `src/layout.html` anuncia o feed em todas as páginas que usam a moldura.
+- **Sitemap**: as quatro listas, com as versões por idioma, e cada artigo, sem versões alternativas; todos com `lastmod`.
+- **Links no corpo dos artigos**: só `https`, abrindo na mesma aba (sem `target`), e nada carregado como recurso. `ALLOWED_EXTERNAL` continua valendo para os links da interface e dos modelos. Imagens dentro de artigos ficam fora desta etapa.
+- **O ensaio do LinkedIn passa a ser um arquivo de artigo.** A constante `ARTICLE` de `ci/build.py` e as chaves `summary` de `[article]` saem; a seção da página inicial, o bloco `work` dos dados estruturados e o currículo passam a ler o artigo do arquivo. A seção da página inicial mantém a forma atual nesta etapa, mas o link leva à página do artigo no site, e os rótulos que citam o LinkedIn passam a citar o site. A forma nova da seção vem na Etapa 13.
+- **Registro de decisão:** [ADR 11](adr/0011-articles-in-markdown-in-english-built-by-the-same-script.md). O ADR 5 passa a dizer que foi estendido por ele.
+- **Testes**
+  - Do conteúdo, sem o site montado: o cabeçalho de cada artigo tem `title`, `date` e os quatro resumos, nenhum vazio; a data não está no futuro; o nome do arquivo segue a regra do slug.
+  - **Endereços publicados não somem:** um arquivo `tests/published.txt` lista o endereço de cada artigo já publicado, e o teste falha se algum deles não existir no site montado. Acrescentar a linha faz parte de publicar um artigo.
+  - Página do artigo: `lang="en"` e `data-lang="en"`; `canonical` para ela mesma e nenhum `hreflang`; dados estruturados com o artigo e a pessoa; o seletor leva às quatro listas.
+  - Listas: o idioma da página e as quatro versões declaradas; cada título com `lang="en"`; a frase sobre o inglês nas três listas que não são inglesas; cada artigo de `src/articles/` aparece em cada lista, com o resumo do idioma.
+  - Feed: XML bem formado, identificadores únicos e no formato `tag:`, cada link existe no site, datas coerentes com os cabeçalhos.
+  - Links no corpo: só `https`, sem `target`, nada carregado como recurso.
+  - No navegador: com o fuso do Brasil, a página do artigo continua em inglês; o seletor leva às listas; nenhum erro no console. O axe passa a cobrir uma lista e o artigo.
+  - Ajustes em testes existentes, cada um explicado no pull request: "mesmas versões que a página inicial" passa a valer só para as páginas iniciais; `ALLOWED_EXTERNAL` deixa de valer para os links no corpo dos artigos; os testes do currículo e dos dados estruturados passam a ler o resumo do arquivo do artigo; as listas e o artigo entram em `PAGES`, em `ci/monitor.py` e no Lighthouse.
+
+**Fora do escopo:** traduções de artigos (se um dia houver, ganham endereço próprio e só então entram `hreflang` e `workTranslation`); imagens e notas de rodapé nos artigos; categorias, paginação e busca; imagem de prévia por artigo; a forma nova da seção da página inicial e a escolha dos artigos do currículo (Etapa 13); banco de dados e gerador de sites (descartados no ADR 11).
+
+**Pronto quando:**
+- o ensaio está publicado em `/en/articles/from-purism-to-prudence/`, com o texto fornecido por Arthur, a data de 24/08/2026 e a menção ao LinkedIn;
+- as quatro listas e o feed existem, e o sitemap os lista;
+- os currículos continuam em duas páginas e com o resumo do ensaio no seu idioma;
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas, também nas páginas novas;
+- o pull request traz capturas da página do artigo e das listas `/pt/artigos/` e `/en/articles/`, em 390 px e 1440 px, e antes e depois da seção da página inicial.
+
+**O que Arthur precisa entender:** como um arquivo Markdown vira página (cabeçalho, corpo, modelo, tabela de páginas); por que o HTML dentro do Markdown fica desligado; por que o slug nunca muda e como `tests/published.txt` guarda isso; por que o feed usa identificadores `tag:` e não endereços; por que a página do artigo não tem `hreflang` e o seletor leva às listas; e por que os artigos ficam no repositório, e não num banco de dados, nem num gerador de sites.
+
+---
+
+## Etapa 13: artigos na página inicial e no currículo
+
+**Objetivo:** mostrar os artigos mais recentes na página inicial sem que a seção cresça a cada publicação, e levar ao currículo só os artigos que Arthur escolher.
+
+**O que muda**
+- **A seção "Artigo" passa a "Artigos"**, no título e no sumário, nos quatro idiomas. A âncora muda junto: `#artigos`, `#articles`, `#articulos`, `#articoli`. Um link antigo para `#artigo` leva ao topo da página, sem erro.
+- **Até três artigos, um em destaque e dois em linha:**
+  - o mais recente, em destaque: título em inglês (`lang="en"`), data no formato do idioma e resumo no idioma da página;
+  - os dois anteriores, uma linha cada: título e data;
+  - nas páginas em português, espanhol e italiano, a frase "Os artigos são escritos em inglês." acima dos itens;
+  - no fim, o link "Todos os artigos", para a lista do idioma, presente mesmo com um artigo só.
+- **Sem carrossel e sem movimento.** Tudo visível, sem JavaScript. Um carrossel foi considerado e descartado: dois dos três artigos ficariam escondidos; passar sozinho seria um segundo movimento na página, contra o [ADR 9](adr/0009-cinzel-only-where-the-page-is-an-inscription.md), que deixa o fio dourado sob o lema como único; e a WCAG 2.2.2 exigiria botão de pausa e parada com o foco e com o mouse.
+- **Currículo: no máximo dois artigos, escolhidos por Arthur**, com `cv = true` no cabeçalho do artigo. Cada um entra com título, data e o resumo no idioma do currículo, e uma linha final dá o endereço da lista de artigos no idioma. O build para se houver mais de dois marcados. O ensaio migrado começa marcado.
+- **Testes**
+  - A página inicial mostra no máximo três artigos, o mais recente em destaque com o resumo do idioma, os outros só com título e data, e o link para a lista do idioma; a frase sobre o inglês nas três línguas que não são inglesas.
+  - O sumário continua levando a cinco seções visíveis.
+  - O currículo traz o resumo de cada artigo marcado, no seu idioma; no máximo dois marcados; o teste de "no máximo duas páginas" continua valendo.
+
+**Fora do escopo:** mudar as outras seções da página inicial; carrossel ou qualquer rotação automática; mudar o desenho do currículo além da seção de artigos.
+
+**Pronto quando:**
+- `make build`, `make lint` e `make test` passam, com as linhas de resumo coladas no pull request, e o Lighthouse mantém as notas;
+- Arthur aprovou as capturas antes e depois da seção, em `/pt/` e `/en/`, em 390 px e 1440 px, e os quatro currículos.
+
+**O que Arthur precisa entender:** por que um artigo em destaque e dois em linha, e não um carrossel; por que o currículo leva os artigos escolhidos, e não os mais recentes; e por que mudar a âncora é aceitável aqui, ao contrário do slug de um artigo.
 
 ---
 
