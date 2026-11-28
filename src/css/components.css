@@ -349,23 +349,62 @@
     margin-top: 1.6rem;
   }
 
-  /* ---- Artigo: o título em letra de livro, o corpo numa coluna de leitura (cerca de 65 a 70
+  /* ---- Artigo: a fisionomia do site, só com os elementos que ele já tem. O frontispício: "Article"
+     em Cinzel, como os títulos de seção; o título em letra de livro, à direita; o filete dourado do
+     lema; e a data com o tempo de leitura. O corpo numa coluna de leitura (cerca de 65 a 70
      caracteres por linha), intertítulos em EB Garamond, como o título (ADR 9) ---- */
-  .post .hero .meta {
-    margin-top: 0.75rem;
+  .post .kicker {
+    margin: 0 -0.16em 1rem 0;
+    color: var(--gold-text);
+    font: 400 1rem/1.45 var(--cinzel);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
-  /* na coluna da direita, como nas outras páginas, mais estreita: cerca de 65 a 70 caracteres */
+  /* o filete dourado que fecha o lema da página inicial, sob o título */
+  .post .hero h1::after {
+    content: "";
+    display: block;
+    width: 5rem;
+    height: 1px;
+    margin: 1.75rem 0 0 auto;
+    background: var(--gold);
+  }
+
+  .post .hero .meta {
+    margin-top: 1rem;
+  }
+
+  /* na coluna da direita, como nas outras páginas, mais estreita: cerca de 65 a 70 caracteres. A letra,
+     um pouco maior que a do resto do site, e a entrelinha, mais folgada; a largura, em em, cresce com
+     a letra, e o número de caracteres por linha não muda. flow-root: os intertítulos que pendem na
+     margem (tela larga) ficam dentro do corpo */
   .post .prose {
+    display: flow-root;
     max-width: 26em;
     margin-left: auto;
+    font-size: 1.0625em;
+    line-height: 1.65;
   }
 
+  /* intertítulos: o filete curto acima, como os títulos de seção da página inicial */
   .post .prose h2 {
-    margin-top: 2.5rem;
-    font-size: 1.45em;
+    position: relative;
+    margin-top: 2.75rem;
+    padding-top: 1rem;
+    font-size: 1.35em;
     line-height: 1.2;
     text-wrap: balance;
+  }
+
+  .post .prose h2::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3.5rem;
+    height: 1px;
+    background: var(--rule);
   }
 
   .post .prose h3 {
@@ -384,6 +423,42 @@
   .post .prose blockquote {
     padding-left: 1.25em;
     border-left: 1px solid var(--gold);
+  }
+
+  /* epígrafe: a citação que abre o texto, composta como a da Gratiarum actio (à direita, em itálico, com
+     o filete dourado embaixo), sem o filete à esquerda das outras citações */
+  .post .prose .epigraph {
+    margin-top: 0;
+    text-align: right;
+  }
+
+  .post .prose .epigraph blockquote {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .post .prose .epigraph + p {
+    margin-top: 2rem;
+  }
+
+  /* capitular: a primeira letra do texto, uma inicial em Cinzel dourado de três linhas; letra de
+     inscrição (ADR 9). Onde o navegador conhece initial-letter, ele ajusta a letra às três linhas;
+     nos outros, ela flutua com o tamanho aproximado */
+  .post .prose > p:first-of-type::first-letter {
+    float: left;
+    margin: 0.08em 0.1em 0 0;
+    color: var(--gold);
+    font: 400 4.1em/0.8 var(--cinzel);
+  }
+
+  @supports (initial-letter: 3) {
+    .post .prose > p:first-of-type::first-letter {
+      float: none;
+      margin: 0 0.12em 0 0;
+      font-size: 1em;
+      line-height: inherit;
+      initial-letter: 3;
+    }
   }
 
   .post .prose ul,
@@ -431,10 +506,34 @@
     background: var(--rule);
   }
 
+  /* telas largas: os intertítulos pendem na margem esquerda, alinhados à direita, como os títulos de
+     seção da página inicial; o parágrafo seguinte começa na altura do intertítulo. A entrelinha do
+     intertítulo dá a mesma altura de linha do corpo (1,35 × 1,22 ≈ 1,65), para as duas primeiras
+     linhas ficarem na mesma altura */
+  @media (min-width: 62rem) {
+    .post .prose h2 {
+      float: left;
+      clear: left;
+      width: 13rem;
+      margin: 2.75rem 0 0 -16rem;
+      font-size: 1.35em;
+      line-height: 1.22;
+      text-align: right;
+    }
+
+    .post .prose h2::before {
+      left: auto;
+      right: 0;
+    }
+
+    .post .prose h2 + * {
+      margin-top: 3.75rem;
+    }
+  }
+
   /* fecho do artigo: o filete dourado do lema, à direita, e, sob ele, os links para as listas nos
      outros idiomas, cada um na própria língua */
   .post .others {
-    max-width: 26em;
     margin: 3rem 0 0 auto;
     text-align: right;
   }
@@ -493,11 +592,11 @@
       animation: rise 1s ease-out both;
     }
 
-    .epigraph {
+    .thanks .epigraph {
       animation: rise 1s ease-out 0.25s both;
     }
 
-    .epigraph::after {
+    .thanks .epigraph::after {
       animation: draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s both;
     }
 

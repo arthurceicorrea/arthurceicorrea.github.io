@@ -300,3 +300,7 @@ updated = "updated {date}"
 linkedin = "Originally published on {linkedin} on {date}."
 # Nome, lido por leitores de tela, dos links do fim da página de cada artigo para as listas nos outros idiomas.
 others = "Summaries in other languages"
+# Frontispício da página de cada artigo: a palavra acima do título, em Cinzel, e o tempo de leitura,
+# sob a data ({minutes}: calculado no build pelo número de palavras, em ci/articles.py).
+kicker = "Article"
+reading = "{minutes} min read"

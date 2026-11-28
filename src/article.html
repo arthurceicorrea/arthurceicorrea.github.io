@@ -14,12 +14,21 @@
   nos outros idiomas, cada um escrito e marcado (lang) na língua da lista a que leva.
 
   Variáveis, além das de layout.html: post, o artigo, com title, date, updated (ou None), modified
-  (updated ou date), linkedin (ou None), summary (por idioma), path e html, o corpo já transformado
-  e escapado por ci/articles.py, que entra como está.
+  (updated ou date), linkedin (ou None), summary (por idioma), path, minutes (o tempo de leitura),
+  epigraph (a epígrafe, ou None) e text (o resto do corpo), já transformados e escapados por
+  ci/articles.py, que entram como estão.
+
+  Fisionomia (Etapa 14), só com elementos que o site já tem: o frontispício ("Article" em Cinzel, o
+  título, o filete dourado do lema e, sob ele, a data e o tempo de leitura); a epígrafe, quando o
+  texto abre com uma citação, composta como a da Gratiarum actio; a capitular em Cinzel dourado, na
+  primeira letra do texto; os intertítulos, que em tela larga pendem na margem esquerda; e o fecho,
+  o filete dourado seguido dos links para as listas. Tudo isso é CSS (src/css/components.css), salvo
+  a epígrafe e o tempo de leitura, que ci/articles.py prepara.
 
   Os textos da interface ficam em src/content/en.toml: em [ui], trail e trail_home (a trilha); em
-  [articles], heading (o segundo passo da trilha), updated, linkedin e others (o nome dos links do
-  fim); e, em cada idioma, [articles] summaries, o texto do link para a lista daquele idioma.
+  [articles], kicker (acima do título), reading (o tempo de leitura), heading (o segundo passo da
+  trilha), updated, linkedin e others (o nome dos links do fim); e, em cada idioma, [articles]
+  summaries, o texto do link para a lista daquele idioma.
 #}
 {% extends 'layout.html' %}
 {% set og_type = 'article' %}
@@ -71,8 +80,9 @@
 
   <article class="post">
     <header class="hero">
+      <p class="kicker">{{ e.articles.kicker }}</p>
       <h1>{{ post.title_html }}</h1>
-      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}</p>
+      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}<span class="sep" aria-hidden="true"> · </span>{{ e.articles.reading | replace('{minutes}', post.minutes | string) }}</p>
 {% if post.linkedin %}
       <p class="meta">{{ e.articles.linkedin | replace('{linkedin}', linkedin_link(e)) | replace('{date}', time_tag(post.date, e)) }}</p>
 {% endif %}
@@ -80,7 +90,10 @@
 
     <div class="sec">
       <div class="body prose">
-{{ post.html }}
+{% if post.epigraph %}
+{{ post.epigraph }}
+{% endif %}
+{{ post.text }}
       </div>
       <nav class="others" aria-label="{{ e.articles.others }}">
         <ul>

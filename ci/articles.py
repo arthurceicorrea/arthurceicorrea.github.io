@@ -30,6 +30,15 @@ Vem do plugin attrs de mdit-py-plugins, que aceitaria qualquer atributo; aqui s�
 O título aceita só essa marcação: title = "[Sapientis est ordinare]{lang=la}: A Personal…".
 Onde o título vai como texto (<title>, prévia, dados estruturados, feed), a marcação sai.
 
+Uma citação (>) que abra o corpo é a epígrafe do artigo: a página a compõe à parte, como a da
+Gratiarum actio, à direita e em itálico. Se o último parágrafo da citação começar por travessão
+(— Santo Tomás de Aquino, …), ele é a fonte, e vai sob a citação (figcaption). No feed, a
+citação continua sendo a primeira coisa do texto.
+
+O tempo de leitura, que a página mostra sob a data, sai do número de palavras do corpo já
+transformado (o título fica de fora), a WORDS_PER_MINUTE palavras por minuto, arredondado para
+cima, no mínimo 1 minuto.
+
 O build para, com uma mensagem que diz o arquivo e o campo, se: o nome do arquivo não seguir a
 regra do slug; faltar title, date ou um dos quatro resumos; um resumo estiver vazio; a data for
 inválida ou futura; houver um campo desconhecido; o corpo tiver um título de nível 1 (o título
@@ -37,10 +46,12 @@ vem do cabeçalho), uma imagem (fora desta etapa), um link que não seja https, 
 marcado com qualquer atributo além de lang; ou se mais de dois artigos tiverem cv = true.
 """
 import datetime
+import math
 import os
 import re
 import tomllib
 import types
+from html import unescape
 from xml.sax.saxutils import escape, quoteattr
 
 from markdown_it import MarkdownIt
@@ -63,6 +74,12 @@ TAG = 'tag:arthurceicorrea.dev,2026-11-25:'
 # no fuso do autor (São Paulo).
 ZONE = datetime.timezone(datetime.timedelta(hours=-3))
 AUTHOR = 'Arthur Cei Corrêa'
+# Leitura: palavras por minuto, para o tempo de leitura de cada artigo. Uma palavra são letras ou
+# algarismos, com apóstrofos e hífens dentro dela (it’s, Aristotelian-Thomistic: uma palavra cada).
+WORDS_PER_MINUTE = 230
+WORD = re.compile(r"\w+(?:[’'-]\w+)*")
+# Travessão que abre a fonte de uma epígrafe.
+DASH = '—'
 # campo linkedin: só artigos do LinkedIn (o prefixo também está em ALLOWED_EXTERNAL, em tests/helpers.py)
 LINKEDIN = 'https://www.linkedin.com/pulse/'
 
@@ -169,11 +186,49 @@ def title_of(md, title, where):
     return text, Markup(md.renderer.render(tokens, md.options, {}))
 
 
+def words(html):
+    """Número de palavras de um trecho de HTML: o texto, sem as etiquetas."""
+    return len(WORD.findall(unescape(re.sub(r'<[^>]+>', ' ', str(html)))))
+
+
+def reading_minutes(count):
+    return max(1, math.ceil(count / WORDS_PER_MINUTE))
+
+
+def closing(tokens, start):
+    """Índice do token que fecha o bloco aberto em tokens[start]."""
+    depth = 0
+    for i in range(start, len(tokens)):
+        depth += tokens[i].nesting
+        if depth == 0:
+            return i
+    raise ValueError('bloco sem fechamento')
+
+
+def epigraph(md, tokens):
+    """Separa a epígrafe, uma citação que abre o corpo, do resto do texto. Devolve (epígrafe, resto):
+    a epígrafe em HTML (<figure class="epigraph">, com a fonte em <figcaption>, se o último parágrafo
+    começar por travessão), ou None se o corpo não começar por uma citação; e o resto, em HTML."""
+    if tokens[0].type != 'blockquote_open':
+        return None, Markup(md.renderer.render(tokens, md.options, {}))
+    end = closing(tokens, 0)
+    inner, rest = tokens[1:end], tokens[end + 1:]
+    caption = ''
+    if len(inner) > 3 and inner[-3].type == 'paragraph_open' and inner[-2].content.startswith(DASH):
+        caption = '<figcaption>%s</figcaption>\n' % md.renderer.renderInline(inner[-2].children, md.options, {})
+        inner = inner[:-3]
+    quote = md.renderer.render(inner, md.options, {})
+    html = '<figure class="epigraph">\n<blockquote>\n%s</blockquote>\n%s</figure>\n' % (quote, caption)
+    return Markup(html), Markup(md.renderer.render(rest, md.options, {}))
+
+
 def load(folder, today):
     """Os artigos de folder, do mais recente ao mais antigo. Cada um tem slug, title (texto),
     title_html (com a língua dos trechos marcada), date,
     updated (ou None), modified (updated ou date), linkedin (ou None), cv (vai no currículo), summary (por idioma),
-    path (/en/articles/<slug>/, sem a barra inicial) e html, o corpo já transformado."""
+    path (/en/articles/<slug>/, sem a barra inicial), html, o corpo já transformado (o do feed),
+    epigraph, a epígrafe composta à parte (ou None), text, o corpo sem a epígrafe, words, o número de
+    palavras do corpo, e minutes, o tempo de leitura."""
     md = markdown()
     found = []
     for name in sorted(os.listdir(folder)):
@@ -197,10 +252,13 @@ def load(folder, today):
             raise ArticleError('%s: o corpo do artigo está vazio' % where)
         check_body(tokens, where)
         html = md.renderer.render(tokens, md.options, {})
+        quote, text = epigraph(md, tokens)
+        count = words(html)
         title, title_html = title_of(md, title, where)
-        found.append(types.SimpleNamespace(
+        found.append(types.SimpleNamespace(  # o corpo, a epígrafe e o resto já vêm escapados
             slug=slug, title=title, title_html=title_html, date=date, updated=updated, modified=updated or date, linkedin=linkedin, cv=cv,
-            summary=summary, path=FOLDER + slug + '/', lang='en', html=Markup(html)))  # o corpo já vem escapado
+            summary=summary, path=FOLDER + slug + '/', lang='en', html=Markup(html), epigraph=quote, text=text,
+            words=count, minutes=reading_minutes(count)))
     marked = [a.slug for a in found if a.cv]
     if len(marked) > CV_MAX:
         raise ArticleError('src/articles/: %d artigos com cv = true (%s); o currículo leva no máximo %d'
