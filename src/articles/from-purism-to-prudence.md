@@ -10,7 +10,9 @@ es = "Ensayo sobre el uso de la IA en el trabajo, a la luz de la tradición aris
 it = "Un saggio sull’uso dell’IA nel lavoro, alla luce della tradizione aristotelico-tomista: lo strumento serve l’intelletto, ma non si delega ciò che non si è ancora imparato, e il codice, le configurazioni e le pipeline suggeriti dall’IA vanno letti, testati e compresi prima di arrivare in produzione."
 +++
 
-> *[Sapientis est ordinare.]{lang=la}* — Saint Thomas Aquinas, *Summa contra Gentiles* I, 1
+> *[Sapientis est ordinare.]{lang=la}*
+>
+> — Saint Thomas Aquinas, *Summa contra Gentiles* I, 1
 
 Every new instrument meets two opposite errors: the enthusiasm that expects it to do our thinking, and the purism that refuses it because it makes the work easier. Artificial intelligence is meeting both. This essay argues, from Aristotle and Saint Thomas, that the question is not how hard a method is but whether it serves its end, and who remains responsible for the result.
 

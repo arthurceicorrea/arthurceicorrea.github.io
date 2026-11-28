@@ -88,7 +88,7 @@
     // seletor de idioma: nome para leitores de tela e idioma ativo marcado
     var nav = document.querySelector(".langs");
     if (nav) {
-      // a página 404 não tem seletor de idioma
+      // a página 404 e a de cada artigo não têm seletor de idioma
       nav.setAttribute("aria-label", nav.getAttribute("data-" + current));
       var links = nav.querySelectorAll("a");
       for (var i = 0; i < links.length; i++) {

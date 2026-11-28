@@ -14,6 +14,49 @@
     padding-block: 0.75rem;
   }
 
+  /* trilha (listas de artigos e página de cada artigo): os passos até a página, no lugar do link de
+     volta, com a mesma letra discreta; a barra entre eles é só visual, e leitores de tela não a leem */
+  .top .trail {
+    margin-right: auto;
+  }
+
+  .trail ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .trail li {
+    display: flex;
+    align-items: center;
+  }
+
+  /* a barra fica no fim do passo, e não no começo do seguinte: numa tela estreita, quando a trilha
+     quebra, a linha de baixo começa pelo passo, e não pela barra */
+  .trail li:not(:last-child)::after {
+    content: "/";
+    content: "/" / "";
+    margin-inline: 0.45rem;
+    color: var(--muted);
+  }
+
+  .trail a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--muted);
+    font: 400 1.0625rem/1 var(--garamond);
+    text-decoration: none;
+  }
+
+  .trail a:hover,
+  .trail a[aria-current] {
+    color: var(--gold-hi);
+  }
+
   .langs ul {
     display: flex;
     gap: 0.15rem;
@@ -25,6 +68,8 @@
     align-items: center;
   }
 
+  /* stylelint-disable-next-line no-descending-specificity -- .langs a (seletor) e .trail a:hover (trilha)
+     nunca atingem o mesmo link; qualquer ordem dos dois componentes faria a regra apontar um par. */
   .langs a {
     display: inline-flex;
     align-items: center;
@@ -287,7 +332,8 @@
       right: 0.16em;
     }
 
-    .sec .body {
+    .sec .body,
+    .sec .others {
       grid-column: 2;
     }
   }

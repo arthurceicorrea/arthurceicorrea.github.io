@@ -34,8 +34,12 @@ problem = "Problem"
 role = "My role"
 see_details = "See details"
 hide_details = "Hide details"
-# Link de volta à página inicial do idioma, no topo das páginas que não são a inicial.
+# Link de volta à página inicial do idioma, no topo do agradecimento e da privacidade.
 home = "Home page"
+# Trilha no topo das listas de artigos e da página de cada artigo: trail é o nome da trilha, lido
+# por leitores de tela; trail_home, o primeiro passo, a página inicial.
+trail = "Breadcrumb"
+trail_home = "Home"
 to_top = "Back to top"
 
 # Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
@@ -267,7 +271,7 @@ github_policy = "GitHub’s privacy statement"
 closing = "Neither policy sets a period for keeping these records. When you follow a link to LinkedIn or GitHub, the rules of those sites apply. Questions: {email}."
 
 [articles]
-# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Listas de artigos (src/articles.html) e links para elas no fim da página de cada artigo.
 # Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
 # Endereço da lista neste idioma: /en/<path>/. Uma vez publicado, não mude.
 path = "articles"
@@ -276,9 +280,12 @@ heading = "Articles"
 description = "Articles by Arthur Cei Corrêa, with a summary of each."
 # Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
 written_in = ""
-# Link para a lista do idioma: no fim da seção de artigos da página inicial e, em inglês, no topo da
-# página de cada artigo.
+# Link para a lista do idioma, no fim da seção de artigos da página inicial.
 all = "All articles"
+# Link para a lista deste idioma, no fim da página de cada artigo, escrito na própria língua (o
+# artigo é em inglês, e o link, marcado com o idioma da lista). Em inglês não aparece: a trilha
+# do topo já leva à lista inglesa.
+summaries = "Summaries in English"
 # Linha final da seção de artigos do currículo: {url} é o endereço da lista no idioma do currículo.
 cv_line = "All articles: {url}."
 # Link para o feed Atom, no fim da lista.
@@ -291,3 +298,9 @@ feed_title = "Arthur Cei Corrêa — Articles"
 updated = "updated {date}"
 # Na página de um artigo que também saiu no LinkedIn (campo linkedin): {linkedin} é o link e {date}, a data.
 linkedin = "Originally published on {linkedin} on {date}."
+# Nome, lido por leitores de tela, dos links do fim da página de cada artigo para as listas nos outros idiomas.
+others = "Summaries in other languages"
+# Frontispício da página de cada artigo: a palavra acima do título, em Cinzel, e o tempo de leitura,
+# sob a data ({minutes}: calculado no build pelo número de palavras, em ci/articles.py).
+kicker = "Article"
+reading = "{minutes} min read"

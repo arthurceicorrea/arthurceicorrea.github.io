@@ -123,6 +123,7 @@ FILES = {
     'assets/page.js': ('javascript', b'//'),
     'fonts/cinzel-400.woff2': ('font/woff2', b'wOF2'),
     'fonts/eb-garamond-400.woff2': ('font/woff2', b'wOF2'),
+    'fonts/eb-garamond-600.woff2': ('font/woff2', b'wOF2'),
     'og.png': ('image/png', b'\x89PNG'),
     'og-pt.png': ('image/png', b'\x89PNG'),
     'og-gratiarum.png': ('image/png', b'\x89PNG'),

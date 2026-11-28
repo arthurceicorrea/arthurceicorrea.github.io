@@ -9,6 +9,9 @@
   da lista. Nas listas em português, espanhol e italiano, uma frase no alto diz que os artigos são
   escritos em inglês. No fim, o link para o feed.
 
+  No topo, a trilha, no idioma da lista: a página inicial do idioma e a própria lista, marcada como
+  a página atual (aria-current="page"). O seletor de idioma fica, porque a lista existe nos quatro.
+
   O título da lista, "Artigos", é um título de seção, em Cinzel, como os da página inicial
   (ADR 9); os títulos dos artigos, em EB Garamond.
 #}
@@ -25,7 +28,12 @@
 {% endblock %}
 {% block top %}
 {% for e in editions %}
-  <a class="home" href="/{{ addresses.portfolio[e.code] }}">{{ e.ui.home }}</a>
+  <nav class="trail" aria-label="{{ e.ui.trail }}">
+    <ol>
+      <li><a href="/{{ addresses.portfolio[e.code] }}">{{ e.ui.trail_home }}</a></li>
+      <li><a href="/{{ addresses.articles[e.code] }}" aria-current="page">{{ e.articles.heading }}</a></li>
+    </ol>
+  </nav>
 {% endfor %}
 {% endblock %}
 {% block main %}

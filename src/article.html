@@ -1,20 +1,34 @@
 {#
   Modelo da página de cada artigo (Jinja2). ci/build.py o usa para montar /en/articles/<slug>/,
   uma página por arquivo de src/articles/ (lido e conferido por ci/articles.py).
-  O <head>, o seletor de idioma e o rodapé vêm de src/layout.html, os mesmos das outras páginas.
+  O <head> e o rodapé vêm de src/layout.html, os mesmos das outras páginas.
 
   A página é inteira em inglês, inclusive o topo, o rodapé e as datas: os artigos só existem em
   inglês. Com o idioma fixo (data-lang="en"), o script de idioma não leva ninguém a outra página,
   qualquer que seja o fuso. O endereço canônico é a própria página, e não há hreflang, porque não
-  há versão em outra língua; o seletor marca EN, e PT, ES e IT levam à lista de artigos naquela
-  língua (paths, na tabela de páginas).
+  há versão em outra língua.
+
+  Navegação (Etapa 14): não há seletor de idioma, porque nada aqui se traduz, e ele levava o leitor
+  para fora do artigo. No topo, a trilha Home / Articles: Home leva à raiz, onde o script de idioma
+  escolhe a página inicial do visitante; Articles, à lista em inglês. No fim, os links para as listas
+  nos outros idiomas, cada um escrito e marcado (lang) na língua da lista a que leva.
 
   Variáveis, além das de layout.html: post, o artigo, com title, date, updated (ou None), modified
-  (updated ou date), linkedin (ou None), summary (por idioma), path e html, o corpo já transformado
-  e escapado por ci/articles.py, que entra como está.
+  (updated ou date), linkedin (ou None), summary (por idioma), path, minutes (o tempo de leitura),
+  epigraph (a epígrafe, ou None) e text (o resto do corpo), já transformados e escapados por
+  ci/articles.py, que entram como estão.
 
-  Os textos da interface ficam em [articles] de src/content/en.toml: all (o link do topo, para a
-  lista), updated e linkedin.
+  Fisionomia (Etapa 14), só com elementos que o site já tem: o frontispício ("Article" em Cinzel, o
+  título, o filete dourado do lema e, sob ele, a data e o tempo de leitura); a epígrafe, quando o
+  texto abre com uma citação, composta como a da Gratiarum actio; a capitular em Cinzel dourado, na
+  primeira letra do texto; os intertítulos, que em tela larga pendem na margem esquerda; e o fecho,
+  o filete dourado seguido dos links para as listas. Tudo isso é CSS (src/css/components.css), salvo
+  a epígrafe e o tempo de leitura, que ci/articles.py prepara.
+
+  Os textos da interface ficam em src/content/en.toml: em [ui], trail e trail_home (a trilha); em
+  [articles], kicker (acima do título), reading (o tempo de leitura), heading (o segundo passo da
+  trilha), updated, linkedin e others (o nome dos links do fim); e, em cada idioma, [articles]
+  summaries, o texto do link para a lista daquele idioma.
 #}
 {% extends 'layout.html' %}
 {% set og_type = 'article' %}
@@ -35,13 +49,27 @@
   "sameAs": {{ post.linkedin | tojson }},
 {% endif %}
   "author": { "@id": "{{ base }}#arthur" }
+  },
+  {
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": {{ editions[0].ui.trail_home | tojson }}, "item": "{{ base }}" },
+    { "@type": "ListItem", "position": 2, "name": {{ editions[0].articles.heading | tojson }}, "item": "{{ base }}{{ addresses.articles[editions[0].code] }}" },
+    { "@type": "ListItem", "position": 3, "name": {{ post.title | tojson }}, "item": "{{ page.url }}" }
+  ]
   }
 {% endblock %}
 {% block top %}
 {% for e in editions %}
-  <a class="home" href="/{{ addresses.articles[e.code] }}">{{ e.articles.all }}</a>
+  <nav class="trail" aria-label="{{ e.ui.trail }}">
+    <ol>
+      <li><a href="/">{{ e.ui.trail_home }}</a></li>
+      <li><a href="/{{ addresses.articles[e.code] }}">{{ e.articles.heading }}</a></li>
+    </ol>
+  </nav>
 {% endfor %}
 {% endblock %}
+{% block langs %}{% endblock %}
 {% block main %}
 <main id="conteudo" class="wrap" tabindex="-1">
 {% for e in editions %}
@@ -52,8 +80,9 @@
 
   <article class="post">
     <header class="hero">
+      <p class="kicker">{{ e.articles.kicker }}</p>
       <h1>{{ post.title_html }}</h1>
-      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}</p>
+      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}; {{ e.articles.reading | replace('{minutes}', post.minutes | string) }}</p>
 {% if post.linkedin %}
       <p class="meta">{{ e.articles.linkedin | replace('{linkedin}', linkedin_link(e)) | replace('{date}', time_tag(post.date, e)) }}</p>
 {% endif %}
@@ -61,8 +90,18 @@
 
     <div class="sec">
       <div class="body prose">
-{{ post.html }}
+{% if post.epigraph %}
+{{ post.epigraph }}
+{% endif %}
+{{ post.text }}
       </div>
+      <nav class="others" aria-label="{{ e.articles.others }}">
+        <ul>
+{% for o in all_editions if o.code != e.code %}
+          <li><a href="/{{ addresses.articles[o.code] }}" lang="{{ o.tag }}" hreflang="{{ o.tag }}">{{ o.articles.summaries }}</a></li>
+{% endfor %}
+        </ul>
+      </nav>
     </div>
   </article>
 </div>
