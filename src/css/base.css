@@ -41,6 +41,13 @@
     list-style: none;
   }
 
+  /* negrito: o EB Garamond semibold (600), arquivo próprio (tokens.css); sem ele, o navegador
+     pediria 700 e engrossaria a letra por conta própria */
+  strong,
+  b {
+    font-weight: 600;
+  }
+
   ::selection {
     background: var(--gold);
     color: var(--bg);

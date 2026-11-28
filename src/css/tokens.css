@@ -33,6 +33,16 @@
     src: url("/fonts/eb-garamond-400-italic.woff2") format("woff2");
   }
 
+  /* o negrito dos artigos: a mesma família, em semibold, em vez do negrito que o navegador
+     simula engrossando a letra. Só é baixado onde há texto em negrito (strong). */
+  @font-face {
+    font-family: "EB Garamond";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/eb-garamond-600.woff2") format("woff2");
+  }
+
   /* ---- Paleta e tipos herdados da capa do LinkedIn (Versão A) ---- */
   :root {
     --bg: #14181e;
