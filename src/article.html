@@ -82,7 +82,7 @@
     <header class="hero">
       <p class="kicker">{{ e.articles.kicker }}</p>
       <h1>{{ post.title_html }}</h1>
-      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}<span class="sep" aria-hidden="true"> · </span>{{ e.articles.reading | replace('{minutes}', post.minutes | string) }}</p>
+      <p class="meta">{{ time_tag(post.date, e) }}{% if post.updated %}; {{ e.articles.updated | replace('{date}', time_tag(post.updated, e)) }}{% endif %}; {{ e.articles.reading | replace('{minutes}', post.minutes | string) }}</p>
 {% if post.linkedin %}
       <p class="meta">{{ e.articles.linkedin | replace('{linkedin}', linkedin_link(e)) | replace('{date}', time_tag(post.date, e)) }}</p>
 {% endif %}

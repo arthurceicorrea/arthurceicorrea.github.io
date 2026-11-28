@@ -1209,7 +1209,7 @@ def test_article_frontispiece(name):
     """Acima do título, "Article"; sob ele, a data e o tempo de leitura."""
     hero = page(name).body.split('<header class="hero">', 1)[1].split('</header>', 1)[0]
     assert re.search(r'<p class="kicker">Article</p>\s*<h1>.*?</h1>\s*<p class="meta"><time datetime="[^"]+">[^<]+</time>'
-                     r'.*?<span class="sep" aria-hidden="true"> · </span>\d+ min read</p>', hero, flags=re.S), \
+                     r'.*?; \d+ min read</p>', hero, flags=re.S), \
         '%s: o frontispício deveria ter "Article", o título e a data com o tempo de leitura' % name
 
 
