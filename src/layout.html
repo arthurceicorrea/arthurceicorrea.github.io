@@ -17,6 +17,8 @@
                endereço), que o <head> declara; vazia num artigo, que só existe em inglês) e
                x_default (endereço da versão padrão; None num artigo)
     editions   lista de edições; cada uma tem code, tag e o conteúdo do arquivo do idioma
+    all_editions  as quatro edições, na ordem do seletor (num artigo, para os links do fim, cada um
+               escrito na língua da lista a que leva)
     languages  todos os idiomas, na ordem do seletor: code, tag e name
     updated    data da última atualização (a do último commit)
     addresses  o endereço de cada página da tabela de ci/build.py, por idioma: addresses.gratiarum.pt
@@ -35,9 +37,10 @@
              website (a privacidade e as listas de artigos, páginas sobre o site);
     published, modified  num artigo, as datas de publicação e da última mudança, que a prévia
              declara (article:published_time e article:modified_time).
-  E pode preencher dois blocos além de main: work, a obra ou página que os dados estruturados
-  (JSON-LD) listam além da pessoa (por padrão, o artigo da página inicial), e top, o que fica no
-  topo, à esquerda do seletor de idioma (por padrão, nada).
+  E pode preencher três blocos além de main: work, a obra ou página que os dados estruturados
+  (JSON-LD) listam além da pessoa (por padrão, o artigo da página inicial); top, o que fica no
+  topo, à esquerda do seletor de idioma (por padrão, nada); e langs, o próprio seletor, que o
+  artigo deixa vazio, porque só existe em inglês e nada nele se traduz.
 
   O feed dos artigos (/feed.xml) é anunciado no <head> de todas as páginas que usam esta moldura.
 
@@ -151,6 +154,7 @@
 
 <header class="wrap top" id="topo">
 {% block top %}{% endblock %}
+{% block langs %}
   <nav class="langs" aria-label="Language" data-pt="Idioma" data-en="Language" data-es="Idioma" data-it="Lingua">
     <ul>
 {% for l in languages %}
@@ -158,6 +162,7 @@
 {% endfor %}
     </ul>
   </nav>
+{% endblock %}
 </header>
 
 {% block main %}{% endblock %}

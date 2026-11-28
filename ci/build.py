@@ -260,6 +260,7 @@ def shared_context(content, day, table, posts):
         'article': posts[0], 'posts': posts, 'home_posts': posts[:HOME_ARTICLES], 'updated': day, 'time_tag': time_tag,
         'feed_title': content[DEFAULT]['articles']['feed_title'],  # o feed é um só, em inglês
         'languages': [types.SimpleNamespace(code=c, tag=t, name=NAMES[c]) for c, t in TAGS.items()],
+        'all_editions': [edition(code, content) for code in TAGS],  # num artigo, para os links do fim
         'addresses': {name: entry.paths for name, entry in table.items()},  # para os links do rodapé
     }
 

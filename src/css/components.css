@@ -431,6 +431,37 @@
     background: var(--rule);
   }
 
+  /* fecho do artigo: o filete dourado do lema, à direita, e, sob ele, os links para as listas nos
+     outros idiomas, cada um na própria língua */
+  .post .others {
+    max-width: 26em;
+    margin: 3rem 0 0 auto;
+    text-align: right;
+  }
+
+  .post .others::before {
+    content: "";
+    display: block;
+    width: 5rem;
+    height: 1px;
+    margin: 0 0 1.25rem auto;
+    background: var(--gold);
+  }
+
+  .post .others ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem 1.5rem;
+  }
+
+  .post .others a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-style: italic;
+  }
+
   @media (min-width: 36rem) {
     .facts,
     .facts.pair {

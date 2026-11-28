@@ -32,8 +32,12 @@ problem = "Problema"
 role = "Mi papel"
 see_details = "Ver detalles"
 hide_details = "Ocultar detalles"
-# Link de volta à página inicial do idioma, no topo das páginas que não são a inicial.
+# Link de volta à página inicial do idioma, no topo do agradecimento e da privacidade.
 home = "Página de inicio"
+# Trilha no topo das listas de artigos e da página de cada artigo: trail é o nome da trilha, lido
+# por leitores de tela; trail_home, o primeiro passo, a página inicial.
+trail = "Ruta de navegación"
+trail_home = "Página de inicio"
 to_top = "Volver arriba"
 
 # Seções: id é a âncora do endereço (#id), jump é o rótulo no sumário, title é o título da seção.
@@ -264,7 +268,7 @@ github_policy = "declaración de privacidad de GitHub"
 closing = "Ninguna de las dos políticas fija un plazo de conservación de esos registros. Al seguir un enlace a LinkedIn o a GitHub, usted pasa a regirse por las reglas de esos sitios. Dudas: {email}."
 
 [articles]
-# Listas de artigos (src/articles.html) e link para elas no seletor da página de cada artigo.
+# Listas de artigos (src/articles.html) e links para elas no fim da página de cada artigo.
 # Os artigos são escritos só em inglês; o resumo de cada um, no idioma da lista, fica no arquivo do artigo.
 # Endereço da lista neste idioma: /es/<path>/. Uma vez publicado, não mude.
 path = "articulos"
@@ -273,9 +277,12 @@ heading = "Artículos"
 description = "Artículos de Arthur Cei Corrêa, escritos en inglés, con el resumen de cada uno en español."
 # Frase no alto da lista: nas listas em português, espanhol e italiano. Na inglesa, vazia, não aparece.
 written_in = "Los artículos están escritos en inglés."
-# Link para a lista do idioma: no fim da seção de artigos da página inicial e, em inglês, no topo da
-# página de cada artigo.
+# Link para a lista do idioma, no fim da seção de artigos da página inicial.
 all = "Todos los artículos"
+# Link para a lista deste idioma, no fim da página de cada artigo, escrito na própria língua (o
+# artigo é em inglês, e o link, marcado com o idioma da lista). Em inglês não aparece: a trilha
+# do topo já leva à lista inglesa.
+summaries = "Resúmenes en español"
 # Linha final da seção de artigos do currículo: {url} é o endereço da lista no idioma do currículo.
 cv_line = "Escritos en inglés; todos están en {url}."
 # Link para o feed Atom, no fim da lista.
