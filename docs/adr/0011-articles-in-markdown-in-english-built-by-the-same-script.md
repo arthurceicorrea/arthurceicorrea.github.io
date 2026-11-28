@@ -1,7 +1,7 @@
 # 11. Articles in Markdown, in English, built by the same script
 
 - Status: accepted
-- Date: 2026-11-27; context corrected the same day (the first article); amended the same day (the language of a passage, and the essay leaving LinkedIn)
+- Date: 2026-11-27; context corrected the same day (the first article); amended the same day (the language of a passage, and the essay leaving LinkedIn; then, at stage 14, the article page's navigation)
 - Extends: [ADR 5](0005-jinja2-and-toml-instead-of-a-site-generator.md)
 
 ## Context
@@ -24,8 +24,8 @@ The articles are written in English only. The rest of the site, interface and pr
 
 **Articles are English only; their presentation is in four languages:**
 
-- the article page, at `/en/articles/<slug>/`, is entirely in English, including its frame, and declares no `hreflang`, since no other version exists; the language switcher there leads to the article list in each other language;
-- the article lists, at `/pt/artigos/`, `/en/articles/`, `/es/articulos/` and `/it/articoli/`, show the same articles with the interface in their language: the title in English, marked `lang="en"`, the summary in the list's language, and, in the three non-English lists, a sentence saying the articles are written in English;
+- the article page, at `/en/articles/<slug>/`, is entirely in English, including its frame, and declares no `hreflang`, since no other version exists. It has **no language switcher**, since nothing on it is translated: at the top, a breadcrumb trail, *Home / Articles*, whose *Home* leads to the root, where the language script picks the visitor's own home page, and whose *Articles* leads to the English list; at the end, links to the lists in the other three languages, each written and marked in its own language (*Resumos em português*, *Resúmenes en español*, *Riassunti in italiano*). Amended at stage 14 of [`docs/PLAN.md`](../PLAN.md): until then the switcher marked EN and led to the lists, as if it translated the article, and took the reader off it;
+- the article lists, at `/pt/artigos/`, `/en/articles/`, `/es/articulos/` and `/it/articoli/`, keep the switcher, since they exist in four languages, and have the same trail in their language, with the list marked as the current page; they show the same articles with the interface in their language: the title in English, marked `lang="en"`, the summary in the list's language, and, in the three non-English lists, a sentence saying the articles are written in English;
 - the summary is presentation, so it is required in the four languages, and the build stops if one is missing, as it does for the content files.
 
 **One Atom feed**, `/feed.xml`, with `tag:` URIs ([RFC 4151](https://www.rfc-editor.org/rfc/rfc4151)) as identifiers instead of addresses, so a future change of address does not make readers see every article again as new.
@@ -47,6 +47,7 @@ The articles are written in English only. The rest of the site, interface and pr
 - A passage in another language is written `[text]{lang=xx}`, inside the emphasis if it is italic: `*[telos]{lang=grc-Latn}*`.
 - An article cannot carry HTML of its own: tables, embeds or styled blocks would need a Markdown plugin, pinned, or a change of this record.
 - Each article must have its summary in four languages; the text itself, never.
+- A quotation that opens an article is its epigraph, set apart on the page, with its source if the last paragraph starts with an em dash; the feed keeps it as the first thing in the text. The reading time is computed by the build from the word count, at 230 words per minute, rounded up (stage 14).
 - Links in an article body may point anywhere over `https`, without the `ALLOWED_EXTERNAL` list that governs the interface, but open in the same tab and load nothing.
 - Revisit this record, and the choice of a generator, when the site needs categories, pagination or search, when articles need image processing, when the build code passes about 800 lines in all, or when an article is to be translated (it would get its own address, and only then `hreflang` and `workTranslation`).
 
