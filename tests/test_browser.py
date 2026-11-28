@@ -23,9 +23,12 @@ Serve a pasta do site localmente e confere:
   no console; idioma fixo mesmo com fuso de outro país e funcionamento sem JavaScript; a frase de
   privacidade do rodapé leva a ela no idioma da página, e o seletor, ao endereço traduzido;
 - listas de artigos (/pt/artigos/ e as outras três) e páginas dos artigos, no celular e em tela
-  larga: edição certa, seletor, fontes, nenhuma rolagem horizontal, nenhum erro no console; o artigo
-  continua em inglês com o fuso do Brasil e sem JavaScript; o seletor do artigo leva às listas, a
-  lista leva ao artigo, e a página inicial, ao artigo mais recente; um link antigo para a âncora da
+  larga: edição certa, trilha, seletor nas listas e nenhum no artigo, fontes (o negrito no EB
+  Garamond semibold), nenhuma rolagem horizontal, nenhum erro no console; o artigo continua em
+  inglês com o fuso do Brasil e sem JavaScript; os intertítulos pendem na margem sem rolagem
+  horizontal; os links do fim do artigo levam às listas, a lista leva ao artigo, a trilha do artigo
+  leva à lista em inglês e, por Home, à página inicial do visitante, a da lista leva à página
+  inicial do idioma, e a página inicial leva ao artigo mais recente; um link antigo para a âncora da
   seção de artigos no singular (#artigo) leva ao topo da página, sem erro;
 - depois de visitar todas as páginas, o navegador não tem cookie nenhum do site, e o localStorage
   está vazio: o que a página de privacidade afirma;
@@ -54,7 +57,10 @@ STATE = """() => ({
   cv: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
   jumps: [...document.querySelectorAll('.jump a[href^="#"]')].filter(a => a.offsetParent !== null).map(a => { const t = document.getElementById(a.hash.slice(1)); return !!t && t.offsetParent !== null; }),
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)
+  fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status),
+  trail: !!document.querySelector('.trail') && getComputedStyle(document.querySelector('.trail')).display !== 'none',
+  strong: [...document.querySelectorAll('main strong')].map(e => getComputedStyle(e).fontWeight),
+  semibold: [...document.fonts].filter(f => f.family.includes('Garamond') && f.weight === '600').map(f => f.status)
 })"""
 WIDTHS = {360: 740, 1440: 900}
 
@@ -658,10 +664,27 @@ def test_article_view_shows_its_edition_only(once, browser, site_url, code, path
         '/%s: idioma %r, edições %s, visível %s' % (path, s['lang'], s['editions'], s['visible'])
 
 
+def is_article(path):
+    return path.startswith('en/articles/') and path != 'en/' + ARTICLE_LISTS['en']
+
+
 @on_article_views
-def test_article_view_switcher_is_visible_and_marks_active_language(once, browser, site_url, code, path, width):
+def test_article_view_has_the_trail_and_the_right_switcher(once, browser, site_url, code, path, width):
+    """Nas listas, o seletor, com o idioma marcado; no artigo, nenhum seletor. Nas duas, a trilha."""
     s, errors = once(visit, browser, site_url, path, width)
-    assert s['current'] == [code] and s['navVisible'], '/%s: seletor visível=%s, marcado %s' % (path, s['navVisible'], s['current'])
+    switcher = ([], False) if is_article(path) else ([code], True)
+    assert (s['current'], s['navVisible']) == switcher and s['trail'], \
+        '/%s: seletor visível=%s, marcado %s, trilha visível=%s' % (path, s['navVisible'], s['current'], s['trail'])
+
+
+@on_article_views
+def test_article_view_bold_is_the_semibold_font(once, browser, site_url, code, path, width):
+    """Onde há negrito, ele é o EB Garamond semibold (600), baixado e carregado; onde não há, a fonte
+    está declarada, mas não se baixa."""
+    s, errors = once(visit, browser, site_url, path, width)
+    expected = ['loaded'] if s['strong'] else ['unloaded']  # declarada sempre; baixada só onde há negrito
+    assert all(w == '600' for w in s['strong']) and s['semibold'] == expected, \
+        '/%s: negrito com peso %s; fonte semibold %s, esperado %s' % (path, s['strong'], s['semibold'], expected)
 
 
 @on_article_views
@@ -699,21 +722,51 @@ def test_article_stays_in_english_with_the_time_zone_of_brazil(once, browser, si
 @pytest.mark.parametrize('address', published())
 def test_article_works_without_javascript(once, browser, site_url, address):
     s = once(without_javascript, browser, site_url, address.lstrip('/'))
-    assert s['lang'] == 'en' and s['visible'] == ['en'] and s['current'] == ['en'] and s['navVisible'], \
-        '%s sem JavaScript: idioma %r, edição visível %s, seletor %s' % (address, s['lang'], s['visible'], s['current'])
+    assert s['lang'] == 'en' and s['visible'] == ['en'] and s['trail'] and not s['navVisible'], \
+        '%s sem JavaScript: idioma %r, edição visível %s, trilha %s, seletor %s' % (address, s['lang'], s['visible'], s['trail'], s['navVisible'])
+
+
+def article_layout(browser, site_url, address, width):
+    """Na largura em que os intertítulos passam à margem (62rem, 992 px), a mais apertada: nada sai da tela."""
+    ctx, page = open_page(browser, site_url, address.lstrip('/'), viewport={'width': width, 'height': 900})
+    page.evaluate('document.fonts.ready')
+    state = page.evaluate("""() => ({
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      headings: [...document.querySelectorAll('.prose h2')].map(h => { const r = h.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.right)]; }),
+      float: [...document.querySelectorAll('.prose h2')].map(h => getComputedStyle(h).float)
+    })""")
+    ctx.close()
+    return state
+
+
+@pytest.mark.parametrize('address, width', [pytest.param(a, w, id='%s-%dpx' % (a.rstrip('/'), w))
+                                             for a in published() for w in (992, 1440)])
+def test_article_headings_hang_in_the_margin_without_scroll(once, browser, site_url, address, width):
+    s = once(article_layout, browser, site_url, address, width)
+    assert s['overflow'] <= 0 and all(left >= 0 for left, right in s['headings']) and set(s['float']) <= {'left'}, \
+        '%s a %d px: rolagem %d px, intertítulos em %s (float %s)' % (address, width, s['overflow'], s['headings'], s['float'])
 
 
 def article_tour(browser, site_url):
-    """Da página inicial em português ao artigo mais recente; dali, pelo seletor, à lista em espanhol; da
-    lista, pelo título, ao primeiro artigo; e, pelo link do topo, à lista em inglês."""
+    """Com o fuso e o navegador do Brasil: da página inicial em português ao artigo mais recente; dali,
+    pelo link do fim, à lista em espanhol; da lista, pelo título, ao artigo; pela trilha, à lista em
+    inglês; e, pela trilha da lista, à página inicial em inglês. Depois, de novo no artigo, pela
+    trilha, a Home: a raiz, de onde o script de idioma leva à página inicial do visitante (/pt/)."""
     errors, steps = [], {}
-    ctx, page = open_page(browser, site_url, 'pt/', errors)
-    for name, selector in (('home', 'main .t[lang="pt-BR"] a[href^="/en/articles/"]'), ('switcher', '.langs a[data-lang="es"]'),
-                           ('list', 'main .entry h2 a'), ('back', '.top .home')):
+    ctx, page = open_page(browser, site_url, 'pt/', errors, timezone_id='America/Sao_Paulo', locale='pt-BR')
+    for name, selector in (('home', 'main .t[lang="pt-BR"] a[href^="/en/articles/"]'), ('others', '.others a[lang="es"]'),
+                           ('list', 'main .entry h2 a'), ('articles', '.trail a[href="/en/articles/"]'),
+                           ('list_home', '.trail li:first-child a')):
         with page.expect_navigation():
             page.click(selector)
         page.wait_for_load_state('networkidle')
         steps[name] = page.evaluate(STATE)
+    page.goto(site_url + published_newest().lstrip('/'))
+    page.wait_for_load_state('networkidle')
+    with page.expect_navigation(url=lambda url: urlparse(url).path != '/', timeout=5000):
+        page.click('.trail a[href="/"]')
+    page.wait_for_load_state('networkidle')
+    steps['trail_home'] = page.evaluate(STATE)
     ctx.close()
     return steps, errors
 
@@ -724,10 +777,10 @@ def test_home_leads_to_the_newest_article(once, browser, site_url):
     assert s['path'] == published_newest() and s['lang'] == 'en', 'o link da seção de artigo de /pt/ levou a %s (%r)' % (s['path'], s['lang'])
 
 
-def test_article_switcher_leads_to_the_list(once, browser, site_url):
+def test_article_end_link_leads_to_the_list(once, browser, site_url):
     steps, errors = once(article_tour, browser, site_url)
-    s = steps['switcher']
-    assert s['path'] == '/es/' + ARTICLE_LISTS['es'] and s['lang'] == 'es', 'o seletor ES do artigo levou a %s (%r)' % (s['path'], s['lang'])
+    s = steps['others']
+    assert s['path'] == '/es/' + ARTICLE_LISTS['es'] and s['lang'] == 'es', 'o link do fim do artigo levou a %s (%r)' % (s['path'], s['lang'])
 
 
 def test_list_leads_to_the_article(once, browser, site_url):
@@ -736,10 +789,23 @@ def test_list_leads_to_the_article(once, browser, site_url):
     assert s['path'] == published_newest() and s['lang'] == 'en', 'o título na lista levou a %s (%r)' % (s['path'], s['lang'])
 
 
-def test_article_back_link_leads_to_the_english_list(once, browser, site_url):
+def test_article_trail_leads_to_the_english_list(once, browser, site_url):
     steps, errors = once(article_tour, browser, site_url)
-    s = steps['back']
-    assert s['path'] == '/en/' + ARTICLE_LISTS['en'] and s['lang'] == 'en', 'o link do topo levou a %s (%r)' % (s['path'], s['lang'])
+    s = steps['articles']
+    assert s['path'] == '/en/' + ARTICLE_LISTS['en'] and s['lang'] == 'en', 'Articles, na trilha, levou a %s (%r)' % (s['path'], s['lang'])
+
+
+def test_list_trail_leads_to_the_home_page_of_its_language(once, browser, site_url):
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['list_home']
+    assert s['path'] == '/en/' and s['lang'] == 'en', 'o primeiro passo da trilha de /en/%s levou a %s (%r)' % (ARTICLE_LISTS['en'], s['path'], s['lang'])
+
+
+def test_article_trail_home_leads_to_the_visitors_home_page(once, browser, site_url):
+    """Home leva à raiz, e não a /en/: o visitante cai na página inicial do seu idioma."""
+    steps, errors = once(article_tour, browser, site_url)
+    s = steps['trail_home']
+    assert s['path'] == '/pt/' and s['lang'] == 'pt-BR', 'Home, na trilha do artigo, com o fuso do Brasil, levou a %s (%r)' % (s['path'], s['lang'])
 
 
 def test_console_has_no_errors_along_the_articles(once, browser, site_url):
@@ -813,7 +879,10 @@ ERROR_STATE = """() => ({
   visible: [...document.querySelectorAll('main > .t')].filter(e => getComputedStyle(e).display !== 'none').map(e => e.lang),
   home: [...document.querySelectorAll('a.btn')].filter(e => e.offsetParent !== null).map(a => a.getAttribute('href')),
   overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-  fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status)
+  fonts: [...document.fonts].filter(f => f.status !== 'unloaded').map(f => f.status),
+  trail: !!document.querySelector('.trail') && getComputedStyle(document.querySelector('.trail')).display !== 'none',
+  strong: [...document.querySelectorAll('main strong')].map(e => getComputedStyle(e).fontWeight),
+  semibold: [...document.fonts].filter(f => f.family.includes('Garamond') && f.weight === '600').map(f => f.status)
 })"""
 
 

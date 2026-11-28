@@ -10,7 +10,9 @@ build: o nome do arquivo segue a regra do slug; o cabeçalho tem title, date e o
 nenhum vazio; a data não está no futuro. E confere que o build (ci/articles.py) recusa, com uma
 mensagem que diz o arquivo e o campo, cada problema que deve recusar (também mais de dois artigos
 marcados para o currículo), e que a página de um artigo
-publicado também no LinkedIn traz a linha "Originally published on LinkedIn".
+publicado também no LinkedIn traz a linha "Originally published on LinkedIn". Por fim, que uma
+citação que abre o texto vira a epígrafe, com a fonte, e que o tempo de leitura é o número de
+palavras dividido por 230, arredondado para cima.
 
 Uso: python -m pytest tests/test_content.py
 """
@@ -149,6 +151,41 @@ def test_build_escapes_html_written_in_an_article(tmp_path):
     html = str(found[0].html)
     assert '<script' not in html and '<b ' not in html and '<div' not in html and '&lt;script&gt;' in html
     assert 'onclick=' not in html.replace('onclick=&quot;', ''), 'um atributo on…= passou para o HTML: %s' % html
+
+
+# ---------- artigos: epígrafe e tempo de leitura ----------
+
+def test_quotation_that_opens_the_text_is_the_epigraph(tmp_path):
+    """Uma citação que abre o corpo vira a epígrafe; o último parágrafo, se começa por travessão, é a fonte."""
+    found = load_one(tmp_path, GOOD_HEADER + '> *[Sapientis est ordinare.]{lang=la}*\n>\n> — Saint Thomas Aquinas, *SCG* I, 1\n\nText.\n')[0]
+    assert str(found.epigraph) == ('<figure class="epigraph">\n<blockquote>\n<p><em><span lang="la">Sapientis est ordinare.</span></em></p>\n'
+                                   '</blockquote>\n<figcaption>— Saint Thomas Aquinas, <em>SCG</em> I, 1</figcaption>\n</figure>\n')
+    assert str(found.text) == '<p>Text.</p>\n' and '<blockquote>' in str(found.html), \
+        'o resto do corpo deveria vir sem a epígrafe, e o corpo do feed, com ela: %s' % found.text
+
+
+def test_quotation_without_source_and_quotation_later_are_not_split(tmp_path):
+    lone = load_one(tmp_path, GOOD_HEADER + '> Only a quotation.\n\nText.\n')[0]
+    later = load_one(tmp_path, GOOD_HEADER + 'Text.\n\n> A quotation.\n', 'later.md')
+    later = [a for a in later if a.slug == 'later'][0]
+    assert '<figcaption>' not in str(lone.epigraph) and '<p>Only a quotation.</p>' in str(lone.epigraph)
+    assert later.epigraph is None and '<blockquote>' in str(later.text), 'só a citação que abre o texto é epígrafe'
+
+
+# palavras por minuto, escritas aqui de novo, e não lidas de ci/articles.py
+WORDS_PER_MINUTE = 230
+
+
+@pytest.mark.parametrize('count, minutes', [(1, 1), (230, 1), (231, 2), (460, 2), (461, 3), (1766, 8)])
+def test_reading_time_is_words_divided_by_230_rounded_up(tmp_path, count, minutes):
+    found = load_one(tmp_path, GOOD_HEADER + ' '.join(['word'] * count) + '\n')[0]
+    assert (found.words, found.minutes) == (count, minutes), '%d palavras: %s min; esperado %d' % (count, found.minutes, minutes)
+
+
+def test_reading_time_counts_words_not_markup(tmp_path):
+    """Hífens e apóstrofos ficam dentro da palavra; travessões, endereços e marcação não contam."""
+    found = load_one(tmp_path, GOOD_HEADER + "It’s an [Aristotelian-Thomistic](https://example.org/a-b-c/) view — **really**.\n")[0]
+    assert found.words == 5, 'esperado 5 palavras (It’s, an, Aristotelian-Thomistic, view, really): %d' % found.words
 
 
 # ---------- artigos: a linha do LinkedIn ----------

@@ -15,12 +15,13 @@ idioma da página (na página inicial, o inglês), sem link no próprio agradeci
 mesmo, com o endereço traduzido, os links das duas políticas e o e-mail; a frase de privacidade
 do rodapé, link para ela no idioma da página; e nenhum script do site que guarde algo no navegador
 ou envie algo a outro lugar. Os artigos: os endereços publicados (tests/published.txt) existem; a
-página de cada artigo, só em inglês, sem hreflang, com o seletor levando às listas e os dados
-estruturados do artigo; as quatro listas, com cada artigo, o resumo no idioma da lista e a frase
-sobre o inglês; o feed; os links no corpo dos artigos (só https, na mesma aba, nada carregado);
+página de cada artigo, só em inglês, sem hreflang, sem seletor de idioma, com a trilha no topo
+(Home / Articles), os links do fim para as outras listas, o tempo de leitura e os dados estruturados
+do artigo e da trilha; as quatro listas, com a trilha no idioma da lista, cada artigo, o resumo no
+idioma da lista e a frase sobre o inglês; o feed; os links no corpo dos artigos (só https, na mesma aba, nada carregado);
 e, na página inicial, o artigo mais recente. O latim: todo trecho marcado com lang="la" e idêntico
 nos quatro idiomas. Toda página do sitemap.xml está na lista dos testes (PAGES). Por fim,
-robots.txt, sitemap.xml, versão publicada, a ausência de telefone nas páginas, nos currículos e no
+robots.txt, sitemap.xml, versão publicada, a fonte do negrito (EB Garamond semibold), a ausência de telefone nas páginas, nos currículos e no
 cartão de contato, e os currículos gerados: os quatro existem, trazem os textos da página no seu
 idioma (resumo, formação e experiência, projetos, competências, idiomas e o resumo do ensaio), cabem em duas
 páginas e numeram as páginas no idioma do currículo.
@@ -32,6 +33,8 @@ Uso: make build && python -m pytest tests/test_static.py
 """
 import datetime
 import functools
+import html
+import math
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -218,6 +221,17 @@ def test_local_file_exists(name, tag, attrs, line, url):
 @pytest.mark.parametrize('name, url', font_urls())
 def test_font_file_exists(name, url):
     assert os.path.isfile(helpers.local_file(url)), '%s: a folha de estilo cita %s, que não existe no site montado' % (name, url)
+
+
+def test_semibold_font_is_declared_and_exists():
+    """O negrito é o EB Garamond semibold, arquivo próprio (Etapa 14), e não um negrito simulado."""
+    css = helpers.read('assets', 'site.css')
+    face = re.search(r'@font-face\s*\{[^}]*font-family:\s*"EB Garamond";[^}]*font-weight:\s*600;[^}]*'
+                     r'src:\s*url\("/fonts/eb-garamond-600\.woff2"\)[^}]*\}', css)
+    strong = re.search(r'strong,\s*b\s*\{\s*font-weight:\s*600;', css)
+    with open(helpers.local_file('/fonts/eb-garamond-600.woff2'), 'rb') as f:
+        magic = f.read(4)
+    assert face and strong and magic == b'wOF2', 'falta o EB Garamond semibold: @font-face %s, strong %s, arquivo %r' % (bool(face), bool(strong), magic)
 
 
 @on_every_page
@@ -1131,21 +1145,72 @@ def test_article_structured_data(name):
         '%s: dados estruturados do artigo diferentes do esperado (ou a pessoa difere da página inicial): %s' % (name, got)
 
 
+def top_of(name):
+    return page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
+
+
 @on_article_pages
-def test_article_switcher_leads_to_the_lists(name):
+def test_article_has_no_language_switcher(name):
+    """Etapa 14: nada no artigo se traduz, e o seletor levava o leitor para fora dele."""
     raw = page(name).raw
-    url = '/' + name[:-len('index.html')]
-    expected = {code: '/%s/%s' % (code, ARTICLE_LISTS[code]) for code in CODES if code != 'en'}
-    missing = [code for code, href in expected.items() if ('<a href="%s" data-lang="%s"' % (href, code)) not in raw]
-    current = '<a href="%s" data-lang="en" lang="en" hreflang="en" aria-current="true">' % url
-    assert not missing and current in raw and raw.count('aria-current="true"') == 1, \
-        '%s: o seletor deveria marcar EN e levar às listas em PT, ES e IT (faltam: %s)' % (name, missing)
+    assert 'class="langs"' not in raw and 'aria-current="true"' not in raw, '%s: a página do artigo não deveria ter seletor de idioma' % name
 
 
 @on_article_pages
-def test_article_links_back_to_the_english_list(name):
-    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
-    assert '<a class="home" href="/en/articles/">' in top, '%s: falta, no topo, o link para a lista de artigos em inglês' % name
+def test_article_trail_leads_to_the_root_and_the_english_list(name):
+    """A trilha: Home leva à raiz, onde o script de idioma escolhe a página inicial do visitante;
+    Articles, à lista em inglês. A barra entre os passos é só visual (CSS)."""
+    trail = re.search(r'<nav class="trail" aria-label="([^"]+)">(.*?)</nav>', top_of(name), flags=re.S)
+    steps = re.findall(r'<li><a href="([^"]+)"([^>]*)>([^<]+)</a></li>', trail.group(2)) if trail else []
+    assert trail and trail.group(1) == 'Breadcrumb' and steps == [('/', '', 'Home'), ('/en/articles/', '', 'Articles')], \
+        '%s: no topo, a trilha deveria ser Home (/) / Articles (/en/articles/): %s' % (name, steps)
+
+
+@on_article_pages
+def test_article_ends_with_links_to_the_other_lists_in_their_languages(name):
+    end = re.search(r'<nav class="others" aria-label="Summaries in other languages">(.*?)</nav>', page(name).body, flags=re.S)
+    links = re.findall(r'<a href="([^"]+)" lang="([^"]+)" hreflang="([^"]+)">([^<]+)</a>', end.group(1)) if end else []
+    expected = [('/pt/' + ARTICLE_LISTS['pt'], 'pt-BR', 'pt-BR', 'Resumos em português'),
+                ('/es/' + ARTICLE_LISTS['es'], 'es', 'es', 'Resúmenes en español'),
+                ('/it/' + ARTICLE_LISTS['it'], 'it', 'it', 'Riassunti in italiano')]
+    assert links == expected, '%s: no fim, os links para as listas em português, espanhol e italiano, cada um na sua língua: %s' % (name, links)
+
+
+@on_article_pages
+def test_article_breadcrumb_in_structured_data(name):
+    p, header = page(name), header_of(name)
+    crumbs = [n for n in p.structured_data() or [] if n.get('@type') == 'BreadcrumbList']
+    items = [(i.get('position'), i.get('name'), i.get('item')) for i in crumbs[0]['itemListElement']] if len(crumbs) == 1 else crumbs
+    expected = [(1, 'Home', helpers.base()), (2, 'Articles', helpers.base() + 'en/articles/'),
+                (3, helpers.plain_title(header['title']), p.canonical)]
+    assert items == expected, '%s: BreadcrumbList diferente do esperado: %s' % (name, items)
+
+
+# palavras por minuto, escritas aqui de novo, e não lidas de ci/articles.py
+WORDS_PER_MINUTE = 230
+
+
+@on_article_pages
+def test_article_reading_time_matches_its_word_count(name):
+    """O tempo de leitura, sob a data, é o número de palavras do corpo (epígrafe incluída) dividido
+    por 230, arredondado para cima. A contagem aqui lê a página montada."""
+    p = page(name)
+    body = p.body.split('<div class="body prose">', 1)[1].split('<nav class="others"', 1)[0]
+    text = html.unescape(re.sub(r'<[^>]+>', ' ', body))
+    words = len(re.findall(r"\w+(?:[’'-]\w+)*", text))
+    hero = p.body.split('<header class="hero">', 1)[1].split('</header>', 1)[0]
+    found = re.search(r'(\d+) min read', hero)
+    assert found and int(found.group(1)) == max(1, math.ceil(words / WORDS_PER_MINUTE)), \
+        '%s: %d palavras; o tempo de leitura deveria ser %d min: %s' % (name, words, math.ceil(words / WORDS_PER_MINUTE), found and found.group(0))
+
+
+@on_article_pages
+def test_article_frontispiece(name):
+    """Acima do título, "Article"; sob ele, a data e o tempo de leitura."""
+    hero = page(name).body.split('<header class="hero">', 1)[1].split('</header>', 1)[0]
+    assert re.search(r'<p class="kicker">Article</p>\s*<h1>.*?</h1>\s*<p class="meta"><time datetime="[^"]+">[^<]+</time>'
+                     r'.*?<span class="sep" aria-hidden="true"> · </span>\d+ min read</p>', hero, flags=re.S), \
+        '%s: o frontispício deveria ter "Article", o título e a data com o tempo de leitura' % name
 
 
 @on_article_pages
@@ -1242,11 +1307,21 @@ def test_list_switcher_leads_to_the_same_list_in_each_language(name):
         '%s: o seletor deveria levar à lista nos quatro idiomas (faltam: %s) e marcar só %s' % (name, missing, code.upper())
 
 
+# Trilha no topo das listas, no idioma da lista; escrita aqui de novo, e não lida dos arquivos de idioma.
+TRAIL = {'pt': ('Trilha de navegação', 'Página inicial', 'Artigos'), 'en': ('Breadcrumb', 'Home', 'Articles'),
+         'es': ('Ruta de navegación', 'Página de inicio', 'Artículos'), 'it': ('Percorso di navigazione', 'Pagina iniziale', 'Articoli')}
+
+
 @on_list_pages
-def test_list_links_back_to_the_home_page_of_its_language(name):
+def test_list_trail_in_its_language_with_the_current_page(name):
+    """A trilha leva à página inicial do idioma e marca a própria lista como a página atual."""
     code = LIST_PAGES[name][0]
-    top = page(name).body.split('<header class="wrap top"', 1)[1].split('</header>', 1)[0]
-    assert ('<a class="home" href="/%s/">' % code) in top, '%s: falta, no topo, o link de volta a /%s/' % (name, code)
+    label, home, heading = TRAIL[code]
+    trail = re.search(r'<nav class="trail" aria-label="([^"]+)">(.*?)</nav>', top_of(name), flags=re.S)
+    steps = re.findall(r'<li><a href="([^"]+)"([^>]*)>([^<]+)</a></li>', trail.group(2)) if trail else []
+    expected = [('/%s/' % code, '', home), ('/%s/%s' % (code, ARTICLE_LISTS[code]), ' aria-current="page"', heading)]
+    assert trail and trail.group(1) == label and steps == expected, \
+        '%s: no topo, a trilha deveria ser %s / %s, com a lista marcada como atual: %s' % (name, home, heading, steps)
 
 
 @pytest.mark.parametrize('name, slug', [(n, s) for n in LIST_PAGES for s in helpers.article_headers()])
